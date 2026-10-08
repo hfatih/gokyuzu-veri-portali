@@ -13,9 +13,9 @@ function compile(gl, type, src) {
   return s;
 }
 
-function link(gl, frag) {
+function link(gl, frag, vert = VERT) {
   const prog = gl.createProgram();
-  gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, vert));
   gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, frag));
   gl.linkProgram(prog);
   if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
@@ -28,7 +28,8 @@ function link(gl, frag) {
 }
 
 /**
- * Sahne: { id, frag, init?(gl, view) → durum, uniforms(gl, U, params, view, durum), timeScale(params), static? }.
+ * Sahne: { id, frag, vert?, init?(gl, view, U) → durum, uniforms(gl, U, params, view, durum),
+ *   draw?(gl, params, view, durum), timeScale(params), static? }. vert ve draw verilmezse tam ekran üçgen çizilir.
  * Ortak uniform'lar (uRes, uShift, uCamPos, uTanFov, uExposure, uStars) burada atanır.
  * opts.scale: çözünürlük çarpanı, opts.stars: arka plan yıldızları. WebGL 2 yoksa null döner.
  */
@@ -64,7 +65,7 @@ export function createView(canvas, opts = {}) {
     if (!sc || !view.params) return;
     let entry = programs.get(sc.id);
     if (!entry) {
-      entry = link(gl, sc.frag);
+      entry = link(gl, sc.frag, sc.vert);
       gl.useProgram(entry.prog);
       entry.state = sc.init?.(gl, view, entry.U) ?? null;
       programs.set(sc.id, entry);
@@ -81,7 +82,8 @@ export function createView(canvas, opts = {}) {
     gl.uniform1f(U.uExposure, view.exposure);
     gl.uniform1f(U.uStars, opts.stars === false ? 0 : 1);
     sc.uniforms(gl, U, view.params, view, state);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    if (sc.draw) sc.draw(gl, view.params, view, state);
+    else gl.drawArrays(gl.TRIANGLES, 0, 3);
     view.onDraw?.();
   }
 

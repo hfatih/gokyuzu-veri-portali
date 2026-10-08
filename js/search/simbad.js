@@ -8,9 +8,9 @@ const TAP = 'https://simbad.cds.unistra.fr/simbad/sim-tap/sync';
 const TIMEOUT_MS = 6000;
 
 /** ADQL çalıştırır, satırları nesne dizisi olarak döner. Hata ya da zaman aşımında fırlatır. */
-export async function tap(adql, signal) {
+export async function tap(adql, signal, timeoutMs = TIMEOUT_MS) {
   const url = `${TAP}?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=${encodeURIComponent(adql)}`;
-  const timeout = AbortSignal.timeout(TIMEOUT_MS);
+  const timeout = AbortSignal.timeout(timeoutMs);
   const res = await fetch(url, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
   if (!res.ok) throw new Error(`SIMBAD ${res.status}`);
   const { metadata, data } = await res.json();

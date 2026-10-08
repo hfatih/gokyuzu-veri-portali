@@ -68,7 +68,7 @@ export function bolometricCorrection(teff) {
 const TYPICAL_LOGG = { V: 4.4, IV: 3.8, III: 2.5, II: 1.5, I: 0.5, VI: 4.6 };
 
 /** Anakol kütle–ışıma bağıntısının tersi (Duric 2004 parçalı yasası). */
-function massFromLuminosity(L) {
+export function massFromLuminosity(L) {
   if (L < 0.23 * 0.43 ** 2.3) return (L / 0.23) ** (1 / 2.3);
   if (L < 16) return L ** 0.25;
   if (L < 1.4 * 55 ** 3.5) return (L / 1.4) ** (1 / 3.5);

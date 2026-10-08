@@ -20,7 +20,7 @@ export function observationFigure(basic, note = '', vMag = null) {
   if (basic?.ra == null || basic?.dec == null) return '';
   const fov = fovDeg(basic);
   // Pan-STARRS daha derin ve doymaya dayanıklı ama yalnız δ > −30°'yi kapsar; güneyde DSS2
-  const ps = basic.dec > -29 && !(vMag < 8);
+  const ps = basic.dec > -29 && !(vMag != null && vMag < 8);   // null < 8 JS'te true: açık kontrol şart
   const q = new URLSearchParams({
     hips: ps ? 'CDS/P/PanSTARRS/DR1/color-z-zg-g' : 'CDS/P/DSS2/color', width: '480', height: '320', fov: fov.toFixed(4),
     projection: 'TAN', ra: String(basic.ra), dec: String(basic.dec), format: 'jpg',

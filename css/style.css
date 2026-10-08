@@ -203,3 +203,19 @@ button { font: inherit; color: inherit; }
 /* ---------- Kara delik ---------- */
 [data-kind="bh"] .v3d .chk { display: none; }
 .swatch--bh { background: radial-gradient(circle, #000 0 32%, #fff3dc 36%, #9fc2ff 48%, rgba(159,194,255,.25) 60%, transparent 72%); box-shadow: none; }
+
+/* ---------- Yıldız kümesi ---------- */
+[data-kind="cluster"] .v3d .chk, [data-kind="cluster"] .v3d .ctl--time { display: none; }
+.swatch--cluster { box-shadow: none; background:
+  radial-gradient(circle at 30% 35%, #9fc2ff 0 6%, transparent 9%), radial-gradient(circle at 62% 30%, #fff 0 5%, transparent 8%),
+  radial-gradient(circle at 48% 62%, #ffd8a8 0 6%, transparent 9%), radial-gradient(circle at 72% 66%, #cfe0ff 0 4%, transparent 7%),
+  radial-gradient(circle at 26% 70%, #fff3dc 0 4%, transparent 7%); }
+.swatch--globular { background: radial-gradient(circle, #fff3dc 0 15%, rgba(255,214,170,.6) 35%, transparent 70%); }
+.cmd { margin: 14px 0 0; }
+.cmd svg { width: 100%; height: auto; display: block; }
+.cmd__frame { fill: #05060a; stroke: var(--line); }
+.cmd__zams { fill: none; stroke: rgba(143, 214, 168, .7); stroke-width: 1.3; stroke-dasharray: 4 3; }
+.cmd__to { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.cmd__tick { fill: var(--muted); font: 9px var(--mono); }
+.cmd__axis { fill: var(--muted); font: 10px var(--mono); }
+.cmd figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }

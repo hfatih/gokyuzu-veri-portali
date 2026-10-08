@@ -27,6 +27,11 @@ import { fetchBlackHole, isBlackHoleId } from './bh/fetch.js';
 import { deriveBlackHole } from './bh/derive.js';
 import { renderBlackHoleCard, buildBlackHoleLinks } from './ui/bh-card.js';
 import { blackHoleScene } from './render/blackhole.js';
+import { clusterKind, deriveCluster } from './cluster/derive.js';
+import { fetchMembers } from './cluster/fetch.js';
+import { clusterVisualParams } from './cluster/visual.js';
+import { renderClusterCard } from './ui/cluster-card.js';
+import { clusterScene } from './render/cluster.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -156,6 +161,7 @@ async function choose(sel) {
     if (!obj || obj.basic.otype === 'Pl' || obj.basic.otype === 'Pl?') await loadPlanet(sel, obj, signal);
     else if (nebulaKind(obj.basic.otype)) loadNebula(sel, obj, signal);
     else if (isGalaxy(obj.basic.otype)) loadGalaxy(sel, obj, signal);
+    else if (clusterKind(obj.basic.otype)) await loadCluster(sel, obj, signal);
     else loadStar(sel, obj, signal);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
@@ -205,6 +211,19 @@ async function loadBlackHole(sel, signal) {
   showScene(blackHoleScene, params, 1.1, '#000', 0.12);
   cornerBtn.hidden = !mini;
   addWiki(wikipediaForQid(bh.qid, signal), (wiki) => buildBlackHoleLinks(bh, wiki));
+}
+
+async function loadCluster(sel, obj, signal) {
+  const members = await fetchMembers(obj.basic.oid, signal).catch((e) => { if (signal.aborted) throw e; return []; });
+  const b = obj.basic;
+  const cd = deriveCluster({ kind: clusterKind(b.otype), majArcmin: b.dimMaj, distances: obj.distances, members, center: b });
+  body.dataset.kind = 'cluster';
+  renderClusterCard(card, sel, obj, cd, buildLinks(obj));
+  if (members.length) {
+    showScene(clusterScene, clusterVisualParams(cd, members, b, obj.mainId), 1.1, '#fff3dc', 0.3);
+    cornerBtn.hidden = !mini;
+  } else cornerBtn.hidden = true;
+  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
 }
 
 function loadGalaxy(sel, obj, signal) {
@@ -283,7 +302,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);
