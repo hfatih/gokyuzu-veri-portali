@@ -50,3 +50,12 @@
 - **Sombrero eğikliği:** eksen oranından 56° çıkıyor (gerçek ~84°). Şişkinlik baskın türde bu yöntem
   geçersiz; eğiklik "tahmini" etiketi alıyor.
 - **Gaia bağlantısı gökada ve bulutsuda anlamsızdı.** Yalnız yıldızlarda gösteriliyor.
+
+## 2026-10-08 · Faz 5 sırasında bulunanlar
+
+- **Sgr A*'nın kütlesi "bilinmiyor" görünüyordu.** Kod doğruydu; tarayıcı önbellek başlığı olmayan
+  `units.js`'in eski sürümünü kullanıyordu. `dev/serve.py` her yanıta no-store başlığı ekliyor.
+- **Doppler asimetrisi görünmüyordu.** Disk ışınımı ton eşlemeyi doyuruyordu; çarpan 2,2'den 0,7'ye
+  indirildi.
+- **Önerilerde yanıltıcı "makale" sayısı:** SIMBAD'sız kara delikte sıralama değeri (dil bağlantısı
+  × 50) makale sayısı gibi görünüyordu; artık gösterilmiyor.

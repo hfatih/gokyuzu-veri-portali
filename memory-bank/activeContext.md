@@ -1,17 +1,15 @@
 # Aktif bağlam
 
-**2026-10-08:** Faz 4 (gökadalar) tamamlandı ve tarayıcıda doğrulandı.
+**2026-10-08:** Faz 5 (kara delikler) tamamlandı ve tarayıcıda doğrulandı.
 
-**Doğrulanan gökadalar:** M31, NGC 1300, M87, M104.
+**Doğrulanan:** Sgr A* (gölge 51,7 µas, ISCO 30,5 dk), M87* ve arama ("sagittarius a", "m87").
 
-**Kararlar:**
-- Fatih: "faz 4'ü yap".
-- Model analitik; `galaksi` projesinin N-cisim kodu kullanılmadı (çok ağır, ayrıca o projeyi okuyan
-  adım durduruldu).
+**Karar:** Fatih "diğer faza geç" dedi. `karadelik` projesini okuma izni sorusu cevapsız kaldığı için
+o projeye dokunulmadı; model sıfırdan yazıldı.
+
+**Önizleme:** `dev/serve.py` (no-store). Eski önbellek varsa `127.0.0.1:8047` kökeniyle açılabilir.
 
 **Sıradaki olası işler:**
-- Faz 5 kara delikler (`Websites/karadelik`)
-- Yayına alma
+- Yayına alma (gokyuzuveriportali): mobil faz 2–5 kontrolü, barındırmada önbellek ayarı
 - Yıldız kartında tıklanabilir gezegenler
-- Pulsar rüzgârı bulutsusu
-- Gökadada konum açısı (PA)
+- Pulsar rüzgârı bulutsusu, gökada PA, Kerr kara delik

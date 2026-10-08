@@ -48,3 +48,15 @@ Ayrıntı: [docs/specs/2026-10-08-faz3-bulutsular-design.md](../../docs/specs/20
 - **Kart:** `js/ui/galaxy-card.js`.
 
 Ayrıntı: [docs/specs/2026-10-08-faz4-gokadalar-design.md](../../docs/specs/2026-10-08-faz4-gokadalar-design.md)
+
+## 2026-10-08 · Faz 5: kara delikler
+
+- **Fizik:** `js/bh/derive.js`. Kontrolü `dev/check-bh.mjs`: EHT gölge boyutları, ISCO, Hawking,
+  gelgit, disk sıcaklığı.
+- **Veri ve arama:** `js/bh/fetch.js`, Wikidata'dan; aramada kara delik öğeleri 'bh:Q…' sayfasına gider.
+- **Görünüm:** `js/render/blackhole.js`, piksel başına Schwarzschild jeodeziği, ince disk, Doppler
+  ve kırmızıya kayma, merceklenme.
+- **Kart:** `js/ui/bh-card.js`.
+- **Geliştirme sunucusu:** `dev/serve.py` (no-store).
+
+Ayrıntı: [docs/specs/2026-10-08-faz5-karadelikler-design.md](../../docs/specs/2026-10-08-faz5-karadelikler-design.md)

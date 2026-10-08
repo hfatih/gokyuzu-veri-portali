@@ -11,13 +11,13 @@ Veri saklanmaz. Her şey SIMBAD (CDS) ve Wikidata'dan anlık alınır, tarayıc�
 ## Çalıştırma
 
 ```bash
-python -m http.server 8047
+python dev/serve.py 8047
 ```
 
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -88,6 +88,14 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
 - **Görünüm:** analitik disk (logaritmik sarmal kollar, çubuk, toz), şişkinlik ve eliptikler.
   Varsayılan bakış açısı ölçülen eğiklikten gelir.
 
+## Kara delikler (faz 5)
+
+- **Veri:** Wikidata'dan kütle, uzaklık ve koordinat (SIMBAD kara deliği ayrı cisim olarak tutmuyor).
+- **Fizik:** olay ufku, gölgenin açısal çapı (Sgr A* 51,7 µas; EHT 51,8), ISCO ve dönemi, Eddington,
+  disk sıcaklığı, Hawking, yoğunluk, olay ufkunda gelgit.
+- **Görünüm:** piksel başına Schwarzschild jeodeziği. İnce yığılma diski, Doppler ışınlanması ve
+  kütleçekimsel kırmızıya kayma, foton halkası, arka plan yıldızlarının merceklenmesi.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -105,11 +113,12 @@ js/star/     fetch (SIMBAD verisi), derive (fizik, saf), links (yönlendirme)
 js/planet/   fetch (Wikidata + ana yıldız), units, derive (saf), visual, solar, links
 js/nebula/   derive (saf), visual
 js/galaxy/   derive (saf), visual
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, observation
+js/bh/       fetch (Wikidata), derive (saf)
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Sonraki fazlar: kara delikler (`Websites/karadelik`).
+Beş faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik). Sırada yayına alma var.

@@ -16,6 +16,9 @@
 - **Gökada akışı:** `fetchObject` (morph_type, z, boyut, mesDistance) → `deriveGalaxy` →
   `galaxyVisualParams` → `galaxyScene` (durağan). `showScene(..., pitch)` ölçülen eğiklikten
   varsayılan bakış yüksekliğini ayarlar.
+- **Kara delik akışı:** `bh:Q…` kimliği → `fetchBlackHole` (Wikidata) → `deriveBlackHole` →
+  `blackHoleScene` (zaman uzak gözlemci zamanı, t·c/r_s). `body[data-kind]`: star | planet | nebula |
+  galaxy | bh | other.
 - **SIMBAD kuralları:** tablo takma adı yok, `LOWER`/`ILIKE` yok, alt sorgu yok, önek aramasında
   `ORDER BY` yok. Katalog numaraları boşluk dolgulu; `=` ve `IN` dolguyu normalleştirir, `LIKE`
   normalleştirmez.
