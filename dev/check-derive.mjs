@@ -42,6 +42,11 @@ assert.equal(betel.M, null);
 assert.ok(betel.periodDays.value > 1000, 'Betelgeuse dönme süresi binlerce gün');
 assert.ok(betel.scaleHeightKm.value > 5e5, 'Betelgeuse ölçek yüksekliği Güneşinkinin binlerce katı');
 
+// Proxima Centauri (M5.5V; plx 768,07, V 11,13, K 4,38, Teff 2883) — Boyajian+2012: R 0,154, L 0,00155
+const prox = deriveStar({ teff: 2883, plx: 768.07, plxErr: 0.03, sp: 'M5.5Ve', mags: { V: 11.13, K: 4.38 } });
+near(prox.R.value, 0.13, 0.18, 'Proxima R');
+near(prox.L.value, 0.0012, 0.002, 'Proxima L');
+
 // Paralaks yoksa uzaklık, L, R null; Teff tayf türünden tahmin edilir
 const noPlx = deriveStar({ sp: 'K0III', mags: { V: 5 } });
 assert.equal(noPlx.distancePc, null);

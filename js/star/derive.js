@@ -87,10 +87,14 @@ export function deriveStar(raw) {
   const distancePc = plxOk ? val(1000 / raw.plx, 'derived') : null;
 
   let L = null, R = null;
-  const V = raw.mags?.V;
-  if (distancePc && teff && V != null) {
-    const Mv = V - 5 * Math.log10(distancePc.value) + 5;
-    const Mbol = Mv + bolometricCorrection(teff.value);
+  // Soğuk cücelerde BC_V polinomu geçersiz (TiO bantları); K bandında BC_K neredeyse düz:
+  // 2,4 (M0) → ~3,0 (M6), Mann+ 2015 Şekil 6'ya doğrusal yaklaşım.
+  const useK = teff && teff.value < 3800 && sp?.lum === 'V' && raw.mags?.K != null;
+  const mag = useK ? raw.mags.K : raw.mags?.V;
+  if (distancePc && teff && mag != null) {
+    const M = mag - 5 * Math.log10(distancePc.value) + 5;
+    const bc = useK ? 2.4 + clamp((3800 - teff.value) / 1000, 0, 1.1) * 0.6 : bolometricCorrection(teff.value);
+    const Mbol = M + bc;
     L = val(10 ** (-0.4 * (Mbol - MBOL_SUN)), 'derived');
     R = val(Math.sqrt(L.value) / (teff.value / TSUN) ** 2, 'derived');
   }
