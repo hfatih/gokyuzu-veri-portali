@@ -17,7 +17,7 @@ python -m http.server 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -80,6 +80,14 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
 - **Görünüm:** hacimsel ışın yürütme. Emisyon çizgisi renkleri (Hα, [O III], Hβ, [S II]) dalga
   boyundan CIE ile; iyonlaşma katmanları ve toz.
 
+## Gökadalar (faz 4)
+
+- **Veri:** SIMBAD'dan Hubble türü, boyut, z ve uzaklık ölçümleri. Yakın gökadada kırmızıya kayma
+  yöntemli uzaklıklar dışlanır; ölçüm yoksa Hubble yasası (H0 = 70) kullanılır.
+- **Fizik:** eğiklik, çap, M_B, Tully–Fisher dönüş hızı, dinamik kütle, düz ΛCDM geriye bakış süresi.
+- **Görünüm:** analitik disk (logaritmik sarmal kollar, çubuk, toz), şişkinlik ve eliptikler.
+  Varsayılan bakış açısı ölçülen eğiklikten gelir.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -96,12 +104,12 @@ js/search/   variants (SIMBAD desenleri), simbad, wikidata, aliases-tr, suggest 
 js/star/     fetch (SIMBAD verisi), derive (fizik, saf), links (yönlendirme)
 js/planet/   fetch (Wikidata + ana yıldız), units, derive (saf), visual, solar, links
 js/nebula/   derive (saf), visual
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, observation
+js/galaxy/   derive (saf), visual
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Sonraki fazlar: gökadalar (`Websites/galaksi`),
-kara delikler (`Websites/karadelik`).
+Sonraki fazlar: kara delikler (`Websites/karadelik`).

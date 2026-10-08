@@ -13,6 +13,9 @@
   `nebulaScene`. Sahne durağan (`static: true`), yalnız istek üzerine çizilir.
 - **Gözlem görüntüsü:** `observationFigure(basic, note, vMag)`, her kart başlığın altında çağırır;
   koordinat yoksa boş döner.
+- **Gökada akışı:** `fetchObject` (morph_type, z, boyut, mesDistance) → `deriveGalaxy` →
+  `galaxyVisualParams` → `galaxyScene` (durağan). `showScene(..., pitch)` ölçülen eğiklikten
+  varsayılan bakış yüksekliğini ayarlar.
 - **SIMBAD kuralları:** tablo takma adı yok, `LOWER`/`ILIKE` yok, alt sorgu yok, önek aramasında
   `ORDER BY` yok. Katalog numaraları boşluk dolgulu; `=` ve `IN` dolguyu normalleştirir, `LIKE`
   normalleştirmez.

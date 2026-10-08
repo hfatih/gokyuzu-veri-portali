@@ -42,3 +42,11 @@
   gökyüzü bölgesine ve parlaklığa göre yapılıyor.
 - **CIE fonksiyonları iki kopyaydı.** `blackbodyTable` ortak `cieX/Y/Z` fonksiyonlarını kullanıyor;
   çıktı birebir aynı (3633 K → rgb(255, 203, 147)).
+
+## 2026-10-08 · Faz 4 sırasında bulunanlar
+
+- **Yakın gökada uzaklıkları:** SIMBAD'daki "redshift" yöntemli uzaklıklar yanıltıcı (M33: 4,11
+  Mpc, Sefeid 0,84). Başka ölçüm varsa dışlanıyor.
+- **Sombrero eğikliği:** eksen oranından 56° çıkıyor (gerçek ~84°). Şişkinlik baskın türde bu yöntem
+  geçersiz; eğiklik "tahmini" etiketi alıyor.
+- **Gaia bağlantısı gökada ve bulutsuda anlamsızdı.** Yalnız yıldızlarda gösteriliyor.

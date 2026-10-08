@@ -1,18 +1,17 @@
 # Aktif bağlam
 
-**2026-10-08:** Faz 3 (bulutsular ve tüm kartlara gözlem görüntüsü) tamamlandı ve tarayıcıda
-doğrulandı.
+**2026-10-08:** Faz 4 (gökadalar) tamamlandı ve tarayıcıda doğrulandı.
 
-**Doğrulanan cisimler:**
-- Bulutsular: M57, M42, M1 (Yengeç), Atbaşı, NGC 1999
-- Yeni gözlem görüntüsü: Betelgeuse ve TRAPPIST-1 e kartlarında
+**Doğrulanan gökadalar:** M31, NGC 1300, M87, M104.
 
-**Kararlar (Fatih):**
-- Faz 3'te beş bulutsu türünün hepsi.
-- Gözlem görüntüsü A seçeneği: bütün kartlara.
+**Kararlar:**
+- Fatih: "faz 4'ü yap".
+- Model analitik; `galaksi` projesinin N-cisim kodu kullanılmadı (çok ağır, ayrıca o projeyi okuyan
+  adım durduruldu).
 
 **Sıradaki olası işler:**
-- Faz 4 gökadalar (`Websites/galaksi` deneyiminden)
+- Faz 5 kara delikler (`Websites/karadelik`)
 - Yayına alma
 - Yıldız kartında tıklanabilir gezegenler
 - Pulsar rüzgârı bulutsusu
+- Gökadada konum açısı (PA)

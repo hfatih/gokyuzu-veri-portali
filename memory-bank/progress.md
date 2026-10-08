@@ -11,7 +11,8 @@
 - [ ] Yayına alma (gokyuzuveriportali alan adı)
 - [x] Faz 2: gezegenler (Güneş Sistemi + ötegezegenler, Wikidata) — 2026-10-08
 - [x] Faz 3: bulutsular + tüm kartlarda gözlem görüntüsü (CDS hips2fits) — 2026-10-08
-- [ ] Faz 4: gökadalar
+- [x] Faz 4: gökadalar (analitik model, ölçülen eğiklikle bakış) — 2026-10-08
+- [ ] Faz 5: kara delikler
 
 **Bilinen sınırlar:**
 - Sönümleme yok sayılıyor; kartta not olarak belirtiliyor.

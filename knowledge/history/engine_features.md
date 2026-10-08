@@ -38,3 +38,13 @@ Ayrıntı: [docs/specs/2026-10-08-faz2-gezegenler-design.md](../../docs/specs/20
   toz saçılması renkleri CIE'den hesaplanıyor.
 
 Ayrıntı: [docs/specs/2026-10-08-faz3-bulutsular-design.md](../../docs/specs/2026-10-08-faz3-bulutsular-design.md)
+
+## 2026-10-08 · Faz 4: gökadalar
+
+- **Fizik:** `js/galaxy/derive.js`. Kontrolü `dev/check-galaxy.mjs`: Hubble türü, uzaklık seçimi,
+  eğiklik, Tully–Fisher, ΛCDM geriye bakış.
+- **Görünüm:** `js/render/galaxy.js`. Analitik disk (sarmal kollar, çubuk, toz) ve iki parçalı
+  şişkinlik; varsayılan bakış ölçülen eğiklikten.
+- **Kart:** `js/ui/galaxy-card.js`.
+
+Ayrıntı: [docs/specs/2026-10-08-faz4-gokadalar-design.md](../../docs/specs/2026-10-08-faz4-gokadalar-design.md)
