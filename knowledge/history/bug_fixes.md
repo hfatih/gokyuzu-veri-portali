@@ -31,3 +31,14 @@
   (izleyiciye doğru) uygulanıyor.
 - **Neptün gri görünüyordu.** Güneş ışığının hafif sıcak kara cisim rengi doku ve bulut
   renklerine ikinci kez biniyordu; ışık Güneş'e beyaz dengelendi.
+
+## 2026-10-08 · Faz 3 sırasında bulunanlar
+
+- **Ters `smoothstep` kenarları:** üç shader'da 9 çağrıda edge0 > edge1 vardı; GLSL'de bu tanımsız
+  davranış. Hepsi `1.0 - smoothstep(b, a, x)` biçimine çevrildi.
+- **M1'in adı "CRAB NEB" görünüyordu.** İlk `NAME` kimliği kısaltma; artık küçük harf içeren en
+  uzun ad seçiliyor ("Crab Nebula", "Proxima Centauri").
+- **M57 gözlemi DSS2'de doymuştu, Betelgeuse Pan-STARRS'ta maskeliydi.** Tarama seçimi artık
+  gökyüzü bölgesine ve parlaklığa göre yapılıyor.
+- **CIE fonksiyonları iki kopyaydı.** `blackbodyTable` ortak `cieX/Y/Z` fonksiyonlarını kullanıyor;
+  çıktı birebir aynı (3633 K → rgb(255, 203, 147)).

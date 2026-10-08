@@ -8,7 +8,11 @@
   Sahne olarak `starScene` ya da `planetScene` takılır:
   `view.setScene(scene, params)`. Bir canvas'ın tek WebGL bağlamı olduğu için tür değişince sahne değişir.
 - **Gezegen akışı:** `fetchPlanet` (Wikidata + SIMBAD ana yıldız) → `derivePlanet` → `planetVisualParams`
-  → `planetScene`. `body[data-kind]` değeri: star | planet | other.
+  → `planetScene`. `body[data-kind]` değeri: star | planet | nebula | other.
+- **Bulutsu akışı:** `fetchObject` (boyut + `mesDistance`) → `deriveNebula` → `nebulaVisualParams` →
+  `nebulaScene`. Sahne durağan (`static: true`), yalnız istek üzerine çizilir.
+- **Gözlem görüntüsü:** `observationFigure(basic, note, vMag)`, her kart başlığın altında çağırır;
+  koordinat yoksa boş döner.
 - **SIMBAD kuralları:** tablo takma adı yok, `LOWER`/`ILIKE` yok, alt sorgu yok, önek aramasında
   `ORDER BY` yok. Katalog numaraları boşluk dolgulu; `=` ve `IN` dolguyu normalleştirir, `LIKE`
   normalleştirmez.

@@ -27,3 +27,14 @@ Ayrıntı ve tasarımdan sapmalar: [docs/specs/2026-10-08-v1-yildizlar-design.md
 - **Kart:** ölçekli yörünge şeması ve yaşanabilir bölge; ana yıldıza tek tıkla geçiş.
 
 Ayrıntı: [docs/specs/2026-10-08-faz2-gezegenler-design.md](../../docs/specs/2026-10-08-faz2-gezegenler-design.md)
+
+## 2026-10-08 · Faz 3: bulutsular ve gözlem görüntüsü
+
+- **Bulutsular:** H II, gezegenimsi, süpernova kalıntısı, yansıma ve karanlık bulutsu.
+  `js/nebula/derive.js` (kontrolü `dev/check-nebula.mjs`), `js/render/nebula.js` (hacimsel, durağan).
+- **Gözlem görüntüsü:** `js/ui/observation.js`, CDS hips2fits'ten (Pan-STARRS / DSS2) anlık kesit.
+  Yıldız, ötegezegen ve bulutsu kartlarında.
+- **Renk fonksiyonları:** `lineRgb` ve `scatteredRgb` (`render/color.js`); emisyon çizgisi ve
+  toz saçılması renkleri CIE'den hesaplanıyor.
+
+Ayrıntı: [docs/specs/2026-10-08-faz3-bulutsular-design.md](../../docs/specs/2026-10-08-faz3-bulutsular-design.md)

@@ -10,7 +10,8 @@
 - [x] TR/EN dil, mobil düzen, paylaşılabilir adres
 - [ ] Yayına alma (gokyuzuveriportali alan adı)
 - [x] Faz 2: gezegenler (Güneş Sistemi + ötegezegenler, Wikidata) — 2026-10-08
-- [ ] Faz 3: bulutsular
+- [x] Faz 3: bulutsular + tüm kartlarda gözlem görüntüsü (CDS hips2fits) — 2026-10-08
+- [ ] Faz 4: gökadalar
 
 **Bilinen sınırlar:**
 - Sönümleme yok sayılıyor; kartta not olarak belirtiliyor.

@@ -1,22 +1,18 @@
 # Aktif bağlam
 
-**2026-10-08:** Faz 2 (gezegenler) tamamlandı ve tarayıcıda doğrulandı.
+**2026-10-08:** Faz 3 (bulutsular ve tüm kartlara gözlem görüntüsü) tamamlandı ve tarayıcıda
+doğrulandı.
 
 **Doğrulanan cisimler:**
-- Güneş Sistemi: Jüpiter, Satürn (halka ve gölgeler), Dünya, Mars, Venüs, Neptün
-- Ötegezegenler: Proxima b, TRAPPIST-1 e, HD 209458 b
-- Arama ("trappist-1", "jüp") ve ana yıldıza geçiş
-- 3D panel
+- Bulutsular: M57, M42, M1 (Yengeç), Atbaşı, NGC 1999
+- Yeni gözlem görüntüsü: Betelgeuse ve TRAPPIST-1 e kartlarında
 
 **Kararlar (Fatih):**
-- Veri kaynağı Wikidata.
-- Görünüm "C" seçeneği: gaz devleri fizikten; Merkür, Dünya ve Mars NASA dokusuyla.
+- Faz 3'te beş bulutsu türünün hepsi.
+- Gözlem görüntüsü A seçeneği: bütün kartlara.
 
 **Sıradaki olası işler:**
-- Yıldız kartındaki gezegen listesini tıklanabilir yapmak
-- Faz 3 bulutsular
+- Faz 4 gökadalar (`Websites/galaksi` deneyiminden)
 - Yayına alma
-- v1'den açık kalanlar:
-  - Büyük katalog öneklerinde (`TOP 200` alfabetik) popüler bir cismin listeden kaçma riski
-  - Devler için Teff tablosu
-  - Stellarium Web ve Exoplanet Archive bağlantılarının hedef sayfada doğrulanması
+- Yıldız kartında tıklanabilir gezegenler
+- Pulsar rüzgârı bulutsusu

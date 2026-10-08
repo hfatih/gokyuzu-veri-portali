@@ -17,7 +17,8 @@ python -m http.server 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-search.mjs`.
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`,
+  `node dev/check-search.mjs`.
 
 ## Arama
 
@@ -67,18 +68,40 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
   - Satürn: halkalar ve karşılıklı gölgeler.
   - Işık ana yıldızın renginde; Proxima b kırmızımsı aydınlanır.
 
+## Bulutsular (faz 3)
+
+- **Türler:** H II, gezegenimsi, süpernova kalıntısı, yansıma, karanlık.
+- **Veri:** SIMBAD'dan açısal boyut ve `mesDistance` uzaklıkları.
+- **Fizik:**
+  - Fiziksel yarıçap.
+  - H II: iyonlaştırıcı foton akısı (Strömgren, O7V eşdeğeri).
+  - Gezegenimsi: dinamik yaş.
+  - Süpernova kalıntısı: süpürülen kütle, evre ve yalnız Sedov evresinde Sedov–Taylor yaşı.
+- **Görünüm:** hacimsel ışın yürütme. Emisyon çizgisi renkleri (Hα, [O III], Hβ, [S II]) dalga
+  boyundan CIE ile; iyonlaşma katmanları ve toz.
+
+## Gözlem görüntüsü
+
+Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
+saklanmaz):
+- Pan-STARRS DR1, δ > −29°. Renkleri g/z bantlarından, gerçek renk değil.
+- DSS2 renkli: güney gökyüzü ve parlak yıldızlar.
+
+Model ile gözlem yan yana durur.
+
 ## Yapı
 
 ```
 js/search/   variants (SIMBAD desenleri), simbad, wikidata, aliases-tr, suggest (birleştirme)
 js/star/     fetch (SIMBAD verisi), derive (fizik, saf), links (yönlendirme)
 js/planet/   fetch (Wikidata + ana yıldız), units, derive (saf), visual, solar, links
-js/render/   glview (ortak WebGL görünümü), star ve planet (sahneler), color, view3d
-js/ui/       i18n, card
+js/nebula/   derive (saf), visual
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Sonraki fazlar: bulutsular, gökadalar (`Websites/galaksi`),
+Sonraki fazlar: gökadalar (`Websites/galaksi`),
 kara delikler (`Websites/karadelik`).
