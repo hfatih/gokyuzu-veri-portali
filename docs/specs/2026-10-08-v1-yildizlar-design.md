@@ -1,6 +1,6 @@
 # Gökyüzü Veri Portalı — v1 (Yıldızlar) Tasarımı
 
-Tarih: 2026-10-08 · Durum: onay bekliyor
+Tarih: 2026-10-08 · Durum: uygulandı (sapmalar en altta)
 
 ## Amaç
 
@@ -143,3 +143,29 @@ Uygulama sırasında her URL biçimi gerçek bir yıldızla doğrulanır.
 
 Arayüz tarayıcı önizlemesiyle doğrulanır: arama, öneri sırası, kart, köşe → 3D geçişi ve
 TR/EN dil seçimi.
+
+## Uygulamada değişenler (2026-10-08)
+
+Tasarımdan sapmalar ve nedenleri:
+
+- **SIMBAD önek araması `ORDER BY` kullanmıyor.** Eşleşme az olunca sunucu tüm tabloyu tarıyor
+  (`'M 3%'` sorgusu 101 sn sürdü). Sıralama istemcide `nbref`'e göre yapılıyor, sorgular
+  `TOP 200` ile sınırlı.
+- **Katalog numaraları dolguyla aranıyor.** SIMBAD numaraları sabit genişliğe boşlukla
+  dolduruyor (`M  31`, `HD  39801`, `NGC  2168`). Yalnız harf içeren girdi `NAME …` olarak,
+  Türkçe karakterli girdi yalnız Wikidata'da ve yerel listede aranıyor.
+- **Wikidata tek bir SPARQL sorgusuyla soruluyor.** Sorgu `EntitySearch` ile P3083 süzgecini
+  birleştiriyor (~0,6 sn). `wbgetentities` ile süzmek 20 öğe için 700 KB ve 4 sn sürüyordu.
+- **Teff, log g ve [Fe/H] tüm ölçümlerin ortancası.** "En yeni kaynak" aykırı girdilere açıktı;
+  Betelgeuse için bir kaynak 4039 K ve log g 4,24 veriyor. Kartta ölçüm sayısı ve ortancaya en
+  yakın kaynak gösteriliyor.
+- **M cücelerinde (Teff < 3800 K, sınıf V) K bandı kullanılıyor.** Torres BC_V polinomu bu
+  sıcaklıkta geçersiz: Proxima için R 0,44 çıkıyordu, K bandıyla 0,158 çıkıyor (literatür 0,154).
+- **Soğuk süperdevlerde ikinci bir hücre katmanı var** (Chiavassa+ 2010). Yalnız 10 H kuralı
+  yüzlerce küçük hücre veriyordu; soğuk süperdevlerin yüzeyini ise birkaç dev hücre kaplıyor.
+- **Ton eşleme yalnız en parlak kanala uygulanıyor.** Kanal başına ACES, turuncu yıldızları
+  krem rengine kaydırıyordu.
+- **Bloom yerine analitik ışık hâlesi kullanılıyor.** Ek bir render geçişi gerekmiyor.
+- **Türkçe ad listesi 30 değil 11 kayıt.** Yalnız doğruluğundan emin olunan adlar eklendi.
+- **Güneş SIMBAD'da yok.** IAU 2015 nominal değerleri sabit olarak `fetch.js` içinde duruyor.
+- **Seçilen cisim adreste tutuluyor** (`?star=<main_id>`); bağlantı paylaşılabiliyor.
