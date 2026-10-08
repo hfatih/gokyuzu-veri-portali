@@ -18,3 +18,16 @@
   en parlak kanala uygulanıyor.
 - **`hidden` öznitelikli köşe önizlemesi görünüyordu.** `.corner { display:flex }` gizlemeyi
   eziyordu; `[hidden] { display:none !important }` eklendi.
+
+## 2026-10-08 · Faz 2 sırasında bulunanlar
+
+- **TRAPPIST-1 yarıçapı 1,99 R☉ çıktı** (doğrusu 0,12). Tayf türünde ışıklılık sınıfı yok
+  ("M7.5e"); cüce yolu tetiklenmedi ve BC_V 2475 K'e dışdeğerlendi. Sınıfı olmayan ve log g ≥ 4
+  olan soğuk yıldızlar artık K bandıyla hesaplanıyor (test eklendi).
+- **Satürn "Neptün benzeri" sınıflandı.** Ortalama yarıçapı 9,14 R⊕; tür artık kütleye de
+  bakıyor (M ≥ 50 M⊕ → gaz devi).
+- **Neptün "mini-Neptün" çıkıyordu** (3,87 R⊕ < 4). Sınır 3,5 R⊕'e çekildi.
+- **Satürn halkaları neredeyse yandan görünüyordu.** Eksen eğikliği z yerine x ekseninde
+  (izleyiciye doğru) uygulanıyor.
+- **Neptün gri görünüyordu.** Güneş ışığının hafif sıcak kara cisim rengi doku ve bulut
+  renklerine ikinci kez biniyordu; ışık Güneş'e beyaz dengelendi.
