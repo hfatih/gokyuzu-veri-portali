@@ -22,8 +22,10 @@ export function createSuggester(onUpdate, getLang) {
   async function run(q, signal) {
     const merged = new Map();
     const failed = new Set();
+    const bhSimbad = new Set();   // kara delik sayfasına dönüşen SIMBAD kayıtları (Sgr A*) bir daha eklenmez
     const add = (items, preferLabel) => {
       for (const it of items) {
+        if (bhSimbad.has(it.mainId)) continue;
         const old = merged.get(it.mainId);
         if (!old) merged.set(it.mainId, it);
         else if (preferLabel && it.label) old.label = it.label;
@@ -52,8 +54,16 @@ export function createSuggester(onUpdate, getLang) {
     }).catch((e) => { if (!signal.aborted) failed.add('simbad'); });
 
     const slow = searchWikidata(q, getLang(), signal).then(async (wd) => {
-      const looked = await lookupIds(wd.map((w) => w.simbadId), signal);
-      add(looked.map((l) => ({ ...l, label: wd.find((w) => norm(w.simbadId) === norm(l.matchedId))?.label ?? l.label })), true);
+      const looked = await lookupIds(wd.filter((w) => w.simbadId).map((w) => w.simbadId), signal);
+      const byId = (l) => wd.find((w) => w.simbadId && norm(w.simbadId) === norm(l.matchedId));
+      // Kara delikler kendi sayfasına gider ('bh:Q…'); SIMBAD kaydı varsa onun yerini alır
+      for (const w of wd.filter((x) => x.bh)) {
+        const l = looked.find((x) => byId(x) === w);
+        if (l) { bhSimbad.add(l.mainId); merged.delete(l.mainId); }
+        // ponytail: SIMBAD'sız kara delikte bilinirlik için dil bağlantısı sayısı ×50 (nbref ölçeğine kaba eşleme)
+        add([{ label: w.label ?? w.qid, mainId: 'bh:' + w.qid, otype: 'BH', sp: null, nbref: l ? l.nbref : w.links * 50, rankOnly: !l }]);
+      }
+      add(looked.filter((l) => !bhSimbad.has(l.mainId)).map((l) => ({ ...l, label: byId(l)?.label ?? l.label })), true);
     }).catch(() => { if (!signal.aborted) failed.add('wikidata'); });
 
     await fast; emit(true);

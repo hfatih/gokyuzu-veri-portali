@@ -17,17 +17,25 @@ async function sparql(query, signal) {
 
 const lit = (s) => '"' + s.replace(/["\\]/g, '\\$&').replace(/\s+/g, ' ') + '"';
 
-/** Ad araması. Dönüş: [{ label, simbadId, qid }], Wikidata'nın alaka sırasıyla. */
+/**
+ * Ad araması. SIMBAD kimliği (P3083) olan ya da kara delik sınıfında (P31/P279* Q589) olan öğeler.
+ * Dönüş: [{ label, simbadId | null, qid, bh, links }], Wikidata'nın alaka sırasıyla.
+ */
 export async function searchWikidata(q, lang, signal) {
-  const rows = await sparql(`SELECT ?item ?s ?label WHERE {
+  const rows = await sparql(`SELECT ?item ?s ?label ?bh ?links WHERE {
     SERVICE wikibase:mwapi { bd:serviceParam wikibase:api "EntitySearch"; wikibase:endpoint "www.wikidata.org";
       mwapi:search ${lit(q)}; mwapi:language "${lang}"; mwapi:limit "30".
       ?item wikibase:apiOutputItem mwapi:item. ?num wikibase:apiOrdinal true. }
-    ?item wdt:P3083 ?s.
+    OPTIONAL { ?item wdt:P3083 ?s }
+    OPTIONAL { ?item wdt:P31 ?c. ?c wdt:P279* wd:Q589. BIND(1 AS ?bh) }
+    FILTER(BOUND(?s) || BOUND(?bh))
+    OPTIONAL { ?item wikibase:sitelinks ?links }
     OPTIONAL { ?item rdfs:label ?label FILTER(lang(?label) = "${lang}") }
-  } ORDER BY ?num LIMIT 10`, signal);
-  return rows.map((r) => ({
-    label: r.label?.value, simbadId: r.s.value, qid: r.item.value.split('/').pop(),
+  } ORDER BY ?num LIMIT 12`, signal);
+  const seen = new Set();
+  return rows.filter((r) => !seen.has(r.item.value) && seen.add(r.item.value)).map((r) => ({
+    label: r.label?.value, simbadId: r.s?.value ?? null, qid: r.item.value.split('/').pop(),
+    bh: !!r.bh, links: Number(r.links?.value ?? 0),
   }));
 }
 

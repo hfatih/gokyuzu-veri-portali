@@ -23,6 +23,10 @@ import { isGalaxy, deriveGalaxy } from './galaxy/derive.js';
 import { galaxyVisualParams } from './galaxy/visual.js';
 import { renderGalaxyCard } from './ui/galaxy-card.js';
 import { galaxyScene } from './render/galaxy.js';
+import { fetchBlackHole, isBlackHoleId } from './bh/fetch.js';
+import { deriveBlackHole } from './bh/derive.js';
+import { renderBlackHoleCard, buildBlackHoleLinks } from './ui/bh-card.js';
+import { blackHoleScene } from './render/blackhole.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -77,9 +81,9 @@ function renderList({ items: next, pending, failed }) {
     li.id = `opt-${i}`; li.role = 'option'; li.className = 'opt';
     const name = document.createElement('span'); name.className = 'opt__name'; name.textContent = it.label;
     const meta = document.createElement('span'); meta.className = 'opt__meta';
-    const alt = prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
+    const alt = isBlackHoleId(it.mainId) ? it.label : prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
     meta.textContent = solar ? t('p.solar')
-      : [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) ? t('search.refs', { n: num(it.nbref, 3) }) : '']
+      : [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) && !it.rankOnly ? t('search.refs', { n: num(it.nbref, 3) }) : '']
         .filter(Boolean).join(' · ');
     li.append(name, meta);
     li.addEventListener('pointerdown', (e) => { e.preventDefault(); choose(it); });
@@ -140,6 +144,11 @@ async function choose(sel) {
   card.innerHTML = `<p class="card__loading">${t('search.loading')}</p>`;
   frameBackground();
   try {
+    if (isBlackHoleId(sel.mainId)) {
+      await loadBlackHole(sel, signal);
+      history.replaceState(null, '', `?${new URLSearchParams({ star: sel.mainId, ...(lang === 'en' ? { lang: 'en' } : {}) })}`);
+      return;
+    }
     const obj = isSolarPlanetId(sel.mainId) ? null : await fetchObject(sel.mainId, signal);
     // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
     if (sel.fromUrl && obj) sel.label = bestName(obj) ?? sel.label;
@@ -180,6 +189,22 @@ function loadStar(sel, obj, signal) {
   cornerBtn.hidden = !star || !mini;
   addWiki(wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal),
     (wiki) => buildLinks(obj, sunWiki(obj, wiki)));
+}
+
+async function loadBlackHole(sel, signal) {
+  const bh = await fetchBlackHole(sel.mainId, signal);
+  if (sel.fromUrl) sel.label = bh.label;
+  input.value = sel.label;
+  const bd = bh.massSun ? deriveBlackHole({ massSun: bh.massSun, distLy: bh.distLy }) : null;
+  body.dataset.kind = 'bh';
+  renderBlackHoleCard(card, sel, bh, bd ?? { cls: 'supermassive' }, buildBlackHoleLinks(bh));
+  // Kütle yoksa da model çizilir: görüntü r_s biriminde ölçeksizdir, yalnız zaman ölçeği ve disk sıcaklığı kütleye bağlı
+  const params = bd
+    ? { rsM: bd.rsKm.value * 1e3, tmax: bd.diskTmax.value, iscoPeriodS: bd.iscoPeriodS.value }
+    : { rsM: 1.2e10, tmax: 2e5, iscoPeriodS: 1800 };
+  showScene(blackHoleScene, params, 1.1, '#000', 0.12);
+  cornerBtn.hidden = !mini;
+  addWiki(wikipediaForQid(bh.qid, signal), (wiki) => buildBlackHoleLinks(bh, wiki));
 }
 
 function loadGalaxy(sel, obj, signal) {
@@ -258,7 +283,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

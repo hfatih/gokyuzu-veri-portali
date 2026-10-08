@@ -1,5 +1,6 @@
 // Wikidata nicelik değerlerini tek birime çevirir ve birden çok ifadeden birini seçer.
-// Hedef birimler: kütle M⊕, yarıçap R⊕, dönem gün, yarı büyük eksen AU, sıcaklık K.
+// Hedef birimler: kütle M⊕, yarıçap R⊕, dönem gün, yarı büyük eksen AU, sıcaklık K;
+// kara delikte kütle M☉, uzaklık ışık yılı, koordinat derece.
 
 const EARTH_MASS_KG = 5.9722e24, EARTH_RADIUS_KM = 6371.0, AU_KM = 1.495978707e8;
 
@@ -11,6 +12,10 @@ const FACTORS = {
   sma: { Q1811: 1, Q828224: 1 / AU_KM, Q11573: 1e-3 / AU_KM },
   rot: { Q573: 1, Q25235: 1 / 24, Q11574: 1 / 86400, Q7727: 1 / 1440 },
   unitless: { Q199: 1 },
+  // Kara delik (faz 5): kütle M☉, uzaklık ışık yılı
+  massSun: { Q180892: 1, Q11570: 1 / 1.989e30, Q613726: 1e21 / 1.989e30 },
+  distLy: { Q531: 1, Q12129: 3.26156, Q11929860: 3261.56, Q3773454: 3.26156e6, Q828224: 1 / 9.4607e12, Q1811: 1 / 63241.1 },
+  deg: { Q28390: 1 },
 };
 
 function convert(kind, amount, unit) {
