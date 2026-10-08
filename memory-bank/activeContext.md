@@ -1,15 +1,17 @@
 # Aktif bağlam
 
-**2026-10-08:** Faz 5 (kara delikler) tamamlandı ve tarayıcıda doğrulandı.
+**2026-10-09:** Faz 6 (yıldız kümeleri) tamamlandı ve tarayıcıda doğrulandı.
 
-**Doğrulanan:** Sgr A* (gölge 51,7 µas, ISCO 30,5 dk), M87* ve arama ("sagittarius a", "m87").
+**Doğrulanan kümeler:**
+- Ülker: HR diyagramı, 3D, 160 milyon yıl
+- M67: 3,0 milyar yıl
+- Hyades: 681 milyon yıl
+- h Persei: 111 milyon yıl
+- ω Cen: küresel, yaş verilmez
 
-**Karar:** Fatih "diğer faza geç" dedi. `karadelik` projesini okuma izni sorusu cevapsız kaldığı için
-o projeye dokunulmadı; model sıfırdan yazıldı.
+**Sıradaki olası fazlar:**
+- Faz 7: pulsarlar ve nötron yıldızları (ATNF, VizieR)
+- Faz 8: küçük cisimler (JPL SBDB; CORS kontrolü gerekli)
+- Faz 9: kuasarlar
 
-**Önizleme:** `dev/serve.py` (no-store). Eski önbellek varsa `127.0.0.1:8047` kökeniyle açılabilir.
-
-**Sıradaki olası işler:**
-- Yayına alma (gokyuzuveriportali): mobil faz 2–5 kontrolü, barındırmada önbellek ayarı
-- Yıldız kartında tıklanabilir gezegenler
-- Pulsar rüzgârı bulutsusu, gökada PA, Kerr kara delik
+Ayrıca yayına alma ve küçük işler.

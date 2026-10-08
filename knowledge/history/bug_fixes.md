@@ -59,3 +59,16 @@
   indirildi.
 - **Önerilerde yanıltıcı "makale" sayısı:** SIMBAD'sız kara delikte sıralama değeri (dil bağlantısı
   × 50) makale sayısı gibi görünüyordu; artık gösterilmiyor.
+
+## 2026-10-09 · Faz 6 sırasında bulunanlar
+
+- **Gözlem taraması seçimi:** `null < 8` JavaScript'te true döndüğü için parlaklık vermeyen kartlar
+  faz 3'ten beri Pan-STARRS yerine DSS2 alıyordu. Açık null kontrolü eklendi.
+- **Küme üyeleri kopyalanıyordu.** Aynı yıldız her üyelik makalesi için `h_link`'te ayrı satır.
+  Sonuç: sayımlar ~6 kat şişmişti, 3D'de çizgi deseni vardı. `DISTINCT` ve tekilleştirme eklendi.
+- **Basit doğrusal eşlik üreteci** ardışık çiftleri çizgilere diziyordu; mulberry32'ye geçildi.
+- **İlk yaş kuralı** (üçüncü en parlak anakol yıldızı) mavi başıboş ve yatay kol yıldızlarını bükülme
+  sanıyordu (M67 0,5 milyar, ω Cen 0,9 milyar yıl). Işıma fonksiyonu yürüyüşüne geçildi; küresel
+  kümede yaş verilmiyor.
+- **Kızarma:** Yok sayılınca h Persei 1,5 milyar yıl çıkıyordu. ZAMS uydurmasıyla düzeltiliyor
+  (E ≥ 0,15).

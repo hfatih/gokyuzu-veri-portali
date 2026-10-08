@@ -60,3 +60,14 @@ Ayrıntı: [docs/specs/2026-10-08-faz4-gokadalar-design.md](../../docs/specs/202
 - **Geliştirme sunucusu:** `dev/serve.py` (no-store).
 
 Ayrıntı: [docs/specs/2026-10-08-faz5-karadelikler-design.md](../../docs/specs/2026-10-08-faz5-karadelikler-design.md)
+
+## 2026-10-09 · Faz 6: yıldız kümeleri
+
+- **Fizik:** `js/cluster/derive.js`. Kontrolü `dev/check-cluster.mjs`: ZAMS, ZAMS uydurmasıyla
+  kızarma, ışıma fonksiyonundan bükülme, anakol ömrü.
+- **Üyeler:** `js/cluster/fetch.js`, SIMBAD üyeleri, tekilleştirilmiş.
+- **Görünüm:** `js/render/cluster.js`, nokta sprite'lı sahne; `glview` sahneye özel vertex shader ve
+  çizim desteği.
+- **Kart:** `js/ui/cluster-card.js`, gerçek üyelerden HR diyagramı.
+
+Ayrıntı: [docs/specs/2026-10-09-faz6-kumeler-design.md](../../docs/specs/2026-10-09-faz6-kumeler-design.md)

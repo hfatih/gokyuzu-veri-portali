@@ -17,7 +17,7 @@ python dev/serve.py 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -96,6 +96,19 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
 - **Görünüm:** piksel başına Schwarzschild jeodeziği. İnce yığılma diski, Doppler ışınlanması ve
   kütleçekimsel kırmızıya kayma, foton halkası, arka plan yıldızlarının merceklenmesi.
 
+## Yıldız kümeleri (faz 6)
+
+- **Veri:** SIMBAD'daki üyeler (tekilleştirilmiş). Gerçek B, V parlaklıklarından renk–parlaklık (HR)
+  diyagramı çizilir.
+- **Yaş:**
+  - Kızarma ZAMS uydurmasıyla bulunur.
+  - Anakol bükülmesi ışıma fonksiyonundan çıkarılır.
+  - Yaş, bükülme kütlesinin anakol ömrü: Ülker 160 milyon yıl, M67 3,0 milyar yıl, Hyades 681
+    milyon yıl.
+  - Küresel kümelerde yatay kol yüzünden yaş verilmez.
+- **Görünüm:** Üyeler gerçek gökyüzü konumlarıyla 3D nokta bulutu olarak çizilir; derinlik
+  izotropik varsayımla örneklenir.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -114,11 +127,13 @@ js/planet/   fetch (Wikidata + ana yıldız), units, derive (saf), visual, solar
 js/nebula/   derive (saf), visual
 js/galaxy/   derive (saf), visual
 js/bh/       fetch (Wikidata), derive (saf)
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, observation
+js/cluster/  fetch (SIMBAD üyeleri), derive (saf), visual
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Beş faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik). Sırada yayına alma var.
+Altı faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme). Olası sonraki fazlar: pulsarlar,
+küçük cisimler, kuasarlar; ayrıca yayına alma.
