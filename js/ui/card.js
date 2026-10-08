@@ -4,6 +4,7 @@
 import { t, num, otypeName } from './i18n.js';
 import { prettyId } from '../search/variants.js';
 import { blackbodyCss } from '../render/color.js';
+import { observationFigure } from './observation.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -67,6 +68,7 @@ export function renderCard(container, sel, obj, d, links) {
         <p class="card__sub">${esc(otype)}${alt !== sel.label ? ` · ${esc(alt)}` : ''}${obj.basic.nbref ? ` · ${t('search.refs', { n: num(obj.basic.nbref, 3) })}` : ''}</p>
       </div>
     </header>
+    ${observationFigure(obj.basic, '', obj.mags?.V)}
     ${table}
     <h3 class="card__h">${t('card.links')}</h3>
     <ul class="links" data-links>${linkItems(links)}</ul>`;

@@ -15,6 +15,10 @@ import { derivePlanet } from './planet/derive.js';
 import { planetVisualParams } from './planet/visual.js';
 import { buildPlanetLinks } from './planet/links.js';
 import { solarPlanet, isSolarPlanetId } from './planet/solar.js';
+import { nebulaKind, deriveNebula } from './nebula/derive.js';
+import { nebulaVisualParams } from './nebula/visual.js';
+import { renderNebulaCard } from './ui/nebula-card.js';
+import { nebulaScene } from './render/nebula.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -133,9 +137,10 @@ async function choose(sel) {
   try {
     const obj = isSolarPlanetId(sel.mainId) ? null : await fetchObject(sel.mainId, signal);
     // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
-    if (sel.fromUrl && obj) sel.label = [obj.mainId, ...obj.ids].find((i) => i.startsWith('NAME '))?.slice(5) ?? sel.label;
+    if (sel.fromUrl && obj) sel.label = bestName(obj) ?? sel.label;
     input.value = sel.label;
     if (!obj || obj.basic.otype === 'Pl' || obj.basic.otype === 'Pl?') await loadPlanet(sel, obj, signal);
+    else if (nebulaKind(obj.basic.otype)) loadNebula(sel, obj, signal);
     else loadStar(sel, obj, signal);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
@@ -147,6 +152,12 @@ async function choose(sel) {
   } finally {
     if (!signal.aborted) card.removeAttribute('aria-busy');
   }
+}
+
+// SIMBAD'ın "NAME …" kimliklerinden okunur olanı: küçük harf içeren ve en uzun ("CRAB NEB" değil "Crab Nebula")
+function bestName(obj) {
+  const names = [obj.mainId, ...obj.ids].filter((i) => i.startsWith('NAME ')).map((i) => i.slice(5));
+  return names.sort((a, b) => (/[a-z]/.test(b) - /[a-z]/.test(a)) || b.length - a.length)[0];
 }
 
 // Wikipedia bağlantıları ayrı gelir; gelmezse kart yine tamdır
@@ -163,6 +174,17 @@ function loadStar(sel, obj, signal) {
   cornerBtn.hidden = !star || !mini;
   addWiki(wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal),
     (wiki) => buildLinks(obj, sunWiki(obj, wiki)));
+}
+
+function loadNebula(sel, obj, signal) {
+  const b = obj.basic;
+  const nd = deriveNebula({ kind: nebulaKind(b.otype), majArcmin: b.dimMaj, minArcmin: b.dimMin, distances: obj.distances });
+  body.dataset.kind = 'nebula';
+  renderNebulaCard(card, sel, obj, nd, buildLinks(obj));
+  const vp = nebulaVisualParams(nd, obj);
+  showScene(nebulaScene, vp, 1, `rgb(${vp.ha.map((c) => Math.round(255 * c)).join(',')})`);
+  cornerBtn.hidden = !mini;
+  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
 }
 
 // Güneş Sistemi gezegeni (obj null) ya da SIMBAD'daki ötegezegen
@@ -217,7 +239,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t(body.dataset.kind === 'planet' ? 'v3d.modelPlanet' : 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

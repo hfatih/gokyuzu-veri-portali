@@ -94,7 +94,7 @@ void main() {
   // Arka plan yıldızları (dünya yönüne bağlı)
   vec3 cell = floor(rdW * 220.0), hh = hash3(cell);
   float sd = length(fract(rdW * 220.0) - 0.5 - (hh - 0.5) * 0.6);
-  vec3 col = uStars * step(0.9975, hh.x) * smoothstep(0.12, 0.0, sd) * vec3(0.8, 0.85, 1.0) * (0.3 + hh.y) * 0.6;
+  vec3 col = uStars * step(0.9975, hh.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * vec3(0.8, 0.85, 1.0) * (0.3 + hh.y) * 0.6;
 
   if (hitP) {
     vec3 p = o + d * tP;                 // birim küre

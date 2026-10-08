@@ -107,7 +107,7 @@ void main() {
     // Uzak yıldızlar: yöne bağlı seyrek noktalar (kamerayla döner, yıldızla değil)
     vec3 cell = floor(rd * 220.0), h = hash3(cell);
     float sd = length(fract(rd * 220.0) - 0.5 - (h - 0.5) * 0.6);
-    col += uStars * step(0.9975, h.x) * smoothstep(0.12, 0.0, sd) * bb(2500.0 + h.z * 15000.0).rgb * (0.3 + h.y);
+    col += uStars * step(0.9975, h.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * bb(2500.0 + h.z * 15000.0).rgb * (0.3 + h.y);
   }
   // Ton eşleme en parlak kanala uygulanır, renk tonu korunur (kanal başına ACES sarıya kaydırıyordu)
   col *= uExposure;

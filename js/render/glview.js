@@ -28,7 +28,7 @@ function link(gl, frag) {
 }
 
 /**
- * Sahne: { id, frag, init?(gl, view) → durum, uniforms(gl, U, params, view, durum), timeScale(params) }.
+ * Sahne: { id, frag, init?(gl, view) → durum, uniforms(gl, U, params, view, durum), timeScale(params), static? }.
  * Ortak uniform'lar (uRes, uShift, uCamPos, uTanFov, uExposure, uStars) burada atanır.
  * opts.scale: çözünürlük çarpanı, opts.stars: arka plan yıldızları. WebGL 2 yoksa null döner.
  */
@@ -94,7 +94,8 @@ export function createView(canvas, opts = {}) {
     schedule();
   }
   function schedule() {
-    if (!raf && visible && !document.hidden && !reduced) raf = requestAnimationFrame(frame);
+    // Durağan sahne (bulutsu) yalnız istek üzerine çizilir: kamera oynayınca ya da boyut değişince
+    if (!raf && visible && !document.hidden && !reduced && !view.scene?.static) raf = requestAnimationFrame(frame);
     if (!raf) last = 0;
   }
 

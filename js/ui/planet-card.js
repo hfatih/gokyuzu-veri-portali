@@ -5,6 +5,7 @@ import { t, num } from './i18n.js';
 import { linkItems } from './card.js';
 import { prettyId } from '../search/variants.js';
 import { blackbodyCss } from '../render/color.js';
+import { observationFigure } from './observation.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = (o) => `<span class="badge badge--${o}" title="${esc(t('how.p.' + o))}">${t('origin.' + o)}</span>`;
@@ -67,6 +68,7 @@ export function renderPlanetCard(container, sel, planet, pd, links) {
       · ${host?.teff ? `${num(host.teff, 3)} K` : ''}</p>` : ''}
     ${hz}
     ${orbitSvg(pd, host?.teff)}
+    ${planet.solar ? '' : observationFigure(host?.obj.basic, 'obs.hostNote', host?.obj.mags?.V)}
     <h3 class="card__h">${t('card.physical')}</h3>
     <dl class="props">${rows(pd, planet.props).map(([k, v, o]) => `
       <div class="props__row"><dt>${t('p.row.' + k)}</dt><dd>${esc(v)} ${o ? badge(o) : ''}</dd></div>`).join('')}

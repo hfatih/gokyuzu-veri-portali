@@ -23,7 +23,7 @@ const SUN = {
   basic: { ra: null, dec: null, plx: null, sp: 'G2V', otype: '*', rv: null, nbref: null },
   raw: { teff: 5772, logg: 4.438, feh: 0, plx: 206264806.2, plxErr: 1, sp: 'G2V', mags: { V: -26.74 }, vsini: 2.0 },
   meas: { teff: { value: 5772, n: 1, bibcode: '2016AJ....152...41P' } },
-  ids: [], planets: ['Merkür', 'Venüs', 'Dünya', 'Mars', 'Jüpiter', 'Satürn', 'Uranüs', 'Neptün'],
+  distances: [], ids: [], planets: ['Merkür', 'Venüs', 'Dünya', 'Mars', 'Jüpiter', 'Satürn', 'Uranüs', 'Neptün'],
 };
 
 /**
@@ -32,8 +32,8 @@ const SUN = {
  */
 export async function fetchObject(mainId, signal) {
   if (mainId === 'Sun') return SUN;
-  const [b] = await tap(`SELECT oid, main_id, ra, dec, plx_value, plx_err, sp_type, otype, rvz_radvel, nbref
-    FROM basic WHERE main_id = '${sqlStr(mainId)}'`, signal);
+  const [b] = await tap(`SELECT oid, main_id, ra, dec, plx_value, plx_err, sp_type, otype, rvz_radvel, nbref,
+    galdim_majaxis, galdim_minaxis, galdim_angle FROM basic WHERE main_id = '${sqlStr(mainId)}'`, signal);
   if (!b) throw new Error('not-found');
   const oid = Number(b.oid);
 
@@ -45,9 +45,10 @@ export async function fetchObject(mainId, signal) {
     tap(`SELECT filter, flux FROM flux WHERE oidref = ${oid}`, signal),
     tap(`SELECT id FROM ident WHERE oidref = ${oid}`, signal),
     tap(`SELECT TOP 50 main_id, otype FROM h_link JOIN basic ON oid=child WHERE parent = ${oid} AND otype IN ('Pl', 'Pl?')`, signal),
+    tap(`SELECT dist, unit, method, bibcode FROM mesDistance WHERE oidref = ${oid}`, signal),
   ]);
   if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
-  const [fe, rot, flux, ids, kids] = settled.map((s) => (s.status === 'fulfilled' ? s.value : []));
+  const [fe, rot, flux, ids, kids, dists] = settled.map((s) => (s.status === 'fulfilled' ? s.value : []));
 
   const meas = {
     teff: summarize(fe, 'teff'), logg: summarize(fe, 'log_g'), feh: summarize(fe, 'fe_h'),
@@ -56,7 +57,11 @@ export async function fetchObject(mainId, signal) {
   const mags = Object.fromEntries(flux.map((f) => [f.filter, f.flux]));
   return {
     mainId: b.main_id,
-    basic: { oid, ra: b.ra, dec: b.dec, plx: b.plx_value, sp: b.sp_type, otype: b.otype, rv: b.rvz_radvel, nbref: b.nbref },
+    basic: {
+      oid, ra: b.ra, dec: b.dec, plx: b.plx_value, sp: b.sp_type, otype: b.otype, rv: b.rvz_radvel, nbref: b.nbref,
+      dimMaj: b.galdim_majaxis, dimMin: b.galdim_minaxis, dimAngle: b.galdim_angle,   // açısal boyut, yay dakikası
+    },
+    distances: dists,
     raw: {
       teff: meas.teff?.value, logg: meas.logg?.value, feh: meas.feh?.value,
       plx: b.plx_value, plxErr: b.plx_err, sp: b.sp_type, mags, vsini: meas.vsini?.value,
