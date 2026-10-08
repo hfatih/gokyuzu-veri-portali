@@ -149,6 +149,11 @@ export function starVisualParams(d) {
     radiusRsun: R,
     granScale: H ? clamp(2 * Math.PI * R * RSUN_KM / (10 * H), 3, 1e5) : 300,
     granContrast: clamp((8000 - teff) / 1500, 0, 1),
+    // ΔT/T: Güneş'te ~%4 (granül/şerit parlaklık farkı ~%15); kırmızı süperdevlerin
+    // benzetimlerinde çok daha yüksek (Chiavassa+ 2011), yaklaşık 3 kat alınır
+    granAmp: giant ? 0.03 : 0.04,
+    // Dev konveksiyon hücreleri yalnız soğuk süperdev/devlerde (log g < 1, Teff < 5000 K)
+    giantCellAmp: (d.logg?.value ?? 4.4) < 1 && teff < 5000 ? 0.1 : 0,
     granLifeSec: H ? 28 * H / cs : 480,
     spots: giant ? 0 : clamp((6000 - teff) / 1000, 0, 1) * clamp(vEq / 20, 0.15, 1),
     oblateness: d.oblateness?.value ?? 0,

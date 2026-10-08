@@ -37,13 +37,17 @@ export async function fetchObject(mainId, signal) {
   if (!b) throw new Error('not-found');
   const oid = Number(b.oid);
 
-  const [fe, rot, flux, ids, kids] = await Promise.all([
+  // Biri zaman aşımına uğrarsa kart yine eldeki veriyle çizilir. Gökadalarda binlerce alt
+  // cisim olduğu için h_link sorgusu gezegenlerle sınırlı (süzgeçsiz hali 6 sn'yi aşıyor).
+  const settled = await Promise.allSettled([
     tap(`SELECT teff, log_g, fe_h, bibcode FROM mesFe_H WHERE oidref = ${oid}`, signal),
     tap(`SELECT vsini, bibcode FROM mesRot WHERE oidref = ${oid}`, signal),
     tap(`SELECT filter, flux FROM flux WHERE oidref = ${oid}`, signal),
     tap(`SELECT id FROM ident WHERE oidref = ${oid}`, signal),
-    tap(`SELECT main_id, otype FROM h_link JOIN basic ON oid=child WHERE parent = ${oid}`, signal),
+    tap(`SELECT TOP 50 main_id, otype FROM h_link JOIN basic ON oid=child WHERE parent = ${oid} AND otype IN ('Pl', 'Pl?')`, signal),
   ]);
+  if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
+  const [fe, rot, flux, ids, kids] = settled.map((s) => (s.status === 'fulfilled' ? s.value : []));
 
   const meas = {
     teff: summarize(fe, 'teff'), logg: summarize(fe, 'log_g'), feh: summarize(fe, 'fe_h'),
@@ -59,7 +63,7 @@ export async function fetchObject(mainId, signal) {
     },
     meas, mags,
     ids: ids.map((r) => r.id),
-    planets: kids.filter((k) => k.otype === 'Pl' || k.otype === 'Pl?').map((k) => k.main_id),
+    planets: kids.map((k) => k.main_id),
   };
 }
 
