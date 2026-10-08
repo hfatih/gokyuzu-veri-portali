@@ -66,6 +66,12 @@ export function likeVariants(q) {
       const name = cat[1].toUpperCase(), num = cat[2];
       for (let len = num.length; len <= w; len++) out.like.add(`${name} ${' '.repeat(w - len)}${num}`);
     }
+    // Tireli gezegen/yıldız adları: "trappist-1 e" → "TRAPPIST-1 e", "kepler-452" → "Kepler-452"
+    const dash = /^([A-Za-z]+)-(\d.*)$/.exec(t);
+    if (dash) {
+      out.like.add(`${dash[1].toUpperCase()}-${dash[2]}`);
+      out.like.add(`${titleCase(dash[1].toLowerCase())}-${dash[2]}`);
+    }
     const gaia = /^gaia\s*dr3\s*(\d+)$/i.exec(t);
     if (gaia) out.like.add(`Gaia DR3 ${gaia[1]}`);
   }

@@ -162,3 +162,20 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Gezegen kartı ---------- */
+[data-kind="planet"] .v3d .chk { display: none; }
+.swatch--planet { background: radial-gradient(circle at 35% 35%, var(--planet, #c8b8a0), #000 120%); box-shadow: none; }
+.host { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.host__btn { padding: 0; background: none; border: 0; border-bottom: 1px dashed rgba(255,179,102,.6); color: var(--title); cursor: pointer; font: inherit; }
+.host__btn:hover { color: var(--accent); }
+.hz { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.hz--in { color: var(--measured); }
+.orbit { margin: 14px 0 0; }
+.orbit svg { width: 100%; height: auto; display: block; }
+.orbit__hz { fill: rgba(143, 214, 168, .16); stroke: rgba(143, 214, 168, .4); stroke-width: 1; }
+.orbit__path { stroke: var(--fg); stroke-width: 1.5; opacity: .5; }
+.orbit__planet { fill: var(--title); }
+.orbit__scale { stroke: var(--muted); stroke-width: 1; }
+.orbit__label { fill: var(--muted); font: 10px var(--mono); }
+.orbit figcaption { font-size: 12px; color: var(--muted); margin-top: 2px; }

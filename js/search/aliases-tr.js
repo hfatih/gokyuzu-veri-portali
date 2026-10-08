@@ -12,6 +12,15 @@ const ALIASES = [
   { label: 'Güneş', simbadId: 'Sun' },
   { label: 'Sun', simbadId: 'Sun' },
   { label: 'Andromeda Gökadası', simbadId: 'M 31' },
+  // Güneş Sistemi gezegenleri SIMBAD'da yok; kimlik Wikidata öğesi (planet/solar.js)
+  { label: 'Merkür', simbadId: 'planet:Q308' }, { label: 'Mercury', simbadId: 'planet:Q308' },
+  { label: 'Venüs', simbadId: 'planet:Q313' }, { label: 'Venus', simbadId: 'planet:Q313' },
+  { label: 'Dünya', simbadId: 'planet:Q2' }, { label: 'Earth', simbadId: 'planet:Q2' },
+  { label: 'Mars', simbadId: 'planet:Q111' },
+  { label: 'Jüpiter', simbadId: 'planet:Q319' }, { label: 'Jupiter', simbadId: 'planet:Q319' },
+  { label: 'Satürn', simbadId: 'planet:Q193' }, { label: 'Saturn', simbadId: 'planet:Q193' },
+  { label: 'Uranüs', simbadId: 'planet:Q324' }, { label: 'Uranus', simbadId: 'planet:Q324' },
+  { label: 'Neptün', simbadId: 'planet:Q332' }, { label: 'Neptune', simbadId: 'planet:Q332' },
   { label: 'Yengeç Bulutsusu', simbadId: 'M 1' },
   { label: 'Orion Bulutsusu', simbadId: 'M 42' },
 ];

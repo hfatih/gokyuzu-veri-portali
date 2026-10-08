@@ -89,7 +89,9 @@ export function deriveStar(raw) {
   let L = null, R = null;
   // Soğuk cücelerde BC_V polinomu geçersiz (TiO bantları); K bandında BC_K neredeyse düz:
   // 2,4 (M0) → ~3,0 (M6), Mann+ 2015 Şekil 6'ya doğrusal yaklaşım.
-  const useK = teff && teff.value < 3800 && sp?.lum === 'V' && raw.mags?.K != null;
+  // Işıklılık sınıfı yazılmamış soğuk yıldızlar ("M7.5e") log g ≥ 4 ise cüce sayılır
+  const dwarf = sp?.lum === 'V' || (!sp?.lum && raw.logg != null && raw.logg >= 4);
+  const useK = teff && teff.value < 3800 && dwarf && raw.mags?.K != null;
   const mag = useK ? raw.mags.K : raw.mags?.V;
   if (distancePc && teff && mag != null) {
     const M = mag - 5 * Math.log10(distancePc.value) + 5;

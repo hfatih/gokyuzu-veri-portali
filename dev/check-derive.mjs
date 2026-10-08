@@ -47,6 +47,11 @@ const prox = deriveStar({ teff: 2883, plx: 768.07, plxErr: 0.03, sp: 'M5.5Ve', m
 near(prox.R.value, 0.13, 0.18, 'Proxima R');
 near(prox.L.value, 0.0012, 0.002, 'Proxima L');
 
+// TRAPPIST-1: tayf türünde ışıklılık sınıfı yok ("M7.5e"), log g 5,1 → yine cüce yolu (K bandı)
+// Agol+ 2021: R 0,119, L 0,00055
+const trap = deriveStar({ teff: 2475, logg: 5.105, plx: 80.2123, plxErr: 0.07, sp: 'M7.5e', mags: { V: 18.798, K: 10.296 } });
+near(trap.R.value, 0.1, 0.14, 'TRAPPIST-1 R');
+
 // Paralaks yoksa uzaklık, L, R null; Teff tayf türünden tahmin edilir
 const noPlx = deriveStar({ sp: 'K0III', mags: { V: 5 } });
 assert.equal(noPlx.distancePc, null);

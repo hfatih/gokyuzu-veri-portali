@@ -40,3 +40,13 @@ export async function wikipediaFor(simbadIds, signal) {
   for (const r of rows) out[r.a.value.includes('//tr.') ? 'tr' : 'en'] ??= r.a.value;
   return out;
 }
+
+/** Wikidata öğesinden Wikipedia TR/EN adresleri (Güneş Sistemi gezegenleri gibi SIMBAD'sız cisimler). */
+export async function wikipediaForQid(qid, signal) {
+  if (!/^Q\d+$/.test(qid ?? '')) return {};
+  const rows = await sparql(`SELECT ?a WHERE { ?a schema:about wd:${qid}; schema:isPartOf ?w.
+    VALUES ?w { <https://tr.wikipedia.org/> <https://en.wikipedia.org/> } }`, signal);
+  const out = {};
+  for (const r of rows) out[r.a.value.includes('//tr.') ? 'tr' : 'en'] ??= r.a.value;
+  return out;
+}

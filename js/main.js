@@ -3,13 +3,21 @@
 
 import { t, lang, otypeName, num, applyStatic } from './ui/i18n.js';
 import { createSuggester, SUN_ITEM } from './search/suggest.js';
-import { wikipediaFor } from './search/wikidata.js';
+import { wikipediaFor, wikipediaForQid } from './search/wikidata.js';
 import { prettyId } from './search/variants.js';
 import { fetchObject, isStar } from './star/fetch.js';
 import { deriveStar, starVisualParams } from './star/derive.js';
 import { buildLinks } from './star/links.js';
 import { renderCard, linkItems } from './ui/card.js';
-import { createStarRenderer } from './render/star.js';
+import { renderPlanetCard } from './ui/planet-card.js';
+import { fetchPlanet } from './planet/fetch.js';
+import { derivePlanet } from './planet/derive.js';
+import { planetVisualParams } from './planet/visual.js';
+import { buildPlanetLinks } from './planet/links.js';
+import { solarPlanet, isSolarPlanetId } from './planet/solar.js';
+import { createView } from './render/glview.js';
+import { starScene } from './render/star.js';
+import { planetScene } from './render/planet.js';
 import { attachOrbitControls } from './render/view3d.js';
 import { blackbodyCss } from './render/color.js';
 
@@ -23,15 +31,18 @@ document.title = t('title');
 $('#lang').textContent = t('lang.switch');
 
 // ---------- Çiziciler ----------
-const bg = createStarRenderer(bgCanvas, { scale: 0.75 });
-const mini = createStarRenderer(miniCanvas, { stars: false });
+const bg = createView(bgCanvas, { scale: 0.75 });
+const mini = createView(miniCanvas, { stars: false });
 if (!bg) { body.classList.add('nowebgl'); $('#nowebgl').textContent = t('nowebgl'); }
+let extent = 1;   // cismin kadrajdaki boyu (halkalı gezegende halka dış yarıçapı)
 
-function showStar(params) {
-  if (bg) bg.setStar(params);
-  if (mini) { mini.cam.dist = 2.9; mini.setStar(params); }
-  $('#fallback').style.setProperty('--star', blackbodyCss(params.teff));
+function showScene(scene, params, size, fallbackCss) {
+  extent = size;
+  if (bg) { bg.setScene(scene, params); frameBackground(); }
+  if (mini) { mini.cam.dist = 2.9 * size; mini.setScene(scene, params); }
+  $('#fallback').style.setProperty('--star', fallbackCss);
 }
+const showStar = (params) => showScene(starScene, params, 1, blackbodyCss(params.teff));
 
 // Arka plan kadrajı duruma ve ekran oranına göre
 function frameBackground() {
@@ -39,8 +50,8 @@ function frameBackground() {
   const wide = innerWidth / innerHeight > 1.1, state = body.dataset.state;
   if (state === 'home') Object.assign(bg.cam, { dist: 2.6, pitch: 0.18 }), (bg.shift = [0, -1.55]);
   // Dar ekranda yıldız üstte, ekran genişliğinin ~%80'i (uv birimi ekran yüksekliğine göre)
-  else if (state === 'object') Object.assign(bg.cam, { dist: wide ? 3.0 : 8, pitch: 0.25 }), (bg.shift = wide ? [0.95, 0] : [0, 0.55]);
-  else Object.assign(bg.cam, { dist: 3.2, pitch: 0.25 }), (bg.shift = [0, 0]);
+  else if (state === 'object') Object.assign(bg.cam, { dist: (wide ? 3.0 : 8) * extent, pitch: 0.25 }), (bg.shift = wide ? [0.95, 0] : [0, 0.55]);
+  else Object.assign(bg.cam, { dist: 3.2 * extent, pitch: 0.25 }), (bg.shift = [0, 0]);
   bg.redraw();
 }
 addEventListener('resize', frameBackground);
@@ -57,9 +68,10 @@ function renderList({ items: next, pending, failed }) {
     li.id = `opt-${i}`; li.role = 'option'; li.className = 'opt';
     const name = document.createElement('span'); name.className = 'opt__name'; name.textContent = it.label;
     const meta = document.createElement('span'); meta.className = 'opt__meta';
-    const alt = prettyId(it.mainId);
-    meta.textContent = [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) ? t('search.refs', { n: num(it.nbref, 3) }) : '']
-      .filter(Boolean).join(' · ');
+    const alt = prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
+    meta.textContent = solar ? t('p.solar')
+      : [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) ? t('search.refs', { n: num(it.nbref, 3) }) : '']
+        .filter(Boolean).join(' · ');
     li.append(name, meta);
     li.addEventListener('pointerdown', (e) => { e.preventDefault(); choose(it); });
     list.append(li);
@@ -119,23 +131,15 @@ async function choose(sel) {
   card.innerHTML = `<p class="card__loading">${t('search.loading')}</p>`;
   frameBackground();
   try {
-    const obj = await fetchObject(sel.mainId, signal);
-    const star = isStar(obj.basic.otype);
-    const d = star ? deriveStar(obj.raw) : null;
-    body.dataset.kind = star ? 'star' : 'other';
+    const obj = isSolarPlanetId(sel.mainId) ? null : await fetchObject(sel.mainId, signal);
     // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
-    if (sel.fromUrl) sel.label = [obj.mainId, ...obj.ids].find((i) => i.startsWith('NAME '))?.slice(5) ?? sel.label;
+    if (sel.fromUrl && obj) sel.label = [obj.mainId, ...obj.ids].find((i) => i.startsWith('NAME '))?.slice(5) ?? sel.label;
     input.value = sel.label;
-    renderCard(card, sel, obj, d, buildLinks(obj));
-    if (star) showStar(starVisualParams(d));
-    cornerBtn.hidden = !star || !mini;
-    const q = new URLSearchParams({ star: obj.mainId });
+    if (!obj || obj.basic.otype === 'Pl' || obj.basic.otype === 'Pl?') await loadPlanet(sel, obj, signal);
+    else loadStar(sel, obj, signal);
+    const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
     history.replaceState(null, '', `?${q}`);
-    // Wikipedia bağlantıları ayrı gelir; gelmezse kart yine tamdır
-    wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal)
-      .then((wiki) => { const ul = card.querySelector('[data-links]'); if (ul) ul.innerHTML = linkItems(buildLinks(obj, sunWiki(obj, wiki))); })
-      .catch(() => {});
   } catch (e) {
     if (signal.aborted) return;
     card.innerHTML = `<p class="note">${t(e.message === 'not-found' ? 'load.notFound' : 'load.fail')}</p>`;
@@ -143,6 +147,38 @@ async function choose(sel) {
   } finally {
     if (!signal.aborted) card.removeAttribute('aria-busy');
   }
+}
+
+// Wikipedia bağlantıları ayrı gelir; gelmezse kart yine tamdır
+function addWiki(promise, build) {
+  promise.then((wiki) => { const ul = card.querySelector('[data-links]'); if (ul) ul.innerHTML = linkItems(build(wiki)); }).catch(() => {});
+}
+
+function loadStar(sel, obj, signal) {
+  const star = isStar(obj.basic.otype);
+  const d = star ? deriveStar(obj.raw) : null;
+  body.dataset.kind = star ? 'star' : 'other';
+  renderCard(card, sel, obj, d, buildLinks(obj));
+  if (star) showStar(starVisualParams(d));
+  cornerBtn.hidden = !star || !mini;
+  addWiki(wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal),
+    (wiki) => buildLinks(obj, sunWiki(obj, wiki)));
+}
+
+// Güneş Sistemi gezegeni (obj null) ya da SIMBAD'daki ötegezegen
+async function loadPlanet(sel, obj, signal) {
+  const planet = await fetchPlanet(sel.mainId, obj, signal);
+  if (sel.fromUrl && planet.solar) sel.label = planet.solar[lang];
+  input.value = sel.label;
+  const pd = derivePlanet(planet.props, planet.host && { teff: planet.host.teff, R: planet.host.R, L: planet.host.L });
+  body.dataset.kind = 'planet';
+  renderPlanetCard(card, sel, planet, pd, buildPlanetLinks(planet, obj));
+  const vp = planetVisualParams(pd, planet.solar, planet.host?.teff);
+  showScene(planetScene, vp, vp.ring ? vp.ring.outer * 1.05 : 1, `rgb(${vp.zone.map((c) => Math.round(255 * c ** (1 / 2.2))).join(',')})`);
+  card.querySelector('.swatch--planet')?.style.setProperty('--planet', $('#fallback').style.getPropertyValue('--star'));
+  card.querySelector('[data-host]')?.addEventListener('click', (e) => choose({ label: e.target.textContent, mainId: e.target.dataset.host, otype: null }));
+  cornerBtn.hidden = !mini;
+  addWiki(wikipediaForQid(planet.qid, signal), (wiki) => buildPlanetLinks(planet, obj, wiki));
 }
 
 // Güneş SIMBAD'da olmadığından Wikipedia adresi sabit
@@ -181,6 +217,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
+  $('.v3d__model').textContent = t(body.dataset.kind === 'planet' ? 'v3d.modelPlanet' : 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

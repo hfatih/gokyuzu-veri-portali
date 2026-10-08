@@ -56,7 +56,7 @@ export async function fetchObject(mainId, signal) {
   const mags = Object.fromEntries(flux.map((f) => [f.filter, f.flux]));
   return {
     mainId: b.main_id,
-    basic: { ra: b.ra, dec: b.dec, plx: b.plx_value, sp: b.sp_type, otype: b.otype, rv: b.rvz_radvel, nbref: b.nbref },
+    basic: { oid, ra: b.ra, dec: b.dec, plx: b.plx_value, sp: b.sp_type, otype: b.otype, rv: b.rvz_radvel, nbref: b.nbref },
     raw: {
       teff: meas.teff?.value, logg: meas.logg?.value, feh: meas.feh?.value,
       plx: b.plx_value, plxErr: b.plx_err, sp: b.sp_type, mags, vsini: meas.vsini?.value,

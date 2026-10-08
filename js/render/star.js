@@ -1,12 +1,9 @@
-// WebGL 2 yıldız çizici. Tek tam ekran üçgen; yüzey piksel başına ışın–elipsoit kesişimiyle
-// bulunur. Arka plan, köşe önizlemesi ve 3D görünüm aynı çiziciyi farklı kamerayla kullanır.
+// Yıldız sahnesi (glview.js üzerinde). Yüzey piksel başına ışın–elipsoit kesişimiyle bulunur.
+// Arka plan, köşe önizlemesi ve 3D görünüm aynı sahneyi farklı kamerayla kullanır.
 
 import { blackbodyTable } from './color.js';
 
 const BB_N = 256, BB_TMIN = 1500, BB_TMAX = 60000;
-
-const VERT = `#version 300 es
-void main() { vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2); gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
 
 const FRAG = `#version 300 es
 precision highp float;
@@ -119,119 +116,44 @@ void main() {
   outColor = vec4(pow(col, vec3(1.0 / 2.2)), 1.0);
 }`;
 
-function compile(gl, type, src) {
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src);
-  gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-  return s;
-}
-
 let BB_CACHE = null;
 
+/** Kara cisim tablosu (yıldız ve gezegen sahneleri ortak kullanır). */
+export const blackbody = () => (BB_CACHE ??= blackbodyTable(BB_N, BB_TMIN, BB_TMAX));
+
 /**
- * canvas üzerinde yıldız çizer. opts.scale: çözünürlük çarpanı, opts.stars: arka plan yıldızları.
- * Dönüş: { setStar(params), cam, shift, timeScale, redraw(), destroy() } ya da WebGL 2 yoksa null.
- * params: starVisualParams() çıktısı (derive.js).
+ * Yıldız sahnesi (glview.js). params: starVisualParams() çıktısı (derive.js).
+ * Varsayılan zaman hızı: bir granül ömrü ~4 sn sürer.
  */
-export function createStarRenderer(canvas, opts = {}) {
-  const gl = canvas.getContext('webgl2', { antialias: false, premultipliedAlpha: false });
-  if (!gl) return null;
-  const prog = gl.createProgram();
-  gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT));
-  gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FRAG));
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-  gl.useProgram(prog);
-  const U = {};
-  for (let i = 0, n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS); i < n; i++) {
-    const name = gl.getActiveUniform(prog, i).name;
-    U[name] = gl.getUniformLocation(prog, name);
-  }
-
-  BB_CACHE ??= blackbodyTable(BB_N, BB_TMIN, BB_TMAX);
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, BB_N, 1, 0, gl.RGBA, gl.FLOAT, BB_CACHE.data);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.uniform2f(U.uBBRange, Math.log(BB_TMIN), Math.log(BB_TMAX));
-  gl.uniform1i(U.uBB, 0);
-
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const self = {
-    cam: { yaw: 0.6, pitch: 0.25, dist: 3.2 },
-    shift: [0, 0],
-    timeScale: 120,          // yıldız saniyesi / gerçek saniye
-    exposure: 0.85,
-    scale: opts.scale ?? 1,  // çözünürlük çarpanı; arka planda düşük, 3D'de tam
-    granulation: true,
-    spots: true,
-    params: null,
-    t: 0,
-  };
-  let visible = true, raf = 0, last = 0;
-
-  function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2) * self.scale;
-    const w = Math.max(1, Math.round(canvas.clientWidth * dpr)), h = Math.max(1, Math.round(canvas.clientHeight * dpr));
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-  }
-
-  function draw() {
-    const p = self.params;
-    if (!p) return;
-    resize();
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    const { yaw, pitch, dist } = self.cam;
-    gl.uniform2f(U.uRes, canvas.width, canvas.height);
-    gl.uniform2f(U.uShift, self.shift[0], self.shift[1]);
-    gl.uniform3f(U.uCamPos, dist * Math.cos(pitch) * Math.sin(yaw), dist * Math.sin(pitch), dist * Math.cos(pitch) * Math.cos(yaw));
-    gl.uniform1f(U.uTanFov, Math.tan(17.5 * Math.PI / 180));
-    gl.uniform1f(U.uExposure, self.exposure);
-    gl.uniform1f(U.uStars, opts.stars === false ? 0 : 1);
+export const starScene = {
+  id: 'star',
+  frag: FRAG,
+  init(gl, view, U) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, BB_N, 1, 0, gl.RGBA, gl.FLOAT, blackbody().data);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.uniform2f(U.uBBRange, Math.log(BB_TMIN), Math.log(BB_TMAX));
+    gl.uniform1i(U.uBB, 0);
+    return { tex };
+  },
+  uniforms(gl, U, p, view, { tex }) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform1f(U.uTeff, p.teff);
     gl.uniform1f(U.uGranF, p.granScale / (2 * Math.PI));
-    gl.uniform1f(U.uGranAmp, self.granulation ? p.granContrast * p.granAmp : 0);
-    gl.uniform1f(U.uGiantAmp, self.granulation ? p.giantCellAmp : 0);
-    gl.uniform1f(U.uGranPhase, self.t / p.granLifeSec * 2 * Math.PI);
-    gl.uniform1f(U.uSpots, self.spots ? p.spots : 0);
+    gl.uniform1f(U.uGranAmp, view.granulation ? p.granContrast * p.granAmp : 0);
+    gl.uniform1f(U.uGiantAmp, view.granulation ? p.giantCellAmp : 0);
+    gl.uniform1f(U.uGranPhase, view.t / p.granLifeSec * 2 * Math.PI);
+    gl.uniform1f(U.uSpots, view.spots ? p.spots : 0);
     gl.uniform1f(U.uOblate, p.oblateness);
     gl.uniform1f(U.uGEq, p.gEqRatio);
     gl.uniform1f(U.uBeta, p.gravDarkBeta);
-    gl.uniform1f(U.uRot, (self.t / (p.periodDays * 86400)) % 1 * 2 * Math.PI);
+    gl.uniform1f(U.uRot, (view.t / (p.periodDays * 86400)) % 1 * 2 * Math.PI);
     gl.uniform1f(U.uU1, p.u1);
     gl.uniform1f(U.uU2, p.u2);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }
-
-  function frame(now) {
-    raf = 0;
-    const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
-    last = now;
-    self.t += dt * self.timeScale;
-    draw();
-    schedule();
-  }
-  function schedule() {
-    if (!raf && visible && !document.hidden && !reduced) raf = requestAnimationFrame(frame);
-    if (!raf) last = 0;
-  }
-
-  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; schedule(); });
-  io.observe(canvas);
-  const onVis = () => schedule();
-  document.addEventListener('visibilitychange', onVis);
-  const ro = new ResizeObserver(() => draw());
-  ro.observe(canvas);
-
-  Object.assign(self, {
-    /** Yeni yıldız parametreleri; zaman sıfırlanır ve varsayılan hız granül ömrüne göre seçilir. */
-    setStar(params) { self.params = params; self.t = 0; self.timeScale = params.granLifeSec / 4; draw(); schedule(); },
-    /** Hareket kapalıyken ya da ayar değişince tek kare çizer. */
-    redraw: draw,
-    destroy() { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); document.removeEventListener('visibilitychange', onVis); },
-  });
-  return self;
-}
+  },
+  timeScale: (p) => p.granLifeSec / 4,
+};
