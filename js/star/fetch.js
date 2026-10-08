@@ -33,7 +33,7 @@ const SUN = {
 export async function fetchObject(mainId, signal) {
   if (mainId === 'Sun') return SUN;
   const [b] = await tap(`SELECT oid, main_id, ra, dec, plx_value, plx_err, sp_type, otype, rvz_radvel, nbref,
-    galdim_majaxis, galdim_minaxis, galdim_angle FROM basic WHERE main_id = '${sqlStr(mainId)}'`, signal);
+    galdim_majaxis, galdim_minaxis, galdim_angle, morph_type, rvz_redshift FROM basic WHERE main_id = '${sqlStr(mainId)}'`, signal);
   if (!b) throw new Error('not-found');
   const oid = Number(b.oid);
 
@@ -60,6 +60,7 @@ export async function fetchObject(mainId, signal) {
     basic: {
       oid, ra: b.ra, dec: b.dec, plx: b.plx_value, sp: b.sp_type, otype: b.otype, rv: b.rvz_radvel, nbref: b.nbref,
       dimMaj: b.galdim_majaxis, dimMin: b.galdim_minaxis, dimAngle: b.galdim_angle,   // açısal boyut, yay dakikası
+      morph: b.morph_type, z: b.rvz_redshift,
     },
     distances: dists,
     raw: {

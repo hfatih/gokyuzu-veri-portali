@@ -19,6 +19,10 @@ import { nebulaKind, deriveNebula } from './nebula/derive.js';
 import { nebulaVisualParams } from './nebula/visual.js';
 import { renderNebulaCard } from './ui/nebula-card.js';
 import { nebulaScene } from './render/nebula.js';
+import { isGalaxy, deriveGalaxy } from './galaxy/derive.js';
+import { galaxyVisualParams } from './galaxy/visual.js';
+import { renderGalaxyCard } from './ui/galaxy-card.js';
+import { galaxyScene } from './render/galaxy.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -39,11 +43,12 @@ const bg = createView(bgCanvas, { scale: 0.75 });
 const mini = createView(miniCanvas, { stars: false });
 if (!bg) { body.classList.add('nowebgl'); $('#nowebgl').textContent = t('nowebgl'); }
 let extent = 1;   // cismin kadrajdaki boyu (halkalı gezegende halka dış yarıçapı)
+let basePitch = 0.25;   // varsayılan bakış yüksekliği (gökadada ölçülen eğiklikten)
 
-function showScene(scene, params, size, fallbackCss) {
-  extent = size;
+function showScene(scene, params, size, fallbackCss, pitch = 0.25) {
+  extent = size; basePitch = pitch;
   if (bg) { bg.setScene(scene, params); frameBackground(); }
-  if (mini) { mini.cam.dist = 2.9 * size; mini.setScene(scene, params); }
+  if (mini) { Object.assign(mini.cam, { dist: 2.9 * size, pitch }); mini.setScene(scene, params); }
   $('#fallback').style.setProperty('--star', fallbackCss);
 }
 const showStar = (params) => showScene(starScene, params, 1, blackbodyCss(params.teff));
@@ -54,8 +59,8 @@ function frameBackground() {
   const wide = innerWidth / innerHeight > 1.1, state = body.dataset.state;
   if (state === 'home') Object.assign(bg.cam, { dist: 2.6, pitch: 0.18 }), (bg.shift = [0, -1.55]);
   // Dar ekranda yıldız üstte, ekran genişliğinin ~%80'i (uv birimi ekran yüksekliğine göre)
-  else if (state === 'object') Object.assign(bg.cam, { dist: (wide ? 3.0 : 8) * extent, pitch: 0.25 }), (bg.shift = wide ? [0.95, 0] : [0, 0.55]);
-  else Object.assign(bg.cam, { dist: 3.2 * extent, pitch: 0.25 }), (bg.shift = [0, 0]);
+  else if (state === 'object') Object.assign(bg.cam, { dist: (wide ? 3.0 : 8) * extent, pitch: basePitch }), (bg.shift = wide ? [0.95, 0] : [0, 0.55]);
+  else Object.assign(bg.cam, { dist: 3.2 * extent, pitch: basePitch }), (bg.shift = [0, 0]);
   bg.redraw();
 }
 addEventListener('resize', frameBackground);
@@ -141,6 +146,7 @@ async function choose(sel) {
     input.value = sel.label;
     if (!obj || obj.basic.otype === 'Pl' || obj.basic.otype === 'Pl?') await loadPlanet(sel, obj, signal);
     else if (nebulaKind(obj.basic.otype)) loadNebula(sel, obj, signal);
+    else if (isGalaxy(obj.basic.otype)) loadGalaxy(sel, obj, signal);
     else loadStar(sel, obj, signal);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
@@ -174,6 +180,19 @@ function loadStar(sel, obj, signal) {
   cornerBtn.hidden = !star || !mini;
   addWiki(wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal),
     (wiki) => buildLinks(obj, sunWiki(obj, wiki)));
+}
+
+function loadGalaxy(sel, obj, signal) {
+  const b = obj.basic;
+  const gd = deriveGalaxy({ morph: b.morph, majArcmin: b.dimMaj, minArcmin: b.dimMin, cz: b.rv, z: b.z, mags: obj.mags, distances: obj.distances });
+  body.dataset.kind = 'galaxy';
+  renderGalaxyCard(card, sel, obj, gd, buildLinks(obj));
+  const vp = galaxyVisualParams(gd, obj);
+  // Bakış yüksekliği = 90° − eğiklik: kenardan görünen gökada arka planda da kenardan görünür
+  const pitch = Math.min(1.45, Math.max(0.05, (90 - vp.inclination) * Math.PI / 180));
+  showScene(galaxyScene, vp, 1.1, `rgb(${vp.old.map((c) => Math.round(255 * c ** (1 / 2.2))).join(',')})`, pitch);
+  cornerBtn.hidden = !mini;
+  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
 }
 
 function loadNebula(sel, obj, signal) {
@@ -239,7 +258,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

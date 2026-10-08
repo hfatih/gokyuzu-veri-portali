@@ -192,3 +192,10 @@ button { font: inherit; color: inherit; }
 .swatch--snr { background: radial-gradient(circle, transparent 0 45%, #ff2a2a 60%, #4fe0c8 70%, transparent 80%); }
 .swatch--rne { background: radial-gradient(circle, #fff 0 8%, #6f9bff 30%, transparent 75%); }
 .swatch--dne { background: radial-gradient(circle, #050608 0 45%, #b3262a 60%, transparent 78%); }
+
+/* ---------- Gökada ---------- */
+[data-kind="galaxy"] .v3d .chk, [data-kind="galaxy"] .v3d .ctl--time { display: none; }
+.swatch--galaxy { box-shadow: none; }
+.swatch--gS, .swatch--gIrr { background: radial-gradient(circle, #ffe1b8 0 12%, #9fb4ff 35%, rgba(159,180,255,.25) 60%, transparent 72%); }
+.swatch--gS0 { background: radial-gradient(ellipse 60% 35%, #ffe1b8 0 25%, rgba(255,225,184,.4) 55%, transparent 75%); }
+.swatch--gE { background: radial-gradient(circle, #ffe9cc 0 15%, rgba(255,214,170,.55) 45%, transparent 72%); }

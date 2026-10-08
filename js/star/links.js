@@ -21,7 +21,7 @@ export function buildLinks(obj, wiki = {}) {
     add('vizier', 'VizieR', `https://vizier.cds.unistra.fr/viz-bin/VizieR-4?-c=${enc(target)}&-c.rs=10`);
     add('aladin', 'Aladin Lite', `https://aladin.cds.unistra.fr/AladinLite/?target=${enc(target)}&fov=0.5`);
     add('esasky', 'ESASky', `https://sky.esa.int/esasky/?target=${enc(target)}&fov=0.5`);
-    add('gaia', 'Gaia DR3 (VizieR)', `https://vizier.cds.unistra.fr/viz-bin/VizieR-4?-source=I/355/gaiadr3&-c=${enc(target)}&-c.rs=5`);
+    if (obj.basic.otype?.includes('*')) add('gaia', 'Gaia DR3 (VizieR)', `https://vizier.cds.unistra.fr/viz-bin/VizieR-4?-source=I/355/gaiadr3&-c=${enc(target)}&-c.rs=5`);
   }
   if (obj.planets.length && obj.mainId !== 'Sun') add('exoplanet', 'NASA Exoplanet Archive', `https://exoplanetarchive.ipac.caltech.edu/overview/${enc(id)}`);
   if (hip) add('stellarium', 'Stellarium Web', `https://stellarium-web.org/skysource/${enc(hip.replace(/\s+/g, ' '))}`);
