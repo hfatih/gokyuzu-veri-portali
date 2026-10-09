@@ -44,6 +44,9 @@ import { jdNow } from './sso/orbit.js';
 import { ssoVisualParams } from './sso/visual.js';
 import { renderSsoCard, buildSsoLinks } from './ui/sso-card.js';
 import { ssoScene } from './render/sso.js';
+import { isQuasar, deriveQuasar } from './quasar/derive.js';
+import { observedRgb } from './quasar/spectrum.js';
+import { renderQuasarCard, buildQuasarLinks, rgbCss } from './ui/quasar-card.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -176,6 +179,7 @@ async function choose(sel) {
     else if (isGalaxy(obj.basic.otype)) loadGalaxy(sel, obj, signal);
     else if (clusterKind(obj.basic.otype)) await loadCluster(sel, obj, signal);
     else if (isPulsar(obj.basic.otype)) await loadPulsar(sel, obj, signal);
+    else if (isQuasar(obj.basic.otype)) loadQuasar(sel, obj, signal);
     else loadStar(sel, obj, signal);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
@@ -237,6 +241,22 @@ async function loadSso(sel, signal) {
   renderSsoCard(card, sel, b, sd, buildSsoLinks(b));
   showScene(ssoScene, ssoVisualParams(b, sd), 1, '#9a948c', 0.2);
   cornerBtn.hidden = !mini;
+}
+
+// Kuasar: kırmızıya kaymadan kozmoloji; sahne merkezdeki kara delik (Eddington kütlesiyle)
+function loadQuasar(sel, obj, signal) {
+  const b = obj.basic;
+  const qd = deriveQuasar({ z: b.z, mags: obj.mags });
+  const rgb = qd ? observedRgb(qd.z.value) : null;
+  body.dataset.kind = 'quasar';
+  renderQuasarCard(card, sel, obj, qd, rgb, buildQuasarLinks(obj));
+  const bd = qd?.massEdd ? deriveBlackHole({ massSun: qd.massEdd.value, distLy: qd.distLy }) : null;
+  const params = bd
+    ? { rsM: bd.rsKm.value * 1e3, tmax: bd.diskTmax.value, iscoPeriodS: bd.iscoPeriodS.value }
+    : { rsM: 1.2e12, tmax: 6e4, iscoPeriodS: 2e5 };
+  showScene(blackHoleScene, params, 1.1, rgb ? rgbCss(rgb) : '#cfe0ff', 0.12);
+  cornerBtn.hidden = !mini;
+  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildQuasarLinks(obj, wiki));
 }
 
 async function loadCluster(sel, obj, signal) {
@@ -350,7 +370,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

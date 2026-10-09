@@ -239,3 +239,7 @@ button { font: inherit; color: inherit; }
 .orb__sun { fill: #ffd27a; }
 .orb__earth { fill: #6fa8ff; }
 .orb__body { fill: var(--accent); stroke: #fff; stroke-width: 1; }
+
+/* ---------- Kuasar ---------- */
+[data-kind="quasar"] .v3d .chk { display: none; }
+.swatch--quasar { box-shadow: 0 0 14px var(--q); background: radial-gradient(circle, #fff 0 12%, var(--q) 26%, transparent 60%); }

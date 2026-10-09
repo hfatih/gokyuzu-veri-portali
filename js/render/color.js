@@ -19,6 +19,13 @@ function xyzToRgbMax1([X, Y, Z]) {
 /** Tek dalga boylu emisyon çizgisinin rengi (Hα 656,3, [O III] 500,7 …), doğrusal sRGB, en parlak kanal 1. */
 export const lineRgb = (nm) => xyzToRgbMax1([cieX(nm), cieY(nm), cieZ(nm)]);
 
+/** Herhangi bir tayfın (f(λ nm), enerji akısı) gözle görülen rengi: doğrusal sRGB, en parlak kanal 1. */
+export function spectrumRgb(f) {
+  let X = 0, Y = 0, Z = 0;
+  for (let l = 360; l <= 830; l += 2) { const v = f(l); X += v * cieX(l); Y += v * cieY(l); Z += v * cieZ(l); }
+  return xyzToRgbMax1([X, Y, Z]);
+}
+
 /**
  * Tozdan saçılan yıldız ışığının rengi: Planck B_λ(T) × λ^(−p). Toz için p ≈ 1–2 (Rayleigh'in 4'ünden
  * küçük); yansıma bulutsuları bu yüzden yıldızdan mavi görünür. Doğrusal sRGB, en parlak kanal 1.

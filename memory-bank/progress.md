@@ -16,7 +16,7 @@
 - [x] Faz 6: yıldız kümeleri (SIMBAD üyeleri, HR diyagramı, bükülme yaşı) — 2026-10-09
 - [x] Faz 7: pulsarlar (ATNF/VizieR, deniz feneri modeli, atım sesi) — 2026-10-09
 - [x] Faz 8: küçük cisimler (IMCCE SsODNet, MOID, cisim replikası, yörünge çizimi) — 2026-10-09
-- [ ] Faz 9: kuasarlar
+- [x] Faz 9: kuasarlar (ΛCDM, kırmızıya kaymış tayf ve renk, Eddington kütlesi) — 2026-10-09
 
 **Bilinen sınırlar:**
 - Sönümleme yok sayılıyor; kartta not olarak belirtiliyor.

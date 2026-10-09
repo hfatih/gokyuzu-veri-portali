@@ -17,7 +17,7 @@ python dev/serve.py 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`, `node dev/check-sso.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`, `node dev/check-sso.mjs`, `node dev/check-quasar.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -130,6 +130,15 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
   - Kuyruklu yıldızda Güneş'e uzaklığa göre koma.
   - Kartta ekliptiğe yukarıdan yörünge çizimi.
 
+## Kuasarlar (faz 9)
+
+- **Kozmoloji (düz ΛCDM):** kırmızıya kaymadan uzaklıklar, ışığın yolculuk süresi, o anki evren
+  yaşı, ölçek.
+- **Işıma ve kütle:** K düzeltmeli mutlak parlaklık, bolometrik ışıma, Eddington kütlesi.
+- **Tayf:** SDSS bileşik kuasar tayfı kırmızıya kaydırılır, Lyα ormanı soğurması eklenir. Kartın
+  simgesi bu tayfın göze görünen rengindedir.
+- **Görünüm:** merkezdeki kara delik ve yığılma diski.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -151,12 +160,13 @@ js/bh/       fetch (Wikidata), derive (saf)
 js/cluster/  fetch (SIMBAD üyeleri), derive (saf), visual
 js/pulsar/   fetch (VizieR ATNF), derive (saf), visual, sound
 js/sso/      fetch (IMCCE), orbit (Kepler, MOID), derive (saf), visual
+js/quasar/   derive (ΛCDM, saf), spectrum (bileşik tayf, renk)
 js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, sso-card, observation
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, sso-card, quasar-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Sekiz faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar, küçük cisim). Olası
-sonraki faz: kuasarlar; ayrıca yayına alma.
+Dokuz faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar, küçük cisim, kuasar).
+Sırada yayına alma; yeni faz adayları uydular, değişen yıldızlar, çift yıldız yörüngeleri.

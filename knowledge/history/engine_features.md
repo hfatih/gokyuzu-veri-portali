@@ -97,3 +97,14 @@ Ayrıntı: [docs/specs/2026-10-09-faz7-pulsarlar-design.md](../../docs/specs/202
 - **Kart:** `js/ui/sso-card.js`, ekliptiğe yukarıdan yörünge çizimi.
 
 Ayrıntı: [docs/specs/2026-10-09-faz8-kucuk-cisimler-design.md](../../docs/specs/2026-10-09-faz8-kucuk-cisimler-design.md)
+
+## 2026-10-09 · Faz 9: kuasarlar
+
+- **Fizik:** `js/quasar/derive.js`, ΛCDM uzaklıkları, geriye bakış ve o anki yaş, K düzeltmeli mutlak
+  parlaklık, bolometrik ışıma, Eddington kütlesi, Lyα. Kontrolü `dev/check-quasar.mjs`.
+- **Tayf:** `js/quasar/spectrum.js`, Vanden Berk bileşik tayfı, kırmızıya kayma, Lyα ormanı;
+  gözlenen renk (`spectrumRgb`, color.js).
+- **Kart:** `js/ui/quasar-card.js`, gözlenen tayf çizimi; NED bağlantısı.
+- **Sahne:** kara delik sahnesi Eddington kütlesiyle yeniden kullanılıyor.
+
+Ayrıntı: [docs/specs/2026-10-09-faz9-kuasarlar-design.md](../../docs/specs/2026-10-09-faz9-kuasarlar-design.md)
