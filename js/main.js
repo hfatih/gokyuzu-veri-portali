@@ -32,6 +32,12 @@ import { fetchMembers } from './cluster/fetch.js';
 import { clusterVisualParams } from './cluster/visual.js';
 import { renderClusterCard } from './ui/cluster-card.js';
 import { clusterScene } from './render/cluster.js';
+import { isPulsar, derivePulsar } from './pulsar/derive.js';
+import { fetchPulsar } from './pulsar/fetch.js';
+import { pulsarVisualParams } from './pulsar/visual.js';
+import { playPulses, stopPulses } from './pulsar/sound.js';
+import { renderPulsarCard, buildPulsarLinks } from './ui/pulsar-card.js';
+import { pulsarScene } from './render/pulsar.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -138,6 +144,7 @@ function toast(msg) {
 
 async function choose(sel) {
   suggester.cancel();
+  stopPulses();
   list.hidden = true; input.setAttribute('aria-expanded', 'false');
   input.value = sel.label; input.blur();
   loadCtrl?.abort();
@@ -162,6 +169,7 @@ async function choose(sel) {
     else if (nebulaKind(obj.basic.otype)) loadNebula(sel, obj, signal);
     else if (isGalaxy(obj.basic.otype)) loadGalaxy(sel, obj, signal);
     else if (clusterKind(obj.basic.otype)) await loadCluster(sel, obj, signal);
+    else if (isPulsar(obj.basic.otype)) await loadPulsar(sel, obj, signal);
     else loadStar(sel, obj, signal);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
@@ -217,13 +225,34 @@ async function loadCluster(sel, obj, signal) {
   const members = await fetchMembers(obj.basic.oid, signal).catch((e) => { if (signal.aborted) throw e; return []; });
   const b = obj.basic;
   const cd = deriveCluster({ kind: clusterKind(b.otype), majArcmin: b.dimMaj, distances: obj.distances, members, center: b });
-  body.dataset.kind = 'cluster';
+  body.dataset.kind = members.length ? 'cluster' : 'other';
   renderClusterCard(card, sel, obj, cd, buildLinks(obj));
   if (members.length) {
     showScene(clusterScene, clusterVisualParams(cd, members, b, obj.mainId), 1.1, '#fff3dc', 0.3);
     cornerBtn.hidden = !mini;
   } else cornerBtn.hidden = true;
   addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
+}
+
+async function loadPulsar(sel, obj, signal) {
+  const row = await fetchPulsar(obj, signal).catch((e) => { if (signal.aborted) throw e; return null; });
+  const pd = row?.P0 > 0 ? derivePulsar(row) : null;
+  // Veri yoksa sahne çizilmez; önceki cismin sahnesi 'other' gibi soluk kalır
+  body.dataset.kind = pd ? 'pulsar' : 'other';
+  renderPulsarCard(card, sel, obj, row, pd, buildPulsarLinks(obj, row));
+  if (pd) {
+    const vp = pulsarVisualParams(pd);
+    // Bakış yüksekliği 90° − α: üst ışın her dönüşte kameranın üzerinden geçer (deniz feneri çakması)
+    showScene(pulsarScene, vp, 1.25, '#cfe0ff', Math.PI / 2 - vp.alpha);
+    cornerBtn.hidden = !mini;
+    const btn = card.querySelector('[data-listen]');
+    btn?.addEventListener('click', () => {
+      const on = btn.getAttribute('aria-pressed') !== 'true';
+      if (on) playPulses(pd.periodS.value, pd.w50Ms?.value); else stopPulses();
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  } else cornerBtn.hidden = true;
+  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildPulsarLinks(obj, row, wiki));
 }
 
 function loadGalaxy(sel, obj, signal) {
@@ -271,6 +300,7 @@ const sunWiki = (obj, wiki) => (obj.mainId === 'Sun' ? { tr: 'https://tr.wikiped
 
 function goHome() {
   loadCtrl?.abort();
+  stopPulses();
   body.dataset.state = 'home';
   card.hidden = true; cornerBtn.hidden = true;
   history.replaceState(null, '', lang === 'en' ? '?lang=en' : location.pathname);
@@ -302,7 +332,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

@@ -14,7 +14,8 @@
 - [x] Faz 4: gökadalar (analitik model, ölçülen eğiklikle bakış) — 2026-10-08
 - [x] Faz 5: kara delikler (Wikidata, Schwarzschild ışın izleme) — 2026-10-08
 - [x] Faz 6: yıldız kümeleri (SIMBAD üyeleri, HR diyagramı, bükülme yaşı) — 2026-10-09
-- [ ] Faz 7–9: pulsarlar, küçük cisimler, kuasarlar
+- [x] Faz 7: pulsarlar (ATNF/VizieR, deniz feneri modeli, atım sesi) — 2026-10-09
+- [ ] Faz 8–9: küçük cisimler, kuasarlar
 
 **Bilinen sınırlar:**
 - Sönümleme yok sayılıyor; kartta not olarak belirtiliyor.

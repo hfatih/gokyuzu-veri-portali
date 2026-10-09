@@ -23,6 +23,8 @@ const ALIASES = [
   { label: 'Neptün', simbadId: 'planet:Q332' }, { label: 'Neptune', simbadId: 'planet:Q332' },
   { label: 'Yengeç Bulutsusu', simbadId: 'M 1' },
   { label: 'Orion Bulutsusu', simbadId: 'M 42' },
+  { label: 'Yengeç Pulsarı', simbadId: 'V* CM Tau' },
+  { label: 'Vela Pulsarı', simbadId: 'NAME Vela Pulsar' },
 ];
 
 /** Türkçe harfleri ASCII'ye katlar: "Ülker" ve "ulker" eşleşir. */

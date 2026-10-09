@@ -71,3 +71,16 @@ Ayrıntı: [docs/specs/2026-10-08-faz5-karadelikler-design.md](../../docs/specs/
 - **Kart:** `js/ui/cluster-card.js`, gerçek üyelerden HR diyagramı.
 
 Ayrıntı: [docs/specs/2026-10-09-faz6-kumeler-design.md](../../docs/specs/2026-10-09-faz6-kumeler-design.md)
+
+## 2026-10-09 · Faz 7: pulsarlar
+
+- **Fizik:** `js/pulsar/derive.js`. Kontrolü `dev/check-pulsar.mjs`, ATNF'nin kendi türetilmiş
+  sütunlarıyla: karakteristik yaş, yüzey alanı, Ė, ışık silindiri, kutup başlığı, ölüm çizgisi,
+  ışın genişliği, dağılma gecikmesi, dik hız, sınıf.
+- **Veri:** `js/pulsar/fetch.js`, ATNF kataloğu (VizieR B/psr, ASU TSV), SIMBAD konumu ve PSR adıyla eşleme.
+- **Görünüm:** `js/render/pulsar.js`, deniz feneri: dönen radyo ışınları, dipol alan çizgileri,
+  ışık silindiri, sıcak kutup başlıkları.
+- **Kart:** `js/ui/pulsar-card.js`, atım profili ve "Atımları dinle" (`js/pulsar/sound.js`, gerçek
+  dönemle ses).
+
+Ayrıntı: [docs/specs/2026-10-09-faz7-pulsarlar-design.md](../../docs/specs/2026-10-09-faz7-pulsarlar-design.md)

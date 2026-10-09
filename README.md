@@ -17,7 +17,7 @@ python dev/serve.py 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -109,6 +109,15 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
 - **Görünüm:** Üyeler gerçek gökyüzü konumlarıyla 3D nokta bulutu olarak çizilir; derinlik
   izotropik varsayımla örneklenir.
 
+## Pulsarlar (faz 7)
+
+- **Veri:** ATNF Pulsar Kataloğu (VizieR B/psr kopyası, 2015).
+- **Fizik:** dönem ve türevinden karakteristik yaş, yüzey manyetik alanı, dönme enerjisi kaybı,
+  ışık silindiri, kutup başlığı, ölüm çizgisi, ışın genişliği (Rankin 1993), dağılma gecikmesi.
+  Değerler ATNF'nin kendi türetilmiş sütunlarıyla %2 içinde.
+- **Görünüm:** deniz feneri modeli. Dönen radyo ışınları, dipol alan çizgileri, ışık silindiri.
+- **Ses:** "Atımları dinle" atımları gerçek dönemle çalar.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -128,12 +137,13 @@ js/nebula/   derive (saf), visual
 js/galaxy/   derive (saf), visual
 js/bh/       fetch (Wikidata), derive (saf)
 js/cluster/  fetch (SIMBAD üyeleri), derive (saf), visual
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, observation
+js/pulsar/   fetch (VizieR ATNF), derive (saf), visual, sound
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Altı faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme). Olası sonraki fazlar: pulsarlar,
+Yedi faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar). Olası sonraki fazlar:
 küçük cisimler, kuasarlar; ayrıca yayına alma.

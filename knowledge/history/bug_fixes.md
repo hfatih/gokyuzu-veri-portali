@@ -72,3 +72,15 @@
   kümede yaş verilmiyor.
 - **Kızarma:** Yok sayılınca h Persei 1,5 milyar yıl çıkıyordu. ZAMS uydurmasıyla düzeltiliyor
   (E ≥ 0,15).
+
+## 2026-10-09 · Faz 7 sırasında bulunanlar
+
+- **TAPVizieR tarayıcıda engelleniyor:** https yanıtında `Access-Control-Allow-Origin` iki kez
+  ("*, *"). curl testinde fark edilmedi, tarayıcı isteği reddetti. VizieR ASU (TSV) servisine geçildi.
+- **VizieR B/psr `A1` sütunu** tek basamağa yuvarlanmış; kütle fonksiyonu bundan hesaplanmıyor,
+  katalogdaki `minM` kullanılıyor.
+- **Milisaniye pulsarında ışın sahneyi boğuyordu** (ρ ~ 75°). Parlaklık 1/ρ² ile ölçekleniyor.
+  Sınır küresinde kesik ışın kenarı da yumuşatıldı.
+- **Üyesi gelmeyen küme ve verisi olmayan pulsar:** önceki cismin sahnesi tam parlaklıkta kalıyordu.
+  `data-kind="other"` verilerek soluklaştırılıyor.
+- **Kart altyazısında tekrar:** "PSR J1808-2024" iki kez yazılıyordu.
