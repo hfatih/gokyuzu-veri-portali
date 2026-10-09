@@ -84,3 +84,14 @@
 - **Üyesi gelmeyen küme ve verisi olmayan pulsar:** önceki cismin sahnesi tam parlaklıkta kalıyordu.
   `data-kind="other"` verilerek soluklaştırılıyor.
 - **Kart altyazısında tekrar:** "PSR J1808-2024" iki kez yazılıyordu.
+
+## 2026-10-09 · Faz 8 sırasında bulunanlar
+
+- **JPL SBDB API'sinde CORS yok;** IMCCE SsODNet'e geçildi.
+- **IMCCE MOID değerleri yanlış ya da eski** (Bennu 0,084, Apophis 0,033 AU). MOID yörünge
+  elemanlarından hesaplanıyor (Bennu 0,0028; JPL 0,0032).
+- **2P/Encke'de H1 = R1 = 0,0 yer tutucu:** parlaklık 0,2 kadir çıkıyordu; sıfır değerler yok sayılıyor.
+- **Arama önerisinde tür yanlıştı:** Halley "Cüce gezegen" görünüyordu. Takma adlar artık kendi türünü
+  taşıyor.
+- **Parlaklık ölçeği:** albedo × 9 Bennu'yu (0,044) açık gri, Vesta'yı beyaz yapıyordu; × 1,6'ya
+  indirildi.

@@ -17,7 +17,7 @@ python dev/serve.py 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`,
+- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`, `node dev/check-sso.mjs`,
   `node dev/check-search.mjs`.
 
 ## Arama
@@ -118,6 +118,18 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
 - **Görünüm:** deniz feneri modeli. Dönen radyo ışınları, dipol alan çizgileri, ışık silindiri.
 - **Ses:** "Atımları dinle" atımları gerçek dönemle çalar.
 
+## Asteroitler ve kuyruklu yıldızlar (faz 8)
+
+- **Veri:** IMCCE SsODNet (arama ve ssoCard); `?star=sso:Ceres` biçiminde açılır.
+- **Fizik:**
+  - Kepler yörüngesinden bugünkü konum, uzaklık, evre açısı ve parlaklık.
+  - Dünya yörüngesine en yakın uzaklık (MOID) elemanlardan hesaplanır; tehlikeli asteroit ölçütü.
+  - Çap, kütle, kaçış hızı, moloz yığını dönme sınırı, güneş altı sıcaklığı.
+- **Görünüm:**
+  - Ölçülen elipsoit biçimi, taksonomi rengi ve albedo; gerçek dönemle döner.
+  - Kuyruklu yıldızda Güneş'e uzaklığa göre koma.
+  - Kartta ekliptiğe yukarıdan yörünge çizimi.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -138,12 +150,13 @@ js/galaxy/   derive (saf), visual
 js/bh/       fetch (Wikidata), derive (saf)
 js/cluster/  fetch (SIMBAD üyeleri), derive (saf), visual
 js/pulsar/   fetch (VizieR ATNF), derive (saf), visual, sound
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, observation
+js/sso/      fetch (IMCCE), orbit (Kepler, MOID), derive (saf), visual
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso (sahneler), color, view3d
+js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, sso-card, observation
 js/main.js   durum geçişleri: home → object → 3d
 ```
 
 ## Yol haritası
 
-Yedi faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar). Olası sonraki fazlar:
-küçük cisimler, kuasarlar; ayrıca yayına alma.
+Sekiz faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar, küçük cisim). Olası
+sonraki faz: kuasarlar; ayrıca yayına alma.

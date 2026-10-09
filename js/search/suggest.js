@@ -4,6 +4,7 @@
 import { prefixSearch, lookupIds } from './simbad.js';
 import { searchWikidata } from './wikidata.js';
 import { matchAliases } from './aliases-tr.js';
+import { searchSso } from '../sso/fetch.js';
 
 const DEBOUNCE_MS = 200;
 const MAX_ITEMS = 8;
@@ -39,11 +40,11 @@ export function createSuggester(onUpdate, getLang) {
 
     const aliases = matchAliases(q);
     if (aliases.some((a) => a.simbadId === 'Sun')) add([{ ...SUN_ITEM, label: aliases.find((a) => a.simbadId === 'Sun').label }]);
-    // Güneş Sistemi gezegenleri doğrudan eklenir; bilinirlikte Güneş'in hemen ardından gelir
-    const seen = new Set();
-    add(aliases.filter((a) => a.simbadId.startsWith('planet:') && !seen.has(a.simbadId) && seen.add(a.simbadId))
-      .map((a) => ({ label: a.label, mainId: a.simbadId, otype: 'Pl', sp: null, nbref: 1e6 })));
-    const aliasIds = aliases.filter((a) => a.simbadId !== 'Sun' && !a.simbadId.startsWith('planet:'));
+    // Güneş Sistemi gezegenleri ve küçük cisimler doğrudan eklenir; bilinirlikte Güneş'in hemen ardından gelir
+    const seen = new Set(), direct = (a) => /^(planet|sso):/.test(a.simbadId);
+    add(aliases.filter((a) => direct(a) && !seen.has(a.simbadId) && seen.add(a.simbadId))
+      .map((a) => ({ label: a.label, mainId: a.simbadId, otype: a.otype ?? 'Pl', sp: null, nbref: 1e6, rankOnly: true })));
+    const aliasIds = aliases.filter((a) => a.simbadId !== 'Sun' && !direct(a));
 
     const fast = Promise.all([
       prefixSearch(q, signal),
@@ -52,6 +53,8 @@ export function createSuggester(onUpdate, getLang) {
       add(prefix);
       add(looked.map((l) => ({ ...l, label: aliasIds.find((a) => norm(a.simbadId) === norm(l.matchedId))?.label ?? l.label })), true);
     }).catch((e) => { if (!signal.aborted) failed.add('simbad'); });
+    // Asteroit ve kuyruklu yıldızlar (IMCCE); başarısızlık sessiz, diğer kaynaklar yeter
+    const sso = searchSso(q, signal).then(add).catch(() => {});
 
     const slow = searchWikidata(q, getLang(), signal).then(async (wd) => {
       const looked = await lookupIds(wd.filter((w) => w.simbadId).map((w) => w.simbadId), signal);
@@ -66,7 +69,7 @@ export function createSuggester(onUpdate, getLang) {
       add(looked.filter((l) => !bhSimbad.has(l.mainId)).map((l) => ({ ...l, label: byId(l)?.label ?? l.label })), true);
     }).catch(() => { if (!signal.aborted) failed.add('wikidata'); });
 
-    await fast; emit(true);
+    await Promise.all([fast, sso]); emit(true);
     await slow; emit(false);
   }
 

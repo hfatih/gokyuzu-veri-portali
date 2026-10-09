@@ -228,3 +228,14 @@ button { font: inherit; color: inherit; }
 .pulse__line { fill: none; stroke: #b9a6ff; stroke-width: 1.5; }
 .listen { margin-top: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: none; font-size: 13px; cursor: pointer; }
 .listen[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- Küçük cisimler ---------- */
+[data-kind="sso"] .v3d .chk { display: none; }
+.swatch--sso { box-shadow: none; background: radial-gradient(ellipse 46% 34% at 50% 50%, #b9b2a8 0 60%, #6f6a63 85%, transparent 100%); }
+.swatch--comet { background: radial-gradient(circle at 40% 50%, #fff 0 8%, rgba(190, 215, 255, .6) 20%, transparent 46%), linear-gradient(200deg, transparent 40%, rgba(190, 215, 255, .35) 60%, transparent 80%); }
+.orb svg { max-width: 320px; margin: 0 auto; }
+.orb__planet { fill: none; stroke: rgba(232, 235, 242, .18); }
+.orb__path { fill: none; stroke: var(--accent); stroke-width: 1.4; }
+.orb__sun { fill: #ffd27a; }
+.orb__earth { fill: #6fa8ff; }
+.orb__body { fill: var(--accent); stroke: #fff; stroke-width: 1; }

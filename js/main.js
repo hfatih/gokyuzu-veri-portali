@@ -38,6 +38,12 @@ import { pulsarVisualParams } from './pulsar/visual.js';
 import { playPulses, stopPulses } from './pulsar/sound.js';
 import { renderPulsarCard, buildPulsarLinks } from './ui/pulsar-card.js';
 import { pulsarScene } from './render/pulsar.js';
+import { fetchSso, isSsoId } from './sso/fetch.js';
+import { deriveSso } from './sso/derive.js';
+import { jdNow } from './sso/orbit.js';
+import { ssoVisualParams } from './sso/visual.js';
+import { renderSsoCard, buildSsoLinks } from './ui/sso-card.js';
+import { ssoScene } from './render/sso.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { planetScene } from './render/planet.js';
@@ -92,7 +98,7 @@ function renderList({ items: next, pending, failed }) {
     li.id = `opt-${i}`; li.role = 'option'; li.className = 'opt';
     const name = document.createElement('span'); name.className = 'opt__name'; name.textContent = it.label;
     const meta = document.createElement('span'); meta.className = 'opt__meta';
-    const alt = isBlackHoleId(it.mainId) ? it.label : prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
+    const alt = isBlackHoleId(it.mainId) || isSsoId(it.mainId) ? it.label : prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
     meta.textContent = solar ? t('p.solar')
       : [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) && !it.rankOnly ? t('search.refs', { n: num(it.nbref, 3) }) : '']
         .filter(Boolean).join(' · ');
@@ -156,8 +162,8 @@ async function choose(sel) {
   card.innerHTML = `<p class="card__loading">${t('search.loading')}</p>`;
   frameBackground();
   try {
-    if (isBlackHoleId(sel.mainId)) {
-      await loadBlackHole(sel, signal);
+    if (isBlackHoleId(sel.mainId) || isSsoId(sel.mainId)) {
+      await (isSsoId(sel.mainId) ? loadSso : loadBlackHole)(sel, signal);
       history.replaceState(null, '', `?${new URLSearchParams({ star: sel.mainId, ...(lang === 'en' ? { lang: 'en' } : {}) })}`);
       return;
     }
@@ -219,6 +225,18 @@ async function loadBlackHole(sel, signal) {
   showScene(blackHoleScene, params, 1.1, '#000', 0.12);
   cornerBtn.hidden = !mini;
   addWiki(wikipediaForQid(bh.qid, signal), (wiki) => buildBlackHoleLinks(bh, wiki));
+}
+
+// Asteroit, kuyruklu yıldız, cüce gezegen (IMCCE); bugünkü konum ve evre açısı açılış anından
+async function loadSso(sel, signal) {
+  const b = await fetchSso(sel.mainId, signal);
+  if (sel.fromUrl) sel.label = b.title;
+  input.value = sel.label;
+  const sd = deriveSso(b, jdNow());
+  body.dataset.kind = 'sso';
+  renderSsoCard(card, sel, b, sd, buildSsoLinks(b));
+  showScene(ssoScene, ssoVisualParams(b, sd), 1, '#9a948c', 0.2);
+  cornerBtn.hidden = !mini;
 }
 
 async function loadCluster(sel, obj, signal) {
@@ -332,7 +350,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

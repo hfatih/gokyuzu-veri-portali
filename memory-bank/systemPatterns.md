@@ -18,12 +18,15 @@
   varsayılan bakış yüksekliğini ayarlar.
 - **Kara delik akışı:** `bh:Q…` kimliği → `fetchBlackHole` (Wikidata) → `deriveBlackHole` →
   `blackHoleScene` (zaman uzak gözlemci zamanı, t·c/r_s). `body[data-kind]`: star | planet | nebula |
-  galaxy | bh | cluster | pulsar | other.
+  galaxy | bh | cluster | pulsar | sso | other.
 - **Küme akışı:** `fetchObject` → `fetchMembers` (h_link, tekil) → `deriveCluster` →
   `clusterVisualParams` → `clusterScene`. Bu sahne `vert` ve `draw` verir (nokta sprite'ları);
   diğer sahneler tam ekran üçgen.
 - **Pulsar akışı:** `fetchObject` → `fetchPulsar` (VizieR ASU TSV, konum + PSR adı) → `derivePulsar` →
   `pulsarVisualParams` → `pulsarScene` (zaman ölçeği P/2). TAPVizieR kullanılmaz: CORS başlığı çift.
+- **Küçük cisim akışı:** `sso:<id>` kimliği (kara delik gibi SIMBAD'sız) → `fetchSso` (IMCCE ssoCard) →
+  `deriveSso(b, jdNow())` → `ssoVisualParams` → `ssoScene`. Arama `searchSso` (IMCCE quaero) ile
+  dördüncü kaynak; hata sessiz.
 - **SIMBAD kuralları:** tablo takma adı yok, `LOWER`/`ILIKE` yok, alt sorgu yok, önek aramasında
   `ORDER BY` yok. Katalog numaraları boşluk dolgulu; `=` ve `IN` dolguyu normalleştirir, `LIKE`
   normalleştirmez.

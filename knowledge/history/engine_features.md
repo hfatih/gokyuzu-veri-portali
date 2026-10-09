@@ -84,3 +84,16 @@ Ayrıntı: [docs/specs/2026-10-09-faz6-kumeler-design.md](../../docs/specs/2026-
   dönemle ses).
 
 Ayrıntı: [docs/specs/2026-10-09-faz7-pulsarlar-design.md](../../docs/specs/2026-10-09-faz7-pulsarlar-design.md)
+
+## 2026-10-09 · Faz 8: küçük cisimler
+
+- **Veri ve arama:** `js/sso/fetch.js`, IMCCE SsODNet (quaero araması + ssoCard). Kimlik `sso:<id>`,
+  aramada dördüncü kaynak.
+- **Yörünge:** `js/sso/orbit.js`, Kepler konumu, Dünya ortalama yörüngesi, sayısal MOID.
+- **Fizik:** `js/sso/derive.js`, sınıf, T_J, vis-viva, sıcaklık, çap (H, albedo), çekim, kaçış hızı,
+  moloz yığını dönme sınırı, tehlike ölçütü, bugünkü parlaklık. Kontrolü `dev/check-sso.mjs`.
+- **Görünüm:** `js/render/sso.js`, uzaklık alanlı ışın yürütmeyle elipsoit + pürüz, taksonomi rengi,
+  albedo, gerçek dönme, bugünkü evre açısı, kuyruklu yıldızda koma.
+- **Kart:** `js/ui/sso-card.js`, ekliptiğe yukarıdan yörünge çizimi.
+
+Ayrıntı: [docs/specs/2026-10-09-faz8-kucuk-cisimler-design.md](../../docs/specs/2026-10-09-faz8-kucuk-cisimler-design.md)

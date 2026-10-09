@@ -25,6 +25,9 @@ const ALIASES = [
   { label: 'Orion Bulutsusu', simbadId: 'M 42' },
   { label: 'Yengeç Pulsarı', simbadId: 'V* CM Tau' },
   { label: 'Vela Pulsarı', simbadId: 'NAME Vela Pulsar' },
+  // Küçük cisimler IMCCE kimliğiyle (sso/fetch.js)
+  { label: 'Plüton', simbadId: 'sso:Pluto', otype: 'DwarfPl' }, { label: 'Pluto', simbadId: 'sso:Pluto', otype: 'DwarfPl' },
+  { label: 'Halley Kuyruklu Yıldızı', simbadId: 'sso:1P', otype: 'Comet' },
 ];
 
 /** Türkçe harfleri ASCII'ye katlar: "Ülker" ve "ulker" eşleşir. */
