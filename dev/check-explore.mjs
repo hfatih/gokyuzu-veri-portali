@@ -31,3 +31,17 @@ for (const tour of TOURS) {
 }
 assert.equal(new Set(TOURS.map((x) => x.id)).size, TOURS.length);
 console.log('explore: tüm kontroller geçti');
+
+// Bu gece: Ankara, 2026-11-05 18:00 (UTC+3). Satürn akşam 22:25'te güneyde 51°; Venüs karanlıkta görünmez
+const { tonightList } = await import('../js/explore/tonight.js');
+const night = tonightList(39.93, 32.86, 2461350.125, 'tr', 20);
+const sat = night.find((x) => x.label === 'Satürn');
+assert.ok(sat, 'Satürn listede');
+const satHourLocal = (((sat.best.jd + 0.5) % 1) * 24 + 3) % 24;
+assert.ok(satHourLocal > 21.9 && satHourLocal < 22.9, `Satürn en iyi saat ${satHourLocal}`);
+assert.ok(sat.best.alt > 49 && sat.best.alt < 53 && sat.dir === 'G');
+assert.ok(!night.some((x) => x.label === 'Venüs'), 'Venüs sabah alacakaranlığında, listede olmamalı');
+assert.ok(night.some((x) => x.label === 'Betelgeuse'));
+for (let k = 1; k < night.length; k++) assert.ok(night[k].best.jd >= night[k - 1].best.jd, 'zamana göre sıralı');
+assert.equal(tonightList(39.93, 32.86, 2461350.125, 'tr', 5).length, 5);
+console.log('explore: bu gece listesi geçti');

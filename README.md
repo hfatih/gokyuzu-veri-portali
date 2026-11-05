@@ -148,6 +148,29 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
   simgesi bu tayfın göze görünen rengindedir.
 - **Görünüm:** merkezdeki kara delik ve yığılma diski.
 
+## Arayüz, çerezler ve yasal sayfalar
+
+- **Görünüm:** zemin tam siyah, metin tam beyaz. Vurgu renkleri sarı, turuncu ve amber. Köken etiketleri:
+  ölçülen sarı, hesaplanan turuncu, tahmini kum rengi ve kesikli. Gök cisimlerinin kendi renkleri
+  (yıldız, bulutsu) fizikten geldiği için değişmez.
+- **Kayan yıldızlar:** üç katman, CSS ile. Hareket azaltma tercihinde durur.
+- **Üst bar:** Astronews şeridi, TR/EN, menü (Keşfet, Bu gece, Turlar, Hakkında), karşılaştırma.
+- **"Bu gece gökyüzünde":** ana sayfada; Ay, gezegenler ve en parlak 12 yıldızdan karanlıkta
+  görünenler (`js/explore/tonight.js`), ağ gerekmez.
+- **Alt bar:** keşfet, veri kaynakları, kurumsal ve yasal bağlantılar, "Çerez tercihleri".
+- **Çerez ve depolama onayı (`js/consent.js`):**
+  - Site HTTP çerezi kullanmaz.
+  - Seçimin kaydı zorunludur.
+  - Konum ve karşılaştırma listesi yalnız onayla kalıcıdır; onay yoksa sekme kapanınca silinir.
+  - "Reddet" ve "Kabul et" eşit ağırlıktadır.
+- **Yasal sayfalar (`?page=…`, `js/legal/pages.js`):**
+  - KVKK Aydınlatma Metni, Gizlilik Politikası, Çerez Politikası, Veri Sahibi Başvuru Formu (e-posta
+    taslağı açar, veri göndermez), Kullanım Koşulları, Veri Kaynakları ve Lisanslar, Hakkında ve
+    Künye, Erişilebilirlik.
+  - **Yayından önce `js/legal/site-info.js` doldurulmalı.** Boş alanlar sarı yer tutucu olarak
+    görünür; `draft: true` iken "taslak" uyarısı çıkar.
+  - Metinler hukuki görüş değildir; bir KVKK uzmanına kontrol ettirilmelidir.
+
 ## Çift yıldızlar (faz 10)
 
 - **Veri:** görsel çift yıldız yörüngesi ORB6 kataloğundan (VizieR `B/orb6`).
@@ -242,7 +265,9 @@ js/variable/ fetch (VizieR VSX), derive (ışık eğrisi, P–L, zonklama, saf)
 js/sky/      ephem (Güneş, Ay, gezegenler, presesyon), visibility (24 saatlik yol), location
 js/explore/  featured, tours, refs (başvuru çözümü), size (karşılaştırma yarıçapı)
 js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso / binary (sahneler), color, view3d
-js/ui/       i18n, card ve tür kartları, sky-card, binary-card, variable-card, compare, observation
+js/ui/       i18n, chrome (üst/alt bar, onay, yasal sayfa, bu gece), card ve tür kartları, sky-card, binary-card, variable-card, compare, observation
+js/legal/    site-info (künye: yayından önce doldur), pages (yasal metinler)
+js/consent.js tarayıcı depolaması onayı
 js/main.js   durum geçişleri (home → object → 3d), arama kutusu, tur, karşılaştırma, kartın ortak ekleri
 ```
 

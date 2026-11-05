@@ -6,7 +6,7 @@
   <title>Gökyüzü Veri Portalı</title>
   <meta name="description" content="Gök cisimlerini ara; fiziksel verilerini ve bu verilerden tarayıcıda üretilen canlı yıldız modelini gör, kaynak veritabanlarına git.">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#030407">
+  <meta name="theme-color" content="#000000">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Gökyüzü Veri Portalı">
   <meta property="og:title" content="Gökyüzü Veri Portalı">
@@ -27,12 +27,25 @@
   <div id="fallback" class="bg-fallback" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
 
+  <div class="starfield" aria-hidden="true"><div class="stars s1"></div><div class="stars s2"></div><div class="stars s3"></div></div>
+
   <header class="top">
-    <a id="brand" class="brand" href="./"><span class="brand__dot" aria-hidden="true"></span><span data-i18n="title">Gökyüzü Veri Portalı</span></a>
-    <div class="top__right">
-      <button id="cmp-open" class="cmp-pill" type="button" hidden></button>
-      <a id="lang" class="lang" href="?lang=en">English</a>
-    </div>
+    <div class="top__strip"><div class="wrap">
+      <span data-i18n-html="strip.text"></span>
+      <nav class="langs" aria-label="Dil / Language"><a id="lang-tr" href="?">TR</a><a id="lang-en" href="?lang=en">EN</a></nav>
+    </div></div>
+    <div class="top__bar"><div class="wrap">
+      <a id="brand" class="brand" href="./"><span class="brand__dot" aria-hidden="true"></span><span class="brand__name">Gökyüzü <span>Veri Portalı</span></span></a>
+      <nav class="mainnav" aria-label="Ana menü" data-i18n-label="nav.label">
+        <a href="./#explore" data-nav="explore" data-i18n="nav.explore"></a>
+        <a href="./#tonight" data-nav="tonight" data-i18n="nav.tonight"></a>
+        <a href="./#tours" data-nav="tours" data-i18n="nav.tours"></a>
+        <a href="?page=kunye" data-page="kunye" data-i18n="nav.about"></a>
+      </nav>
+      <div class="top__right">
+        <button id="cmp-open" class="cmp-pill" type="button" hidden></button>
+      </div>
+    </div></div>
   </header>
 
   <main class="stage">
@@ -48,14 +61,23 @@
       </div>
       <p id="status" class="search__status" aria-live="polite"></p>
       <p id="nowebgl" class="search__status"></p>
-      <section class="explore" aria-labelledby="ex-h">
+      <section class="explore" aria-labelledby="explore">
         <p class="explore__today" id="today"></p>
-        <h2 class="explore__h" id="ex-h" data-i18n="ex.explore"></h2>
+        <section class="tonight" id="tonight" aria-labelledby="tonight-h">
+          <div class="tonight__head"><h2 id="tonight-h" class="tonight__title" data-i18n="tn.title"></h2><p class="tonight__loc" id="tonight-loc"></p></div>
+          <ol class="tonight__list" id="tonight-list"></ol>
+        </section>
+        <h2 class="explore__h" id="explore" data-i18n="ex.explore"></h2>
         <ul class="chips" id="chips"></ul>
-        <h2 class="explore__h" data-i18n="ex.tours"></h2>
-        <ul class="tours" id="tours"></ul>
+        <h2 class="explore__h" id="tours" data-i18n="ex.tours"></h2>
+        <ul class="tours" id="tours-list"></ul>
       </section>
     </section>
+
+    <div id="page" class="page" hidden>
+      <nav class="page__nav" aria-labelledby="page-nav-h"><h2 id="page-nav-h" class="page__navh" data-i18n="pg.legal"></h2><ol id="page-links"></ol></nav>
+      <article class="page__body" id="page-body"></article>
+    </div>
 
     <article id="card" class="card" hidden aria-live="polite"></article>
   </main>
@@ -91,7 +113,60 @@
     <p class="cmp__foot"><button id="cmp-clear" type="button" class="linkbtn" data-i18n="cmp.clear"></button></p>
   </dialog>
 
-  <footer class="foot"><p data-i18n="footer"></p></footer>
+  <footer class="site-foot">
+    <div class="wrap site-foot__grid">
+      <div class="site-foot__brand">
+        <a class="brand" href="./"><span class="brand__dot" aria-hidden="true"></span><span class="brand__name">Gökyüzü <span>Veri Portalı</span></span></a>
+        <p data-i18n-html="ft.about"></p>
+      </div>
+      <nav aria-labelledby="ft-explore"><h2 id="ft-explore" data-i18n="ft.explore"></h2><ul>
+        <li><a href="./#explore" data-nav="explore" data-i18n="nav.explore"></a></li>
+        <li><a href="./#tonight" data-nav="tonight" data-i18n="nav.tonight"></a></li>
+        <li><a href="./#tours" data-nav="tours" data-i18n="nav.tours"></a></li>
+      </ul></nav>
+      <nav aria-labelledby="ft-sources"><h2 id="ft-sources" data-i18n="ft.sources"></h2><ul>
+        <li><a href="https://simbad.cds.unistra.fr/simbad/" rel="noopener">SIMBAD (CDS)</a></li>
+        <li><a href="https://vizier.cds.unistra.fr/" rel="noopener">VizieR (CDS)</a></li>
+        <li><a href="https://www.wikidata.org/" rel="noopener">Wikidata</a></li>
+        <li><a href="https://ssp.imcce.fr/" rel="noopener">IMCCE SsODNet</a></li>
+        <li><a href="?page=kaynaklar" data-page="kaynaklar" data-i18n="pg.kaynaklar"></a></li>
+      </ul></nav>
+      <nav aria-labelledby="ft-legal"><h2 id="ft-legal" data-i18n="ft.legal"></h2><ul id="ft-legal-links"></ul></nav>
+    </div>
+    <div class="site-foot__bottom"><div class="wrap">
+      <p id="ft-copy"></p>
+      <button type="button" class="pillbtn" data-open-consent><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 3 3 0 0 1-3-3 3 3 0 0 1-3-3 3 3 0 0 1-3-3z"/></svg><span data-i18n="cs.open"></span></button>
+    </div></div>
+  </footer>
+
+  <aside id="consent" class="consent" hidden aria-labelledby="consent-h">
+    <h2 id="consent-h" data-i18n="cs.title"></h2>
+    <p data-i18n-html="cs.text"></p>
+    <div class="consent__btns">
+      <button type="button" class="btn btn--ghost" data-consent="reject" data-i18n="cs.reject"></button>
+      <button type="button" class="btn btn--ghost" data-consent="accept" data-i18n="cs.accept"></button>
+    </div>
+    <button type="button" class="linkbtn consent__more" data-open-consent data-i18n="cs.manage"></button>
+  </aside>
+
+  <dialog id="consent-dlg" class="cmp consent-dlg" aria-labelledby="consent-dlg-h">
+    <header class="cmp__head">
+      <h2 id="consent-dlg-h" class="cmp__title" data-i18n="cs.dlgTitle"></h2>
+      <button id="consent-close" class="v3d__close" type="button" data-i18n="cmp.close"></button>
+    </header>
+    <p class="muted" data-i18n="cs.dlgIntro"></p>
+    <ul class="cs-list">
+      <li><div><strong data-i18n="cs.c.necessary"></strong><p data-i18n="cs.c.necessaryText"></p></div><span class="cs-tag" data-i18n="cs.always"></span></li>
+      <li><div><strong><label for="cs-prefs" data-i18n="cs.c.prefs"></label></strong><p data-i18n="cs.c.prefsText"></p></div>
+        <input id="cs-prefs" class="switch" type="checkbox" role="switch"></li>
+      <li><div><strong data-i18n="cs.c.stats"></strong><p data-i18n="cs.c.statsText"></p></div><span class="cs-tag cs-tag--off" data-i18n="cs.unused"></span></li>
+    </ul>
+    <div class="consent__btns consent__btns--3">
+      <button type="button" class="btn btn--ghost" data-consent="reject" data-i18n="cs.reject"></button>
+      <button type="button" class="btn btn--accent" data-consent="save" data-i18n="cs.save"></button>
+      <button type="button" class="btn btn--ghost" data-consent="accept" data-i18n="cs.accept"></button>
+    </div>
+  </dialog>
   <div id="toast" class="toast" role="status"></div>
 
   <script type="module" src="js/main.js"></script>

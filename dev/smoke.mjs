@@ -78,9 +78,37 @@ try {
     return ok('Jost') && ok('IBM Plex Mono'); }), 'yerel yazı tipleri yüklenmedi');
   step('yerel yazı tipleri');
   assert.ok((await page.$$('#chips .chip')).length >= 10, 'keşfet listesi');
-  assert.equal((await page.$$('#tours .tour-btn')).length, 3);
-  await snap(page, 'home');
-  step('ana sayfa: keşfet ve turlar');
+  assert.equal((await page.$$('#tours-list .tour-btn')).length, 3);
+  assert.ok((await page.$$('#tonight-list .tn')).length > 0, 'bu gece listesi boş');
+  await snap(page, 'home', false);
+  step('ana sayfa: keşfet, bu gece ve turlar');
+
+  // Çerez / depolama onayı: ilk ziyarette bildirim; reddet → kalıcı depoda tercih yok
+  assert.equal(await page.isVisible('#consent'), true, 'çerez bildirimi görünmüyor');
+  await page.click('#consent [data-consent="reject"]');
+  assert.equal(await page.isVisible('#consent'), false);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('gvp.consent')).prefs), false);
+  // Alt bardan tercih paneli: tercihleri aç ve kaydet
+  await page.click('.site-foot [data-open-consent]');
+  await page.check('#cs-prefs');
+  await page.click('#consent-dlg [data-consent="save"]');
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('gvp.consent')).prefs), true);
+  await page.reload();
+  assert.equal(await page.isVisible('#consent'), false, 'seçim hatırlanmadı');
+  step('çerez onayı ve tercih paneli');
+
+  // Yasal sayfalar: alt bardan KVKK, yan menüden Çerez Politikası
+  await page.click('.site-foot a[href*="page=kvkk"]');
+  await page.waitForSelector('.page__title');
+  assert.match(await page.textContent('.page__title'), /Aydınlatma/);
+  assert.match(await page.textContent('.prose'), /KVKK m\. 11/);
+  assert.ok(await page.$('.ph'), 'doldurulmamış künye alanları işaretli olmalı');
+  await snap(page, 'legal');
+  await page.click('#page-links a[href*="page=cerez"]');
+  await page.waitForFunction(() => document.querySelector('.page__title')?.textContent.includes('Çerez'));
+  assert.equal(await page.getAttribute('body', 'data-state'), 'page');
+  step('yasal sayfalar');
+  await page.goto(BASE);
 
   // 2. Arama: yerel ad → gezegen kartı
   await page.fill('#q', 'Mars');

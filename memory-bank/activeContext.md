@@ -20,6 +20,12 @@
   - Ay ve İo kartı (Wikidata QID'leri)
   - M87 kartında ilişkili kara delik
 
+**2026-11-05 (devam):**
+- **Tasarım:** siyah tema mockup'ları (Design tuvali). Siteye uygulandı: tam siyah zemin,
+  sarı/turuncu palet, kayan yıldızlar, üst/alt bar, "Bu gece" kutusu, çerez onayı ve 8 yasal sayfa.
+- **Yazı tipleri:** kendi sunucumuzdan veriliyor.
+- **Bekleyen:** `js/legal/site-info.js` doldurulacak ve hukuki inceleme yapılacak; sonra `draft: false`.
+
 **Sıradaki olası işler:**
 - Yayına alma (gokyuzuveriportali alan adı; onay gerekir).
 - **Küçük işler:**

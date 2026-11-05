@@ -1,9 +1,10 @@
 // Ölçek karşılaştırması: kartlardan eklenen cisimler (en çok 6) aynı ölçekte yan yana çizilir.
-// Liste yalnız bu tarayıcıda (localStorage) tutulur. Doğrusal ölçekte en büyük cisim alanı doldurur;
+// Liste yalnız bu tarayıcıda tutulur (tercih onayı varsa kalıcı, yoksa sekme açıkken; consent.js). Doğrusal ölçekte en büyük cisim alanı doldurur;
 // fark çok büyükse logaritmik ölçek önerilir.
 
 import { t, num, lang } from './i18n.js';
 import { lengthParts, REFERENCE } from '../explore/size.js';
+import { prefStore } from '../consent.js';
 
 const KEY = 'gvp.compare', MAX = 6;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -12,11 +13,11 @@ let items = load();
 const listeners = new Set();
 
 function load() {
-  try { const v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v.filter((x) => x?.m > 0).slice(0, MAX) : []; }
+  try { const v = JSON.parse(prefStore.get(KEY)); return Array.isArray(v) ? v.filter((x) => x?.m > 0).slice(0, MAX) : []; }
   catch { return []; }
 }
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
+  prefStore.set(KEY, JSON.stringify(items));
   listeners.forEach((f) => f(items));
 }
 

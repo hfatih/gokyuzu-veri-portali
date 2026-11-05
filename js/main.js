@@ -13,6 +13,7 @@ import { isSolarPlanetId, isMoonId } from './planet/solar.js';
 import { stopPulses } from './pulsar/sound.js';
 import { kindById, kindByObj } from './kinds/index.js';
 import { skyHtml, bindSky } from './ui/sky-card.js';
+import { initChrome, showPage, hidePage } from './ui/chrome.js';
 import { lookupIds } from './search/simbad.js';
 import { fetchRelated, blackHolesIn, hostOfBlackHole } from './search/related.js';
 import { FEATURED, todaysPick } from './explore/featured.js';
@@ -32,7 +33,6 @@ const bgCanvas = $('#bg'), miniCanvas = $('#mini'), cornerBtn = $('#corner');
 
 applyStatic();
 document.title = t('title');
-$('#lang').textContent = t('lang.switch');
 
 // ---------- Çiziciler ----------
 const bg = createView(bgCanvas, { scale: 0.75 });
@@ -166,6 +166,7 @@ async function choose(sel, opts = {}) {
   loadCtrl = new AbortController();
   const signal = loadCtrl.signal;
   body.dataset.state = 'object';
+  hidePage();
   card.hidden = false;
   card.setAttribute('aria-busy', 'true');
   card.innerHTML = `${tourBar()}<p class="card__loading">${t('search.loading')}</p>`;
@@ -319,7 +320,7 @@ function renderExplore() {
   const today = todaysPick();
   $('#today').innerHTML = `<span class="explore__tag">${t('ex.today')}</span> <button type="button" class="linkbtn" data-feat="${FEATURED.indexOf(today)}">${esc(today[lang])}</button>`;
   $('#chips').innerHTML = FEATURED.map((f, i) => `<li><button type="button" class="chip chip--${f.kind}" data-feat="${i}">${esc(f[lang])}</button></li>`).join('');
-  $('#tours').innerHTML = TOURS.map((x) => `<li><button type="button" class="tour-btn" data-tour="${x.id}">
+  $('#tours-list').innerHTML = TOURS.map((x) => `<li><button type="button" class="tour-btn" data-tour="${x.id}">
     <span class="tour-btn__name">${esc(x[lang])}</span><span class="tour-btn__meta">${t('ex.steps', { n: x.steps.length })}</span></button></li>`).join('');
   document.querySelectorAll('[data-feat]').forEach((b) => b.addEventListener('click', () => {
     const f = FEATURED[Number(b.dataset.feat)];
@@ -396,26 +397,21 @@ function bestName(obj) {
   return names.sort((a, b) => (/[a-z]/.test(b) - /[a-z]/.test(a)) || b.length - a.length)[0];
 }
 
-function goHome() {
+function goHome({ focus = true } = {}) {
   tour = null;
   loadCtrl?.abort();
   stopPulses();
   body.dataset.state = 'home';
   card.hidden = true; cornerBtn.hidden = true;
+  hidePage();
   history.replaceState(null, '', lang === 'en' ? '?lang=en' : location.pathname);
   document.title = t('title');
   fetchObject('Sun').then((o) => showStar(starVisualParams(deriveStar(o.raw))));
   frameBackground();
-  input.focus();
+  if (focus) input.focus();
 }
-$('#brand').addEventListener('click', (e) => { e.preventDefault(); goHome(); });
+document.querySelectorAll('.brand').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); goHome(); scrollTo(0, 0); }));
 
-$('#lang').addEventListener('click', (e) => {
-  e.preventDefault();
-  const q = new URLSearchParams(location.search);
-  if (lang === 'en') q.delete('lang'); else q.set('lang', 'en');
-  location.search = q.toString();
-});
 
 // ---------- 3D görünüm ----------
 let detach = null;
@@ -459,8 +455,10 @@ $('#v3d-reset').addEventListener('click', () => { Object.assign(bg.cam, { yaw: 0
 
 // ---------- Açılış ----------
 renderExplore();
+initChrome({ goHome, choose });
 const startQ = new URLSearchParams(location.search);
 const startId = startQ.get('star');
-if (startQ.get('tour') && tourById(startQ.get('tour'))) startTour(startQ.get('tour'), Number(startQ.get('step') || 1) - 1);
+if (startQ.get('page') && showPage(startQ.get('page'))) { /* yasal sayfa */ }
+else if (startQ.get('tour') && tourById(startQ.get('tour'))) startTour(startQ.get('tour'), Number(startQ.get('step') || 1) - 1);
 else if (startId) choose(startId === 'Sun' ? { ...SUN_ITEM, label: lang === 'en' ? 'Sun' : 'Güneş' } : { label: prettyId(startId), mainId: startId, otype: null, fromUrl: true });
 else goHome();
