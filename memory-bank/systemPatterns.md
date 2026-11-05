@@ -1,9 +1,21 @@
 # Sistem kalıpları
 
+- **Tür kaydı (2026-11-05):**
+  - `js/kinds/index.js` sıralı liste. `byId` SIMBAD'sız kimlikler için (`bh:`, `sso:`, `moon:`,
+    `planet:`), `byObj` SIMBAD kaydına göre. Yıldız en sonda yedek türdür.
+  - `load(ctx)` kartı ve sahneyi çizer; `ctx.describe()` ile gökyüzü, karşılaştırma ve ilişkili
+    cisimler için bilgi bırakır.
+  - Sonradan gelen bölümler (çift yıldız, değişen yıldız) `ctx.insert(html)` ile "Gökyüzünde"
+    bölümünün önüne eklenir.
+  - Ortak ekler (`afterLoad` içinde): tur çubuğu, karşılaştır düğmesi, gökyüzü, ilişkili cisimler,
+    kısmi veri uyarısı. `data-goto` düğmeleri cisim açar.
+- **HTTP:** bütün ağ çağrıları `js/net/http.js` `get()` üzerinden geçer: zaman aşımı, paylaşım,
+  oturum önbelleği. VizieR için `js/net/vizier.js` (`cone`, `parseAsu`, `pick`).
+
 - **Katmanlar:** ağ (`search/simbad`, `search/wikidata`, `star/fetch`) → saf hesap (`star/derive`,
   `search/variants`) → çizim (`render/*`) → arayüz (`ui/*`, `main.js`). Saf hesap katmanı Node ile
   test edilir (`dev/check-*.mjs`).
-- **Durum:** `body[data-state]` home | object | 3d; `body[data-kind]` star | other.
+- **Durum:** `body[data-state]` home | object | 3d; `body[data-kind]` star | planet | moon | binary | nebula | galaxy | bh | cluster | pulsar | sso | quasar | other.
 - **Görünüm ve sahne:** `createView(canvas)` (`render/glview.js`) döngü, kamera ve boyutu yönetir.
   Sahne olarak `starScene` ya da `planetScene` takılır:
   `view.setScene(scene, params)`. Bir canvas'ın tek WebGL bağlamı olduğu için tür değişince sahne değişir.

@@ -3,7 +3,7 @@
 const DICT = {
   tr: {
     'title': 'Gökyüzü Veri Portalı',
-    'tagline': 'Bir gök cisminin adını yaz. Fiziksel verisini gör, yıldızın kendi değerleriyle üretilmiş canlı modelini incele, kaynak veritabanlarına git.',
+    'tagline': 'Bir gök cisminin adını yaz. Fiziksel verisini gör, kendi değerleriyle üretilmiş canlı modelini incele, bu gece gökyüzünde nerede olduğunu öğren.',
     'search.ph': 'Betelgeuse, Kutup Yıldızı, HD 39801, α Cen…',
     'search.label': 'Gök cismi ara',
     'search.loading': 'aranıyor…',
@@ -53,7 +53,7 @@ const DICT = {
     'link.esasky': 'ESA arşiv gözlemleri', 'link.gaia': 'Gaia DR3 astrometri ve fotometri',
     'link.exoplanet': 'Gezegen parametreleri', 'link.stellarium': 'Gökyüzünde nerede, şu an',
     'link.wikitr': 'Türkçe ansiklopedi', 'link.wikien': 'İngilizce ansiklopedi',
-    'footer': 'Veriler SIMBAD (CDS, Strasbourg) ve Wikidata\'dan anlık alınır, saklanmaz. Modeller bu değerlerden tarayıcında hesaplanır.',
+    'footer': 'Veriler SIMBAD, VizieR (CDS, Strasbourg), Wikidata ve IMCCE\'den anlık alınır, saklanmaz. Modeller ve gökyüzü konumları bu değerlerden tarayıcında hesaplanır.',
     'p.solar': 'Güneş Sistemi gezegeni', 'p.exo': 'Ötegezegen', 'p.sun': 'Güneş', 'p.host': 'Yıldızı',
     'p.inHZ': 'Yıldızının yaşanabilir bölgesinde (Kopparapu+ 2013, muhafazakâr sınırlar).',
     'p.outHZ': 'Yaşanabilir bölgenin dışında.',
@@ -382,7 +382,7 @@ const DICT = {
   },
   en: {
     'title': 'Sky Data Portal',
-    'tagline': 'Type the name of a celestial object. See its physical data, explore a live model built from the star\'s own values, and jump to the source databases.',
+    'tagline': 'Type the name of a celestial object. See its physical data, explore a live model built from its own values, and find out where it is in tonight\'s sky.',
     'search.ph': 'Betelgeuse, Polaris, HD 39801, α Cen…',
     'search.label': 'Search for an object',
     'search.loading': 'searching…',
@@ -432,7 +432,7 @@ const DICT = {
     'link.esasky': 'ESA archive observations', 'link.gaia': 'Gaia DR3 astrometry and photometry',
     'link.exoplanet': 'Planet parameters', 'link.stellarium': 'Where it is in the sky, now',
     'link.wikitr': 'Turkish encyclopedia', 'link.wikien': 'English encyclopedia',
-    'footer': 'Data are fetched live from SIMBAD (CDS, Strasbourg) and Wikidata and never stored. Models are computed in your browser from these values.',
+    'footer': 'Data are fetched live from SIMBAD, VizieR (CDS, Strasbourg), Wikidata and IMCCE and never stored. Models and sky positions are computed in your browser from these values.',
     'p.solar': 'Solar System planet', 'p.exo': 'Exoplanet', 'p.sun': 'Sun', 'p.host': 'Host star',
     'p.inHZ': 'Inside its star\'s habitable zone (Kopparapu+ 2013, conservative limits).',
     'p.outHZ': 'Outside the habitable zone.',

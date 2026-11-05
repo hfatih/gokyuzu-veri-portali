@@ -7,5 +7,10 @@
   - SIMBAD TAP: `simbad.cds.unistra.fr/simbad/sim-tap/sync`, CORS açık
   - Wikidata SPARQL: `query.wikidata.org/sparql`. Node'un varsayılan User-Agent'ı 403 alıyor,
     tarayıcıda çalışıyor.
-- **Testler:** `node dev/check-derive.mjs`, `node dev/check-search.mjs` (`package.json` → `type: module`).
+- **Testler:**
+  - `npm test`: `dev/check-all.mjs`, bütün `dev/check-*.mjs` betiklerini çalıştırır.
+  - `npm run smoke`: `dev/smoke.mjs`, Playwright + Chromium. CI'da `--no-save` ile kurulur.
+  - CI: `.github/workflows/check.yml`.
+- **VizieR katalogları:** `B/psr` (pulsar), `B/orb6` (çift yıldız yörüngeleri), `B/vsx` (değişen
+  yıldızlar). Hepsi ASU TSV ile alınır.
 - **Yazı tipleri:** Jost ve IBM Plex Mono (Google Fonts), FatihHanAstronom ile aynı aile.

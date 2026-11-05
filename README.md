@@ -6,7 +6,9 @@ modelini inceleyebilir ve kaynak veritabanlarında o cisme ait aramaya gidebilir
 
 `HTML` · `CSS` · `saf JavaScript` · `WebGL 2` · `derleme adımı yok` · `bağımlılık yok`
 
-Veri saklanmaz. Her şey SIMBAD (CDS) ve Wikidata'dan anlık alınır, tarayıcıda hesaplanır.
+Veri saklanmaz. Her şey SIMBAD (CDS), Wikidata, VizieR ve IMCCE'den anlık alınır, tarayıcıda hesaplanır;
+yanıtlar yalnız açık sekmenin belleğinde tutulur. Tarayıcıda hatırlanan tek şey kullanıcının seçtiği
+gözlem konumu ve karşılaştırma listesidir.
 
 ## Çalıştırma
 
@@ -17,8 +19,11 @@ python dev/serve.py 8047
 Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı için `file://` ile açmak işe yaramaz.
 
 - `?star=* alf Ori` seçili cismi açar, `?lang=en` arayüzü İngilizceye çevirir.
-- Kontroller: `node dev/check-derive.mjs`, `node dev/check-planet.mjs`, `node dev/check-nebula.mjs`, `node dev/check-galaxy.mjs`, `node dev/check-bh.mjs`, `node dev/check-cluster.mjs`, `node dev/check-pulsar.mjs`, `node dev/check-sso.mjs`, `node dev/check-quasar.mjs`,
-  `node dev/check-search.mjs`.
+- `?tour=life&step=1` rehberli turu açar (`life`, `scale`, `solar`).
+- Kontroller: `npm test` (tüm `dev/check-*.mjs` betikleri: fizik, arama, gökyüzü, çift ve değişen
+  yıldızlar, önbellek).
+- Tarayıcı duman testi: `npm run smoke` (Playwright + Chromium; dış servisler sabit yanıtlarla
+  karşılanır, `SHOTS=klasör` ile ekran görüntüleri). CI ikisini de her push'ta çalıştırır.
 
 ## Arama
 
@@ -38,6 +43,8 @@ Ardından `http://localhost:8047` adresini aç. ES modülleri kullanıldığı i
 | Yarıçap | Stefan–Boltzmann |
 | Kütle | Yalnız anakolda, kütle–ışıma bağıntısıyla (tahmini) |
 | Dönme | P = 2πR / v (i = 90°, üst sınır); Roche basıklığı |
+| Sönümleme | E(B−V) = (B−V) − (B−V)₀(Teff), A_V = 3,1 E(B−V); E < 0,1 ise düzeltilmez |
+| Tayf türünden Teff | Anakol (Pecaut & Mamajek), dev ve süperdev (Allen; Levesque+ 2005) tabloları |
 
 Her değerin yanında köken etiketi bulunur: **ölçülen**, **hesaplanan** ya da **tahmini**.
 
@@ -139,6 +146,71 @@ Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü de�
   simgesi bu tayfın göze görünen rengindedir.
 - **Görünüm:** merkezdeki kara delik ve yığılma diski.
 
+## Çift yıldızlar (faz 10)
+
+- **Veri:** görsel çift yıldız yörüngesi ORB6 kataloğundan (VizieR `B/orb6`).
+- **Fizik:**
+  - Bugünkü ayrım ve konum açısı.
+  - Kepler III ile toplam kütle: Sirius AB 3,07 M☉, α Cen AB 2,0 M☉.
+  - Sonraki periastron, sonraki en geniş ve en dar ayrım.
+- **Görünüm:**
+  - Kartta görünen yörünge (kuzey yukarı, doğu solda).
+  - "Yörüngeyi 3D'de göster" ile iki yıldız ortak kütle merkezi çevresinde dolanır. Boylar
+    abartılıdır.
+
+## Değişen yıldızlar (faz 11)
+
+- **Veri:** AAVSO VSX (VizieR `B/vsx`); tür, dönem ve parlaklık aralığı.
+- **Fizik:**
+  - Sonraki en parlak an ya da tutulma.
+  - Dönem–ışıma bağıntısıyla uzaklık: Sefeid, RR Lyrae, Mira (K bandı), δ Scuti. Örnek: δ Cep
+    ~265 pc, HST paralaksı 272 pc.
+- **Görünüm:**
+  - Şematik ışık eğrisi.
+  - 3D modelde yıldız gerçek dönemle zonklar: sıcaklık ışık eğrisinden, yarıçap türün tipik
+    genliğiyle.
+
+## Uydular (faz 12)
+
+- **Kapsam:** Ay, Fobos, Deimos, İo, Europa, Ganymede, Kallisto, Titan, Enceladus ve Triton
+  (`?star=moon:Q405`). Değerler Wikidata'dan.
+- **Fizik:** denge sıcaklığı ana gezegenin Güneş'e uzaklığından hesaplanır. Yörünge değerleri
+  gezegen çevresindendir.
+- **Görünüm:** temsili yüzey tonları; Titan'da turuncu pus.
+- **Bağlantılar:** gezegen kartında uydular, uydu kartında gezegen listelenir.
+
+## Gökyüzünde
+
+Koordinatı ya da yörüngesi olan her kartta bu bölüm var:
+
+- Şu anki yükseklik ve yön.
+- Doğuş, meridyen geçişi ve batış.
+- Bu gece karanlıkta en iyi an.
+- Görmek için gereken araç: çıplak göz, dürbün ya da teleskop.
+- Önümüzdeki 24 saatin yükseklik eğrisi.
+
+Hesap tarayıcıda yapılır:
+
+- Sabit cisimlerde presesyon kullanılır.
+- Gezegenler Standish (1992) ortalama elemanlarından hesaplanır.
+- Güneş ve Ay için Astronomical Almanac'ın düşük duyarlıklı formülleri kullanılır.
+- Ay için ayrıca evre gösterilir.
+
+Varsayılan konum Ankara'dır. "Konumumu kullan" seçilirse konum yalnız bu tarayıcıda hatırlanır.
+
+## Keşfet, turlar ve karşılaştırma
+
+- **Ana sayfa:**
+  - Her türden bir örnek.
+  - "Bugünün cismi".
+  - Üç rehberli tur: bir yıldızın yaşamı, Ay'dan evrenin kıyısına, Güneş Sistemi.
+- **Ölçek karşılaştırması:**
+  - Kartlardan eklenen en çok 6 cisim aynı ölçekte çizilir; doğrusal ya da logaritmik.
+  - Liste yalnız bu tarayıcıda tutulur.
+- **İlişkili cisimler:**
+  - SIMBAD hiyerarşisinden (yıldızın kümesi, bulutsunun merkez yıldızı).
+  - Wikidata'dan: kara delik ↔ barındıran gökada.
+
 ## Gözlem görüntüsü
 
 Koordinatı olan her cismin kartında gerçek bir gökyüzü kesiti bulunur (CDS hips2fits, anlık,
@@ -151,9 +223,11 @@ Model ile gözlem yan yana durur.
 ## Yapı
 
 ```
-js/search/   variants (SIMBAD desenleri), simbad, wikidata, aliases-tr, suggest (birleştirme)
-js/star/     fetch (SIMBAD verisi), derive (fizik, saf), links (yönlendirme)
-js/planet/   fetch (Wikidata + ana yıldız), units, derive (saf), visual, solar, links
+js/kinds/    tür kaydı: her tür { id, byId?, byObj?, load(ctx) } (yıldız, gezegen, uydu, bulutsu, …)
+js/net/      http (oturum önbelleği, istek paylaşımı), vizier (ASU TSV)
+js/search/   variants (SIMBAD desenleri), simbad, wikidata, aliases-tr, suggest (birleştirme), related
+js/star/     fetch (SIMBAD verisi), derive (fizik, sönümleme, saf), links (yönlendirme)
+js/planet/   fetch (Wikidata + ana yıldız, uydular), units, derive (saf), moon (saf), visual, solar, links
 js/nebula/   derive (saf), visual
 js/galaxy/   derive (saf), visual
 js/bh/       fetch (Wikidata), derive (saf)
@@ -161,12 +235,18 @@ js/cluster/  fetch (SIMBAD üyeleri), derive (saf), visual
 js/pulsar/   fetch (VizieR ATNF), derive (saf), visual, sound
 js/sso/      fetch (IMCCE), orbit (Kepler, MOID), derive (saf), visual
 js/quasar/   derive (ΛCDM, saf), spectrum (bileşik tayf, renk)
-js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso (sahneler), color, view3d
-js/ui/       i18n, card, planet-card, nebula-card, galaxy-card, bh-card, cluster-card, pulsar-card, sso-card, quasar-card, observation
-js/main.js   durum geçişleri: home → object → 3d
+js/binary/   fetch (VizieR ORB6), derive (görünen yörünge, Kepler III, saf)
+js/variable/ fetch (VizieR VSX), derive (ışık eğrisi, P–L, zonklama, saf)
+js/sky/      ephem (Güneş, Ay, gezegenler, presesyon), visibility (24 saatlik yol), location
+js/explore/  featured, tours, refs (başvuru çözümü), size (karşılaştırma yarıçapı)
+js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso / binary (sahneler), color, view3d
+js/ui/       i18n, card ve tür kartları, sky-card, binary-card, variable-card, compare, observation
+js/main.js   durum geçişleri (home → object → 3d), arama kutusu, tur, karşılaştırma, kartın ortak ekleri
 ```
 
 ## Yol haritası
 
-Dokuz faz tamam (yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar, küçük cisim, kuasar).
-Sırada yayına alma; yeni faz adayları uydular, değişen yıldızlar, çift yıldız yörüngeleri.
+On iki faz tamam: yıldız, gezegen, bulutsu, gökada, kara delik, küme, pulsar, küçük cisim, kuasar,
+çift yıldız, değişen yıldız ve uydu. Bunlara ek olarak gökyüzü konumu, turlar, karşılaştırma,
+sönümleme, CI ve tarayıcı testi eklendi. Sırada yayına alma var. Ayrıntı ve bilinen sınırlar:
+[docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md).

@@ -1,18 +1,31 @@
 # Aktif bağlam
 
-**2026-10-09:** Önerilen dokuz fazın tümü tamamlandı. Faz 7 pulsarlar, faz 8 küçük cisimler ve faz 9
-kuasarlar aynı gün bitti; hepsi tarayıcıda doğrulandı.
+**2026-11-05:** Önerilen geliştirme listesinin tamamı yapıldı; yayına alma hariç tutuldu.
 
-**Faz 9'da doğrulananlar:**
-- 3C 273: z 0,158, 2,45 milyar ışık yılı, M −26,3, Eddington kütlesi 6,5 × 10⁸ M☉
-- APM 08279+5255: z 3,9, Lyα 597 nm, görünür ışığın %42'si soğrulmuş
-- İngilizce sayfa
+**Yapılanlar:**
+- **Altyapı:** `npm test`, `npm run smoke` (Playwright), CI, tür kaydı (`js/kinds/`), oturum
+  önbelleği (`js/net/http.js`), tekrar dene.
+- **Yeni bölümler:** Gökyüzünde (`js/sky/`), keşfet ve turlar (`js/explore/`), ölçek
+  karşılaştırması, ilişkili cisimler.
+- **Fizik:** sönümleme, dev ve süperdev Teff tabloları, Wikidata aykırı tercih edilen değer, Bond
+  albedo.
+- **Fazlar:** 10 çift yıldızlar, 11 değişen yıldızlar, 12 uydular.
+
+**Doğrulama:**
+- Fizik `dev/check-*.mjs` ile yayımlanmış değerlere karşı sınandı.
+- Akış duman testiyle sabit yanıtlar üzerinde sınandı.
+- Oturumda SIMBAD, Wikidata, VizieR ve IMCCE'ye ağ erişimi yoktu. İlk iş: canlı serviste kontrol et:
+  - Sirius ve α Cen yörüngesi (ORB6 sütunları)
+  - δ Cep ve Algol (VSX sütunları)
+  - Ay ve İo kartı (Wikidata QID'leri)
+  - M87 kartında ilişkili kara delik
 
 **Sıradaki olası işler:**
-- Yayına alma (gokyuzuveriportali alan adı; onay gerekir)
-- Küçük işler:
-  - yıldız kartında tıklanabilir gezegenler
-  - pulsar rüzgârı bulutsusu, kuasar jeti
-  - gökada PA, Kerr
-  - devler için Teff tablosu
-- Yeni faz adayları: uydular (Ay, Galilean), değişen yıldızlar, çift yıldız yörüngeleri
+- Yayına alma (gokyuzuveriportali alan adı; onay gerekir).
+- **Küçük işler:**
+  - Pulsar rüzgârı bulutsusu
+  - Kuasar jeti
+  - Gökada PA
+  - Kerr kara delik
+  - Örten çiftleri 3D'de tutulmayla göstermek
+  - Beyaz cüce yoldaşı tanımak

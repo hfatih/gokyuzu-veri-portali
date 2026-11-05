@@ -17,9 +17,17 @@
 - [x] Faz 7: pulsarlar (ATNF/VizieR, deniz feneri modeli, atım sesi) — 2026-10-09
 - [x] Faz 8: küçük cisimler (IMCCE SsODNet, MOID, cisim replikası, yörünge çizimi) — 2026-10-09
 - [x] Faz 9: kuasarlar (ΛCDM, kırmızıya kaymış tayf ve renk, Eddington kütlesi) — 2026-10-09
+- [x] Altyapı: npm test, CI, Playwright duman testi, tür kaydı (js/kinds), oturum önbelleği, tekrar dene — 2026-11-05
+- [x] Gökyüzünde: doğuş/batış, bu gece en iyi an, 24 saatlik eğri (Standish, AA) — 2026-11-05
+- [x] Keşfet, bugünün cismi, 3 rehberli tur, ölçek karşılaştırması, ilişkili cisimler — 2026-11-05
+- [x] Sönümleme (renk fazlası), dev/süperdev Teff tabloları, Wikidata aykırı tercih, Bond albedo — 2026-11-05
+- [x] Faz 10: çift yıldızlar (ORB6, Kepler III, 3D yörünge) — 2026-11-05
+- [x] Faz 11: değişen yıldızlar (VSX, ışık eğrisi, P–L, zonklama) — 2026-11-05
+- [x] Faz 12: uydular (Ay, Galile uyduları, Titan…) — 2026-11-05
 
 **Bilinen sınırlar:**
-- Sönümleme yok sayılıyor; kartta not olarak belirtiliyor.
 - v sin i, i = 90° kabulüyle kullanılıyor.
-- Devlerde Teff tablosu anakol tablosu.
-- Wikidata rank hataları (HD 209458 b yarıçapı); albedo niteleyicisi okunmuyor.
+- Sönümleme renk fazlasından kaba tahmin (±0,3 mag); B parlaklığı yoksa düzeltme yok.
+- ORB6/VSX VizieR sütun adları, uydu QID'leri, kara delik ↔ gökada Wikidata bağı ve albedo niteleyici
+  sorgusu canlı serviste doğrulanmadı (2026-11-05 oturumunda ağ kapalıydı); hata olursa sessiz atlanır.
+- Işık eğrileri şematik; çift yıldız sahnesinde beyaz cüce yoldaş anakol varsayımıyla yanlış renkte.

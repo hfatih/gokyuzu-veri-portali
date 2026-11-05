@@ -108,3 +108,29 @@ Ayrıntı: [docs/specs/2026-10-09-faz8-kucuk-cisimler-design.md](../../docs/spec
 - **Sahne:** kara delik sahnesi Eddington kütlesiyle yeniden kullanılıyor.
 
 Ayrıntı: [docs/specs/2026-10-09-faz9-kuasarlar-design.md](../../docs/specs/2026-10-09-faz9-kuasarlar-design.md)
+
+## 2026-11-05 · Geliştirmeler ve faz 10–12
+
+- **Altyapı:**
+  - `npm test` (`dev/check-all.mjs`), `npm run smoke` (`dev/smoke.mjs`, Playwright) ve CI.
+  - Tür kaydı (`js/kinds/`).
+  - Oturum önbelleği (`js/net/http.js`, kontrolü `dev/check-net.mjs`).
+  - Tekrar dene düğmesi.
+- **Gökyüzünde:** `js/sky/ephem.js`, `visibility.js` ve `ui/sky-card.js`. Kontrolü
+  `dev/check-sky.mjs`.
+- **Keşfet:** `js/explore/` (öne çıkanlar, turlar, başvuru çözümü, boyut) ve `ui/compare.js`.
+  Kontrolü `dev/check-explore.mjs`.
+- **İlişkili cisimler:** `js/search/related.js`.
+- **Fizik:** sönümleme ve dev Teff tabloları (`star/derive.js`, `check-derive.mjs`), Wikidata
+  aykırı tercih ve Bond albedo (`planet/units.js`, `planet/fetch.js`, `check-planet.mjs`).
+- **Faz 10, çift yıldızlar:**
+  - Hesap ve veri: `js/binary/` (ORB6, `check-binary.mjs`).
+  - Arayüz ve sahne: `ui/binary-card.js`, `render/binary.js`.
+- **Faz 11, değişen yıldızlar:**
+  - Hesap ve veri: `js/variable/` (VSX, `check-variable.mjs`).
+  - Arayüz: `ui/variable-card.js`.
+  - Sahne: yıldız sahnesinde `uScale` ve zonklama.
+- **Faz 12, uydular:** `planet/solar.js` `SOLAR_MOONS`, `planet/moon.js`, `kinds/moon.js` ve gezegen
+  sahnesinde kip 4.
+
+Ayrıntı: [docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](../../docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md)
