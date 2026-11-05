@@ -27,7 +27,7 @@ export function radiusOf(kind, info) {
 export function lengthParts(m) {
   const km = m / 1e3;
   if (km < 1e5) return { v: km, u: 'km' };
-  if (m < 3 * RSUN * 100) return { v: m / RSUN, u: 'R☉' };
+  if (m < 3000 * RSUN) return { v: m / RSUN, u: 'R☉' };   // en büyük süperdevler ~2000 R☉
   if (m < 0.05 * 9.4607e15) return { v: m / 1.495978707e11, u: 'AU' };
   return { v: m / 9.4607e15, u: 'ly' };
 }
