@@ -1,1 +1,9 @@
-{ "type": "module", "private": true }
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node dev/check-all.mjs",
+    "smoke": "node dev/smoke.mjs",
+    "serve": "python3 dev/serve.py 8047"
+  }
+}
