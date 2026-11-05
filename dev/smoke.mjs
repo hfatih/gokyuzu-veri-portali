@@ -24,8 +24,16 @@ function tapReply(q) {
   if (/FROM basic WHERE main_id = '\* alf CMa'/.test(q)) return table(BASIC, [[1, '* alf CMa', 101.2872, -16.7161, 379.21, 1.58, 'A0mA1Va', 'SB*', -5.5, 3000, null, null, null, null, null]]);
   if (/FROM mesFe_H WHERE oidref = 1\b/.test(q)) return table(['teff', 'log_g', 'fe_h', 'bibcode'], [[9900, 4.3, 0.4, '2000fixt.....1F']]);
   if (/FROM flux WHERE oidref = 1\b/.test(q)) return table(['filter', 'flux'], [['V', -1.46], ['B', -1.46]]);
-  if (/FROM ident WHERE oidref = 1\b/.test(q)) return table(['id'], [['* alf CMa'], ['NAME Sirius'], ['HD 48915']]);
+  if (/FROM ident WHERE oidref = 1\b/.test(q)) return table(['id'], [['* alf CMa'], ['NAME Sirius'], ['HD 48915'], ['WDS J06451-1643AB']]);
   return table([], []);
+}
+
+// ORB6: Sirius AB elemanları (check-binary.mjs ile aynı)
+function vizierReply(source) {
+  if (!/orb6/.test(source)) return '';
+  return ['#Table B/orb6/orb6orb', 'WDS\tHD\tP\tu_P\ta\tu_a\ti\tNode\tT\tu_T\te\tomega\tGrade',
+    '\t\t\t\tarcsec\t\tdeg\tdeg\t\t\t\tdeg\t', '-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-',
+    '06451-1643\t48915\t50.128\ty\t7.4957\ta\t136.336\t45.400\t1994.5715\ty\t0.59142\t149.161\t1', ''].join('\n');
 }
 
 const server = spawn('python3', [join(root, 'dev/serve.py'), String(PORT)], { stdio: 'ignore' });
@@ -45,7 +53,7 @@ try {
     }
     if (url.host === 'query.wikidata.org') return route.fulfill({ contentType: 'application/json', body: '{"results":{"bindings":[]}}' });
     if (url.host === 'api.ssodnet.imcce.fr') return route.fulfill({ contentType: 'application/json', body: '{"data":[]}' });
-    if (url.host === 'vizier.cds.unistra.fr') return route.fulfill({ contentType: 'text/plain', body: '' });
+    if (url.host === 'vizier.cds.unistra.fr') return route.fulfill({ contentType: 'text/plain', body: vizierReply(url.searchParams.get('-source') ?? '') });
     return route.fulfill({ status: 404, body: '' });   // yazı tipleri, gözlem görüntüleri
   });
 
@@ -84,6 +92,18 @@ try {
   assert.ok(await page.$('.skyc__path'), 'yükseklik eğrisi yok');
   step('gökyüzünde bölümü (Sirius)');
   await snap(page, 'sirius');
+
+  // Çift yıldız yörüngesi (ORB6 sabiti) ve 3D yörünge sahnesi
+  await page.waitForSelector('[data-binary]');
+  assert.match(await page.textContent('[data-binary]'), /M☉/);
+  await page.click('[data-binary-scene]');
+  assert.equal(await page.getAttribute('body', 'data-kind'), 'binary');
+  await page.waitForTimeout(400);
+  assert.ok(await litFraction(page) > 0.001, 'çift yıldız sahnesi çizilmedi');
+  await snap(page, 'binary', false);
+  await page.click('[data-binary-scene]');
+  assert.equal(await page.getAttribute('body', 'data-kind'), 'star');
+  step('çift yıldız yörüngesi');
 
   // 4. 3D görünüm açılıp kapanıyor
   await page.click('#corner');
@@ -172,8 +192,8 @@ try {
 function step(name) { console.log(`✓ ${name}`); }
 
 // SHOTS=klasör verilirse adım ekran görüntüleri (tam sayfa) kaydedilir
-async function snap(page, name) {
-  if (process.env.SHOTS) await page.screenshot({ path: join(process.env.SHOTS, `${name}.png`), fullPage: true });
+async function snap(page, name, fullPage = true) {
+  if (process.env.SHOTS) await page.screenshot({ path: join(process.env.SHOTS, `${name}.png`), fullPage });
 }
 
 async function waitForServer() {

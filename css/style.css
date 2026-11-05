@@ -328,3 +328,10 @@ button { font: inherit; color: inherit; }
   .brand { font-size: 14px; }
 }
 [data-kind="moon"] .v3d .chk { display: none; }
+
+/* ---------- Çift yıldız ---------- */
+.orb--binary { margin: 10px 0 0; }
+.orb--binary svg { max-width: 300px; margin: 0 auto; display: block; }
+.orb figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.orb__sep { stroke: var(--muted); stroke-dasharray: 3 3; }
+[data-kind="binary"] .v3d .chk { display: none; }

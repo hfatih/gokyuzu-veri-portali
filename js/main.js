@@ -141,6 +141,13 @@ function makeCtx(sel, obj, signal) {
       if (ul) ul.innerHTML = linkItems(build(wiki));
     }).catch(() => {}),
     partial: () => { ctx.isPartial = true; },
+    // Sonradan gelen bölüm (çift yıldız, değişen yıldız): "Gökyüzünde" bölümünden önce, yoksa bağlantılardan önce
+    insert: (html) => {
+      if (signal.aborted) return;
+      const anchor = card.querySelector('[data-sky]')?.previousElementSibling;
+      if (anchor) anchor.insertAdjacentHTML('beforebegin', html); else insertBeforeLinks(html);
+      bindGoto(card);
+    },
     describe: (info) => Object.assign(ctx.info, info),
   };
   return ctx;
@@ -425,7 +432,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', moon: 'v3d.modelMoon', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', moon: 'v3d.modelMoon', binary: 'v3d.modelBinary', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);
