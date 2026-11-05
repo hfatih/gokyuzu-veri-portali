@@ -10,7 +10,7 @@
   - Ortak ekler (`afterLoad` içinde): tur çubuğu, karşılaştır düğmesi, gökyüzü, ilişkili cisimler,
     kısmi veri uyarısı. `data-goto` düğmeleri cisim açar.
 - **HTTP:** bütün ağ çağrıları `js/net/http.js` `get()` üzerinden geçer: zaman aşımı, paylaşım,
-  oturum önbelleği. VizieR için `js/net/vizier.js` (`cone`, `parseAsu`, `pick`).
+  oturum önbelleği. SIMBAD `tap()` sunucu listesinde (`TAPS`) sırayla dener, çalışanı oturumda hatırlar. VizieR için `js/net/vizier.js` (`cone`, `parseAsu`, `pick`).
 
 - **Katmanlar:** ağ (`search/simbad`, `search/wikidata`, `star/fetch`) → saf hesap (`star/derive`,
   `search/variants`) → çizim (`render/*`) → arayüz (`ui/*`, `main.js`). Saf hesap katmanı Node ile

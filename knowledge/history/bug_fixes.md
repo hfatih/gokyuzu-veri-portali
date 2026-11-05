@@ -95,3 +95,14 @@
   taşıyor.
 - **Parlaklık ölçeği:** albedo × 9 Bennu'yu (0,044) açık gri, Vesta'yı beyaz yapıyordu; × 1,6'ya
   indirildi.
+
+## 2026-11-05 · SIMBAD'a erişilemeyince arama ve kart boş kalıyordu
+
+- **Belirti:** "Betelgeuse" aramasında öneri gelmiyor, "SIMBAD şu an yanıt vermiyor" yazıyordu; kartların çoğu eksikti.
+- **Kök neden:** CDS sunucuları (simbad/vizier/alasky.cds.unistra.fr, 130.79.x) Türkiye'deki ağdan hiç yanıt vermiyor
+  (15–20 sn zaman aşımı). Wikidata çalışıyordu.
+- **Düzeltme:** `js/search/simbad.js` `tap()` başarısız olunca Harvard aynasına (`simbad.cfa.harvard.edu`, CORS açık,
+  aynı TAP arayüzü) geçer ve oturum boyunca çalışan sunucuyu hatırlar. Bütün SIMBAD sorguları bu fonksiyondan geçer.
+  Kontrol: `dev/check-simbad.mjs`.
+- **Kalan:** VizieR (pulsar, ORB6, VSX) ve hips2fits gözlem görüntüsü için çalışan ayna bulunamadı
+  (vizier.cfa.harvard.edu 502); CDS dönene kadar bu ekler eksik kalır. İlk aramada CDS'nin 6 sn zaman aşımı beklenir.

@@ -4,7 +4,8 @@
 - **Yerel çalıştırma:** `python dev/serve.py 8047` (no-store; `python -m http.server` eski modülleri önbellekten verebiliyor). Beynim vault'undaki
   `.claude/launch.json` dosyasında `gokyuzu-veri-portali` adıyla kayıtlı.
 - **Dış servisler:**
-  - SIMBAD TAP: `simbad.cds.unistra.fr/simbad/sim-tap/sync`, CORS açık
+  - SIMBAD TAP: `simbad.cds.unistra.fr/simbad/sim-tap/sync`, CORS açık. Yedek: `simbad.cfa.harvard.edu`
+    (aynı arayüz); CDS 2026-11-05'te Türkiye'den erişilemiyordu. VizieR ve hips2fits için yedek yok.
   - Wikidata SPARQL: `query.wikidata.org/sparql`. Node'un varsayılan User-Agent'ı 403 alıyor,
     tarayıcıda çalışıyor.
 - **Testler:**
