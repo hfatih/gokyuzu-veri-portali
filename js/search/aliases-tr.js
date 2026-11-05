@@ -25,6 +25,17 @@ const ALIASES = [
   { label: 'Orion Bulutsusu', simbadId: 'M 42' },
   { label: 'Yengeç Pulsarı', simbadId: 'V* CM Tau' },
   { label: 'Vela Pulsarı', simbadId: 'NAME Vela Pulsar' },
+  // Uydular Wikidata öğesiyle (planet/solar.js SOLAR_MOONS)
+  { label: 'Ay', simbadId: 'moon:Q405', otype: 'Moon' }, { label: 'Moon', simbadId: 'moon:Q405', otype: 'Moon' },
+  { label: 'Fobos', simbadId: 'moon:Q7547', otype: 'Moon' }, { label: 'Phobos', simbadId: 'moon:Q7547', otype: 'Moon' },
+  { label: 'Deimos', simbadId: 'moon:Q7548', otype: 'Moon' },
+  { label: 'İo', simbadId: 'moon:Q3123', otype: 'Moon' }, { label: 'Io', simbadId: 'moon:Q3123', otype: 'Moon' },
+  { label: 'Europa', simbadId: 'moon:Q3143', otype: 'Moon' }, { label: 'Avrupa (uydu)', simbadId: 'moon:Q3143', otype: 'Moon' },
+  { label: 'Ganymede', simbadId: 'moon:Q3169', otype: 'Moon' }, { label: 'Ganimed', simbadId: 'moon:Q3169', otype: 'Moon' },
+  { label: 'Kallisto', simbadId: 'moon:Q3134', otype: 'Moon' }, { label: 'Callisto', simbadId: 'moon:Q3134', otype: 'Moon' },
+  { label: 'Titan', simbadId: 'moon:Q2565', otype: 'Moon' },
+  { label: 'Enceladus', simbadId: 'moon:Q3303', otype: 'Moon' },
+  { label: 'Triton', simbadId: 'moon:Q3359', otype: 'Moon' },
   // Küçük cisimler IMCCE kimliğiyle (sso/fetch.js)
   { label: 'Plüton', simbadId: 'sso:Pluto', otype: 'DwarfPl' }, { label: 'Pluto', simbadId: 'sso:Pluto', otype: 'DwarfPl' },
   { label: 'Halley Kuyruklu Yıldızı', simbadId: 'sso:1P', otype: 'Comet' },

@@ -9,7 +9,7 @@ import { deriveStar, starVisualParams } from './star/derive.js';
 import { linkItems } from './ui/card.js';
 import { isBlackHoleId } from './bh/fetch.js';
 import { isSsoId } from './sso/fetch.js';
-import { isSolarPlanetId } from './planet/solar.js';
+import { isSolarPlanetId, isMoonId } from './planet/solar.js';
 import { stopPulses } from './pulsar/sound.js';
 import { kindById, kindByObj } from './kinds/index.js';
 import { skyHtml, bindSky } from './ui/sky-card.js';
@@ -73,7 +73,7 @@ function renderList({ items: next, pending, failed }) {
     li.id = `opt-${i}`; li.role = 'option'; li.className = 'opt';
     const name = document.createElement('span'); name.className = 'opt__name'; name.textContent = it.label;
     const meta = document.createElement('span'); meta.className = 'opt__meta';
-    const alt = isBlackHoleId(it.mainId) || isSsoId(it.mainId) ? it.label : prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
+    const alt = isBlackHoleId(it.mainId) || isSsoId(it.mainId) || isMoonId(it.mainId) ? it.label : prettyId(it.mainId), solar = isSolarPlanetId(it.mainId);
     meta.textContent = solar ? t('p.solar')
       : [otypeName(it.otype), alt !== it.label ? alt : '', it.sp, Number.isFinite(it.nbref) && !it.rankOnly ? t('search.refs', { n: num(it.nbref, 3) }) : '']
         .filter(Boolean).join(' · ');
@@ -425,7 +425,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', moon: 'v3d.modelMoon', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

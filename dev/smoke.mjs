@@ -129,6 +129,18 @@ try {
   await page.waitForFunction(() => document.querySelector('.card__title')?.textContent === 'Dünya');
   step('kart içi bağlantılar');
 
+  // Uydu: Ay (Wikidata sabiti boş; kart, sahne ve evre yine çizilir), Jüpiter'den İo'ya
+  await page.goto(`${BASE}?star=moon:Q405`);
+  await page.waitForSelector('.card__title');
+  assert.equal(await page.textContent('.card__title'), 'Ay');
+  assert.match(await page.textContent('[data-sky]'), /aydınlık/);
+  assert.ok(await litFraction(page) > 0.02, 'uydu sahnesi çizilmedi');
+  await snap(page, 'moon');
+  await page.goto(`${BASE}?star=planet:Q319`);
+  await page.click('[data-goto="moon:Q3123"]');
+  await page.waitForFunction(() => document.querySelector('.card__title')?.textContent === 'İo');
+  step('uydular');
+
   // 9. Dar ekran: yatay taşma yok (ana sayfa ve kart)
   await page.setViewportSize({ width: 390, height: 844 });
   for (const url of [BASE, `${BASE}?star=${encodeURIComponent('* alf CMa')}`]) {

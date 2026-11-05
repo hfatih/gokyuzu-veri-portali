@@ -5,7 +5,7 @@ import { tap } from '../search/simbad.js';
 import { fetchObject } from '../star/fetch.js';
 import { deriveStar } from '../star/derive.js';
 import { pickValue } from './units.js';
-import { solarPlanet } from './solar.js';
+import { solarPlanet, solarMoon } from './solar.js';
 import { sparql } from '../search/wikidata.js';
 
 const lit = (s) => '"' + s.replace(/["\\]/g, '\\$&').replace(/\s+/g, ' ') + '"';
@@ -14,7 +14,7 @@ const lit = (s) => '"' + s.replace(/["\\]/g, '\\$&').replace(/\s+/g, ' ') + '"';
 const PROPS = { P2067: 'mass', P2120: 'radius', P2146: 'period', P2233: 'sma', P1096: 'unitless', P2076: 'temp', P4501: 'unitless', P2147: 'rot', P575: 'time' };
 const FIELD = { P2067: 'mass', P2120: 'radius', P2146: 'period', P2233: 'sma', P1096: 'ecc', P2076: 'temp', P4501: 'albedo', P2147: 'rot' };
 
-async function wikidataProps(valuesClause, signal) {
+export async function wikidataProps(valuesClause, signal) {
   const pairs = Object.keys(PROPS).map((p) => `("${p}" p:${p} psv:${p})`).join(' ');
   const q = `SELECT ?item ?prop ?amount ?unit ?rank ?time WHERE { ${valuesClause}
     VALUES (?prop ?pp ?ppsv) { ${pairs} }
@@ -92,4 +92,18 @@ export async function fetchPlanet(id, obj, signal) {
   ]);
   const host = parent[0] ? await fetchObject(parent[0].main_id, signal).then(hostSummary).catch(() => null) : null;
   return { qid: wd.qid, solar: null, props: wd.props, host };
+}
+
+/**
+ * Güneş Sistemi uydusu (moon:Q…). Dönüş: { qid, moon, parent (solar.js gezegen kaydı), props, host (Güneş) }.
+ * props.sma ve props.period uydunun gezegen çevresindeki yörüngesidir.
+ */
+export async function fetchMoon(id, signal) {
+  const moon = solarMoon(id);
+  if (!moon) throw new Error('not-found');
+  const [wd, sun] = await Promise.all([
+    wikidataProps(`VALUES ?item { wd:${moon.id.slice(5)} }`, signal),
+    fetchObject('Sun', signal),
+  ]);
+  return { qid: wd.qid ?? moon.id.slice(5), moon, parent: solarPlanet(moon.parent), props: wd.props, host: hostSummary(sun) };
 }

@@ -41,7 +41,7 @@ export function createSuggester(onUpdate, getLang) {
     const aliases = matchAliases(q);
     if (aliases.some((a) => a.simbadId === 'Sun')) add([{ ...SUN_ITEM, label: aliases.find((a) => a.simbadId === 'Sun').label }]);
     // Güneş Sistemi gezegenleri ve küçük cisimler doğrudan eklenir; bilinirlikte Güneş'in hemen ardından gelir
-    const seen = new Set(), direct = (a) => /^(planet|sso):/.test(a.simbadId);
+    const seen = new Set(), direct = (a) => /^(planet|sso|moon):/.test(a.simbadId);
     add(aliases.filter((a) => direct(a) && !seen.has(a.simbadId) && seen.add(a.simbadId))
       .map((a) => ({ label: a.label, mainId: a.simbadId, otype: a.otype ?? 'Pl', sp: null, nbref: 1e6, rankOnly: true })));
     const aliasIds = aliases.filter((a) => a.simbadId !== 'Sun' && !direct(a));

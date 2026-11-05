@@ -25,7 +25,7 @@ export function chroma(T) {
 
 /**
  * pd: derivePlanet(), solar: solar.js kaydı ya da null, hostTeff: ana yıldız Teff (yoksa 5772).
- * mode: 0 doku, 1 bulut bantları, 2 Venüs bulut örtüsü, 3 kayalık yüzey modeli.
+ * mode: 0 doku, 1 bulut bantları, 2 Venüs bulut örtüsü, 3 kayalık yüzey modeli, 4 uydu yüzeyi (iki ton).
  */
 export function planetVisualParams(pd, solar, hostTeff) {
   const T = pd.temp?.value ?? pd.teq?.value ?? 250;
@@ -46,6 +46,8 @@ export function planetVisualParams(pd, solar, hostTeff) {
     teq: T, glow: 0, glowColor: [0, 0, 0],
   };
 
+  // Uydular: temsili iki tonlu yüzey (kip 4) ya da bulut örtüsü (Titan)
+  if (solar?.look) return { ...base, contrast: 0.6, ...solar.look, atm: solar.look.atm ?? base.atm };
   if (solar?.texture) {
     return { ...base, mode: 0, atm: solar.atmosphere ? [...solar.atmosphere, solar.key === 'earth' ? 0.7 : 0.18] : base.atm };
   }

@@ -327,3 +327,4 @@ button { font: inherit; color: inherit; }
   .cmp-pill__txt { display: none; }
   .brand { font-size: 14px; }
 }
+[data-kind="moon"] .v3d .chk { display: none; }

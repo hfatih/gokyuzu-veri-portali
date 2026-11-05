@@ -1,7 +1,7 @@
 // Gezegen sahnesi (glview.js üzerinde). Gezegen çerçevesi: dönme ekseni y, halka düzlemi y = 0,
 // eksen eğikliği x çevresinde (izleyiciye doğru) uygulanır. Işık ana yıldızın kara cisim renginde.
 // Kipler (uMode): 0 doku (Merkür, Dünya, Mars), 1 bulut bantları (dev ve buz devleri),
-// 2 Venüs bulut örtüsü, 3 kayalık ötegezegen yüzey modeli.
+// 2 Venüs bulut örtüsü, 3 kayalık ötegezegen yüzey modeli, 4 uydu yüzeyi (iki ton).
 
 const FRAG = `#version 300 es
 precision highp float;
@@ -65,6 +65,12 @@ vec3 surface(vec3 q) {
     c *= 0.94 + 0.12 * streak;
     vec3 avg = 0.5 * (uZone + uBelt);
     return mix(avg, c, uContrast);
+  }
+  // Uydu yüzeyi: büyük ölçekli koyu/açık bölgeler (Ay'ın denizleri gibi) ve ince ayrıntı
+  if (uMode == 4) {
+    float big = smoothstep(0.38, 0.62, fbm(q * 1.3 + 2.0));
+    float fine = fbm(q * 7.0 + 9.0);
+    return mix(uBelt, uZone, clamp(0.7 * big + 0.3 * fine, 0.0, 1.0));
   }
   // Kayalık model: yükseklik gürültüsü + sıcaklık sınıfı
   float h = fbm(q * 3.0 + 5.0);

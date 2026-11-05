@@ -81,3 +81,18 @@ assert.equal(jup.cls, 'giant');
 assert.equal(jup.inHZ, false);
 
 console.log('planet: tüm kontroller geçti');
+
+// Uydular (faz 12): Ay — Wikidata değerleri: 0,0123 M⊕, 0,2727 R⊕, 27,32 gün, 384 400 km, e 0,0549, albedo 0,11
+{
+  const { deriveMoon } = await import('../js/planet/moon.js');
+  {
+    const moon = deriveMoon({ mass: 0.0123, radius: 0.2727, period: 27.32, sma: 384400 / 1.495978707e8, ecc: 0.0549, albedo: 0.11 },
+      'earth', { teff: 5772, R: 1, L: 1 });
+    near(moon.density.value, 3.3, 3.4, 'Ay yoğunluğu');
+    near(moon.gravity.value, 1.6, 1.65, 'Ay yüzey çekimi');
+    near(moon.orbitKm.value, 384000, 384800, 'Ay uzaklığı');
+    near(moon.teq.value, 265, 275, 'Ay denge sıcaklığı');
+    assert.equal(moon.tidallyLocked, true);
+    near(moon.rot.value, 27.3, 27.4, 'Ay dönmesi = yörünge dönemi');
+  }
+}
