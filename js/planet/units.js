@@ -29,18 +29,30 @@ function convert(kind, amount, unit) {
   return f == null ? null : amount * f;
 }
 
+const median = (xs) => {
+  const v = [...xs].sort((a, b) => a - b), m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+};
+
 /**
  * statements: [{ amount, unit (Q kimliği), rank }]. Deprecated ifadeler atlanır; Preferred varsa
  * yalnız onlar kullanılır; çevrilebilen değerlerin ortancası döner, hiçbiri yoksa null.
+ * Wikidata'da tercih edilen değer bazen yanlış birimle girilmiş oluyor (HD 209458 b yarıçapı):
+ * tercih edilen, en az iki normal ifadenin ortancasından 3 kattan fazla saparsa tüm değerlerin
+ * ortancası kullanılır.
  */
 export function pickValue(statements, kind) {
+  const conv = (list) => list.map((s) => convert(kind, Number(s.amount), s.unit)).filter((v) => v != null && Number.isFinite(v));
   const live = statements.filter((s) => s.rank !== 'DeprecatedRank');
-  const pref = live.filter((s) => s.rank === 'PreferredRank');
-  const vals = (pref.length ? pref : live)
-    .map((s) => convert(kind, Number(s.amount), s.unit))
-    .filter((v) => v != null && Number.isFinite(v))
-    .sort((a, b) => a - b);
-  if (!vals.length) return null;
-  const m = vals.length >> 1;
-  return vals.length % 2 ? vals[m] : (vals[m - 1] + vals[m]) / 2;
+  const pref = conv(live.filter((s) => s.rank === 'PreferredRank'));
+  const normal = conv(live.filter((s) => s.rank !== 'PreferredRank'));
+  if (pref.length) {
+    const p = median(pref);
+    if (normal.length >= 2) {
+      const n = median(normal), ratio = Math.abs(p / n);
+      if (n !== 0 && (ratio > 3 || ratio < 1 / 3)) return median([...pref, ...normal]);
+    }
+    return p;
+  }
+  return normal.length ? median(normal) : null;
 }

@@ -46,11 +46,57 @@ function interp(table, x) {
   return table[table.length - 1].slice(1);
 }
 
-/** Tayf türünden Teff tahmini (anakol tablosu; devlerde birkaç yüz K sıcak kalabilir). */
+// Devler (III, II) ve süperdevler (I): G–M arasında aynı tayf türü anakoldan belirgin soğuk.
+// Devler: Allen's Astrophysical Quantities (4. bs., Tablo 15.7); kırmızı süperdevler Levesque+ (2005).
+// O–F devlerinde fark küçük olduğu için anakol tablosu kullanılır.
+const TEFF_GIANT = [
+  [40, 5850], [45, 5150], [48, 4750], [50, 4660], [52, 4390], [55, 4050], [60, 3850], [61, 3720],
+  [62, 3610], [63, 3540], [64, 3460], [65, 3380], [66, 3200],
+];
+const TEFF_SUPERGIANT = [
+  [10, 26000], [15, 13600], [20, 9730], [25, 8510], [30, 7700], [35, 6900], [40, 5550], [45, 4850],
+  [50, 4420], [55, 3850], [60, 3790], [61, 3745], [62, 3660], [63, 3605], [64, 3535], [65, 3450],
+];
+
+/** Tayf türünden Teff tahmini: ışıklılık sınıfına göre anakol, dev ya da süperdev tablosu. */
 export function teffFromSpType(sp) {
   const p = parseSpType(sp);
-  // ponytail: dev/süperdev için ayrı Teff ölçeği yok, gerekirse P&M dev tablosu eklenir
-  return p ? interp(TEFF_TABLE, CLASSES.indexOf(p.cls) * 10 + p.sub)[0] : null;
+  if (!p) return null;
+  const code = CLASSES.indexOf(p.cls) * 10 + p.sub;
+  if (p.lum === 'I' && code >= 10) return interp(TEFF_SUPERGIANT, code)[0];
+  if ((p.lum === 'III' || p.lum === 'II') && code >= 40) return interp(TEFF_GIANT, code)[0];
+  return interp(TEFF_TABLE, code)[0];
+}
+
+// Sıcak yıldızların kendi (B−V)₀ renkleri (Pecaut & Mamajek 2013): Teff → B−V
+const BV_HOT = [[9700, 0.0], [10700, -0.07], [12500, -0.11], [15700, -0.16], [20600, -0.21], [26000, -0.26], [31400, -0.30], [41400, -0.33]];
+
+/**
+ * Teff → kendi rengi (B−V)₀. 9700 K altında Ballesteros (2012) kara cisim bağıntısının tersi (her
+ * ışıklılık sınıfında geçerli), üstünde anakol tablosu (Ballesteros orada fazla mavi veriyor).
+ */
+export function intrinsicBV(teff) {
+  if (teff >= 9700) {
+    const t = BV_HOT;
+    if (teff >= t[t.length - 1][0]) return t[t.length - 1][1];
+    const i = t.findIndex(([T]) => T > teff);
+    const [T0, b0] = t[i - 1], [T1, b1] = t[i];
+    return b0 + (b1 - b0) * (teff - T0) / (T1 - T0);
+  }
+  const bv2t = (bv) => 4600 * (1 / (0.92 * bv + 1.7) + 1 / (0.92 * bv + 0.62));
+  let lo = -0.1, hi = 2.6;   // bv2t azalan
+  for (let k = 0; k < 50; k++) { const m = (lo + hi) / 2; if (bv2t(m) > teff) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+
+/**
+ * Renk fazlasından sönümleme: E(B−V) = (B−V) − (B−V)₀, A_V = 3,1 E(B−V) (Cardelli+ 1989, R_V = 3,1).
+ * Kalibrasyon belirsizliği ~0,05 mag olduğu için E < 0,1 ise düzeltme yapılmaz (null).
+ */
+export function extinctionAV(B, V, teff) {
+  if (B == null || V == null || !(teff > 3300)) return null;
+  const E = (B - V) - intrinsicBV(teff);
+  return E >= 0.1 ? 3.1 * Math.min(E, 3) : null;
 }
 
 /** V bandı bolometrik düzeltme, Torres (2010) Flower (1996) polinomları. */
@@ -92,7 +138,10 @@ export function deriveStar(raw) {
   // Işıklılık sınıfı yazılmamış soğuk yıldızlar ("M7.5e") log g ≥ 4 ise cüce sayılır
   const dwarf = sp?.lum === 'V' || (!sp?.lum && raw.logg != null && raw.logg >= 4);
   const useK = teff && teff.value < 3800 && dwarf && raw.mags?.K != null;
-  const mag = useK ? raw.mags.K : raw.mags?.V;
+  // V bandında renk fazlasından sönümleme; K bandında sönümleme ~10 kat küçük, yakın M cücelerinde yok sayılır
+  const avVal = !useK && teff ? extinctionAV(raw.mags?.B, raw.mags?.V, teff.value) : null;
+  const av = val(avVal, 'estimated');
+  const mag = useK ? raw.mags.K : raw.mags?.V != null ? raw.mags.V - (avVal ?? 0) : null;
   if (distancePc && teff && mag != null) {
     const M = mag - 5 * Math.log10(distancePc.value) + 5;
     const bc = useK ? 2.4 + clamp((3800 - teff.value) / 1000, 0, 1.1) * 0.6 : bolometricCorrection(teff.value);
@@ -125,7 +174,7 @@ export function deriveStar(raw) {
     gEqRatio = rp * rp * (1 - clamp(w2, 0, 0.99));
   }
 
-  return { teff, distancePc, L, R, M, logg, feh: val(raw.feh, 'measured'), vEq, periodDays, scaleHeightKm, oblateness, gEqRatio, sp };
+  return { teff, distancePc, L, R, M, logg, feh: val(raw.feh, 'measured'), vEq, periodDays, scaleHeightKm, oblateness, gEqRatio, sp, av };
 }
 
 // Kenar kararması (dörtlü yasa, V bandı) — Claret (2000) tablolarına yakın elle uydurulmuş değerler

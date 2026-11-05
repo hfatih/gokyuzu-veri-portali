@@ -35,12 +35,33 @@ async function wikidataProps(valuesClause, signal) {
       props.discovered = years.length ? Math.min(...years) : null;
     } else props[FIELD[p]] = pickValue(st, kind);
   }
-  // Albedo: geometrik ve Bond birlikte gelebiliyor; denge sıcaklığı Bond ister, Bond genelde küçüktür
-  // ponytail: niteleyiciye (P518) bakılmıyor; gerekirse Bond albedo niteleyicisiyle seçilir
+  // Albedo: geometrik ve Bond birlikte gelebiliyor; denge sıcaklığı Bond ister. Önce en küçüğü
+  // (Bond genelde küçüktür); birden çok değer varsa niteleyici etiketleri ayrı sorguda okunur.
   const alb = (byProp.P4501 ?? []).filter((s) => s.rank !== 'DeprecatedRank').map((s) => Number(s.amount)).filter((x) => x > 0 && x < 1);
   props.albedo = alb.length ? Math.min(...alb) : null;
   const qid = short(rows[0]?.item);
+  if (alb.length > 1 && qid) props.albedo = (await bondAlbedo(qid, signal).catch(() => null)) ?? props.albedo;
   return { qid, props };
+}
+
+/**
+ * Albedo ifadelerinin niteleyici etiketlerinden (ör. "Bond albedo", "geometric albedo") Bond albedosu.
+ * rows: [{ amount, ql }]. Bond etiketli değer yoksa geometrik olmayanların en küçüğü; o da yoksa null.
+ */
+export function pickAlbedo(rows) {
+  const ok = rows.map((r) => ({ v: Number(r.amount), q: r.ql ?? '' })).filter((r) => r.v > 0 && r.v < 1);
+  const bond = ok.filter((r) => /bond/i.test(r.q));
+  if (bond.length) return Math.min(...bond.map((r) => r.v));
+  const geoVals = new Set(ok.filter((r) => /geometric/i.test(r.q)).map((r) => r.v));
+  const rest = ok.filter((r) => !geoVals.has(r.v));
+  return rest.length ? Math.min(...rest.map((r) => r.v)) : null;
+}
+
+async function bondAlbedo(qid, signal) {
+  const rows = await sparql(`SELECT ?amount ?ql WHERE { wd:${qid} p:P4501 ?st. ?st psv:P4501 ?v; wikibase:rank ?r.
+    ?v wikibase:quantityAmount ?amount. FILTER(?r != wikibase:DeprecatedRank)
+    OPTIONAL { ?st ?pq ?qv. ?qp wikibase:qualifier ?pq. ?qv rdfs:label ?ql. FILTER(LANG(?ql) = "en") } }`, signal);
+  return pickAlbedo(rows.map((r) => ({ amount: r.amount.value, ql: r.ql?.value })));
 }
 
 const hostSummary = (obj) => {

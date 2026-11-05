@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { radiusFromMass, massFromRadius, planetClass, habitableZone, derivePlanet, rhinesBands, sudarsky } from '../js/planet/derive.js';
 import { pickValue } from '../js/planet/units.js';
+import { pickAlbedo } from '../js/planet/fetch.js';
 
 const near = (x, lo, hi, what) => assert.ok(x >= lo && x <= hi, `${what}: ${x} [${lo}, ${hi}] dışında`);
 
@@ -45,7 +46,20 @@ assert.equal(pickValue([
   { amount: 9, unit: 'Q1811', rank: 'PreferredRank' },
 ], 'sma'), 9);
 near(pickValue([{ amount: -63, unit: 'Q25267', rank: 'NormalRank' }], 'temp'), 210, 210.2, '°C → K');
+// Tercih edilen değer yanlış birimle (R⊕ yerine R♃ sayısı R⊕ diye) girilmiş: normallerle 11 kat fark → ortanca
+near(pickValue([
+  { amount: 1.38, unit: 'Q1155470', rank: 'PreferredRank' },
+  { amount: 1.38, unit: 'Q3421309', rank: 'NormalRank' },
+  { amount: 1.36, unit: 'Q3421309', rank: 'NormalRank' },
+], 'radius'), 15, 15.5, 'aykırı tercih edilen değer');
+// Tek normal ifade yetmez: tercih edilen kalır
+assert.equal(pickValue([{ amount: 2, unit: 'Q1811', rank: 'PreferredRank' }, { amount: 20, unit: 'Q1811', rank: 'NormalRank' }], 'sma'), 2);
 assert.equal(pickValue([], 'mass'), null);
+
+// Albedo niteleyicileri: Dünya Bond 0,306, geometrik 0,367; Jüpiter Bond 0,343, geometrik 0,538
+assert.equal(pickAlbedo([{ amount: '0.367', ql: 'geometric albedo' }, { amount: '0.306', ql: 'Bond albedo' }]), 0.306);
+assert.equal(pickAlbedo([{ amount: '0.538', ql: 'geometric albedo' }, { amount: '0.343' }]), 0.343);
+assert.equal(pickAlbedo([{ amount: '0.52', ql: 'geometric albedo' }]), null);
 
 // Proxima b: Wikidata kütle 0,00337 M♃ (≈1,07 M⊕), a 0,04856 AU; yıldız 2883 K, 0,158 R☉, 0,00155 L☉
 const prox = derivePlanet(

@@ -33,6 +33,7 @@ function rows(obj, d) {
     ['logg', ...f(d.logg, (v) => num(v)), d.logg?.origin === 'measured' ? mt('logg') : t('how.logg')],
     ['feh', ...f(d.feh, (v) => `${v > 0 ? '+' : ''}${num(v)} dex`), mt('feh')],
     ['dist', ...f(d.distancePc, (v) => `${num(v)} pc · ${num(v * 3.26156)} ${t('unit.ly')}`), t('how.dist')],
+    ['av', ...f(d.av, (v) => `${num(v)} mag`), t('how.av')],
     ['V', obj.mags?.V != null ? num(obj.mags.V) : null, 'measured', ''],
     ['vsini', ...f(d.vEq, (v) => `${num(v)} km/s`), mt('vsini')],
     ['P', ...f(d.periodDays, period), t('how.P')],
@@ -42,7 +43,7 @@ function rows(obj, d) {
     ['planets', obj.planets.length ? obj.planets.map(prettyId).join(', ') : null, 'measured', ''],
   ];
   // vsini satırı ölçülendir; türetilmiş v_eq varsayımı P satırında
-  out[9][2] = d.vEq ? 'measured' : null;
+  out.find((r) => r[0] === 'vsini')[2] = d.vEq ? 'measured' : null;
   return out.filter((r) => r[1] != null || ['teff', 'R', 'L', 'dist'].includes(r[0]));
 }
 
@@ -58,7 +59,7 @@ export function renderCard(container, sel, obj, d, links) {
     ? `<h3 class="card__h">${t('card.physical')}</h3><dl class="props">${rows(obj, d).map(([k, v, o, tip]) => `
         <div class="props__row"><dt>${t('row.' + k)}</dt>
         <dd>${v == null ? `<span class="muted">${t('card.unknown')}</span>` : `${k === 'planets' ? planetButtons(obj.planets) : esc(v)} ${o ? badge(o, tip) : ''}`}</dd></div>`).join('')}
-      </dl>${d.L?.origin === 'derived' ? `<p class="note">${t('card.extinction')}</p>` : ''}`
+      </dl>${d.L?.origin === 'derived' ? `<p class="note">${t(d.av ? 'card.extinctionFixed' : 'card.extinction')}</p>` : ''}`
     : `<p class="note">${t('card.notStar')}</p>`;
 
   container.innerHTML = `
