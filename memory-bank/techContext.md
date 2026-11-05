@@ -13,4 +13,4 @@
   - CI: `.github/workflows/check.yml`.
 - **VizieR katalogları:** `B/psr` (pulsar), `B/orb6` (çift yıldız yörüngeleri), `B/vsx` (değişen
   yıldızlar). Hepsi ASU TSV ile alınır.
-- **Yazı tipleri:** Jost ve IBM Plex Mono (Google Fonts), FatihHanAstronom ile aynı aile.
+- **Yazı tipleri:** Jost ve IBM Plex Mono, kendi sunucumuzdan (`css/fonts.css`, `assets/fonts/`, OFL 1.1; Fontsource 5.3.0, latin + latin-ext). Google Fonts kullanılmaz.

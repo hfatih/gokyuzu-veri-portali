@@ -6,6 +6,8 @@ modelini inceleyebilir ve kaynak veritabanlarında o cisme ait aramaya gidebilir
 
 `HTML` · `CSS` · `saf JavaScript` · `WebGL 2` · `derleme adımı yok` · `bağımlılık yok`
 
+Yazı tipleri (Jost, IBM Plex Mono; OFL 1.1) kendi sunucumuzdan verilir (`css/fonts.css`, `assets/fonts/`); Google Fonts'a istek gitmez.
+
 Veri saklanmaz. Her şey SIMBAD (CDS), Wikidata, VizieR ve IMCCE'den anlık alınır, tarayıcıda hesaplanır;
 yanıtlar yalnız açık sekmenin belleğinde tutulur. Tarayıcıda hatırlanan tek şey kullanıcının seçtiği
 gözlem konumu ve karşılaştırma listesidir.

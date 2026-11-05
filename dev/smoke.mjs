@@ -53,8 +53,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(`console: ${m.text()}`); });
+  const hosts = new Set();
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => {
     const url = new URL(route.request().url());
+    hosts.add(url.host);
     if (url.host === 'simbad.cds.unistra.fr') {
       const body = tapReply(url.searchParams.get('QUERY') ?? '');
       return body ? route.fulfill({ contentType: 'application/json', body }) : route.fulfill({ status: 503, body: '' });
@@ -71,6 +73,10 @@ try {
   assert.equal(await page.getAttribute('body', 'data-state'), 'home');
   assert.ok(await litFraction(page) > 0.01, 'ana sayfada Güneş çizilmedi');
   step('ana sayfa ve Güneş sahnesi');
+  // Yazı tipleri kendi sunucumuzdan: Jost yüklü, Google'a istek yok
+  assert.ok(await page.evaluate(async () => { await document.fonts.ready; const ok = (fam) => [...document.fonts].some((f) => f.family.replace(/"/g, '') === fam && f.status === 'loaded');
+    return ok('Jost') && ok('IBM Plex Mono'); }), 'yerel yazı tipleri yüklenmedi');
+  step('yerel yazı tipleri');
   assert.ok((await page.$$('#chips .chip')).length >= 10, 'keşfet listesi');
   assert.equal((await page.$$('#tours .tour-btn')).length, 3);
   await snap(page, 'home');
@@ -196,6 +202,7 @@ try {
   assert.match(await page.textContent('.hero__tagline'), /[A-Za-z]/);
   step('İngilizce arayüz');
 
+  assert.deepEqual([...hosts].filter((h) => /google|gstatic/.test(h)), [], 'Google sunucularına istek gitti');
   assert.deepEqual(errors, [], 'konsol hataları');
   console.log('smoke: tüm adımlar geçti');
 } catch (e) {
