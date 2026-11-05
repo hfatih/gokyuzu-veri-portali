@@ -2,6 +2,7 @@
 // Arka plan, köşe önizlemesi ve 3D görünüm aynı sahneyi farklı kamerayla kullanır.
 
 import { blackbodyTable } from './color.js';
+import { pulseState } from '../variable/derive.js';
 
 const BB_N = 256, BB_TMIN = 1500, BB_TMAX = 60000;
 
@@ -13,7 +14,7 @@ uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
 uniform sampler2D uBB;
 uniform vec2 uBBRange;
-uniform float uTeff, uGranF, uGranAmp, uGiantAmp, uGranPhase, uSpots, uOblate, uGEq, uBeta, uRot, uU1, uU2;
+uniform float uScale, uTeff, uGranF, uGranAmp, uGiantAmp, uGranPhase, uSpots, uOblate, uGEq, uBeta, uRot, uU1, uU2;
 
 vec4 bb(float T) {
   float u = clamp((log(T) - uBBRange.x) / (uBBRange.y - uBBRange.x), 0.0, 1.0);
@@ -57,7 +58,7 @@ void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
   vec3 fw = normalize(-uCamPos), rt = normalize(cross(fw, vec3(0, 1, 0))), up = cross(rt, fw);
   vec3 rd = normalize(fw + (uv.x * rt + uv.y * up) * uTanFov);
-  vec3 ro = uCamPos;
+  vec3 ro = uCamPos / uScale;   // zonklayan yıldızda yarıçap ölçeği (birim küre uzayına)
 
   // Elipsoit (ekvator yarıçapı 1, kutup 1 − f) → birim küre uzayı
   vec3 sc = vec3(1.0, 1.0 / (1.0 - uOblate), 1.0);
@@ -123,7 +124,7 @@ export const blackbody = () => (BB_CACHE ??= blackbodyTable(BB_N, BB_TMIN, BB_TM
 
 /**
  * Yıldız sahnesi (glview.js). params: starVisualParams() çıktısı (derive.js).
- * Varsayılan zaman hızı: bir granül ömrü ~4 sn sürer.
+ * Varsayılan zaman hızı: bir granül ömrü ~4 sn sürer; params.pulse varsa bir zonklama ~6 sn.
  */
 export const starScene = {
   id: 'star',
@@ -142,11 +143,16 @@ export const starScene = {
   uniforms(gl, U, p, view, { tex }) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.uniform1f(U.uTeff, p.teff);
+    // Değişen yıldız: ışık eğrisinden sıcaklık, sinüsle yarıçap (variable/derive.js)
+    const ps = p.pulse ? pulseState(p.pulse, (view.t / p.pulse.periodS) % 1) : null;
+    gl.uniform1f(U.uScale, ps ? ps.rScale : 1);
+    gl.uniform1f(U.uTeff, ps ? p.teff * ps.tScale : p.teff);
     gl.uniform1f(U.uGranF, p.granScale / (2 * Math.PI));
     gl.uniform1f(U.uGranAmp, view.granulation ? p.granContrast * p.granAmp : 0);
     gl.uniform1f(U.uGiantAmp, view.granulation ? p.giantCellAmp : 0);
-    gl.uniform1f(U.uGranPhase, view.t / p.granLifeSec * 2 * Math.PI);
+    // Zonklamada zaman çok hızlı akar; granüller yine ~4 sn'lik ömürle evrilsin
+    const granT = p.pulse ? view.t * (p.granLifeSec / 4) / (p.pulse.periodS / 6) : view.t;
+    gl.uniform1f(U.uGranPhase, granT / p.granLifeSec * 2 * Math.PI);
     gl.uniform1f(U.uSpots, view.spots ? p.spots : 0);
     gl.uniform1f(U.uOblate, p.oblateness);
     gl.uniform1f(U.uGEq, p.gEqRatio);
@@ -155,5 +161,6 @@ export const starScene = {
     gl.uniform1f(U.uU1, p.u1);
     gl.uniform1f(U.uU2, p.u2);
   },
-  timeScale: (p) => p.granLifeSec / 4,
+  // Zonklayan yıldızda bir dönem ~6 sn
+  timeScale: (p) => (p.pulse ? p.pulse.periodS / 6 : p.granLifeSec / 4),
 };

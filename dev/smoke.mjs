@@ -21,6 +21,11 @@ const BASIC = ['oid', 'main_id', 'ra', 'dec', 'plx_value', 'plx_err', 'sp_type',
 let failSimbad = false;
 function tapReply(q) {
   if (failSimbad) return null;
+  // δ Cephei (SIMBAD: ϖ 3,77 mas, F5Iab, V 3,75)
+  if (/FROM basic WHERE main_id = '\* del Cep'/.test(q)) return table(BASIC, [[2, '* del Cep', 337.2928, 58.4152, 3.77, 0.16, 'F5Iab:', 'cC*', -16.8, 1500, null, null, null, null, null]]);
+  if (/FROM mesFe_H WHERE oidref = 2\b/.test(q)) return table(['teff', 'log_g', 'fe_h', 'bibcode'], [[5900, 1.5, 0.1, '2000fixt.....2F']]);
+  if (/FROM flux WHERE oidref = 2\b/.test(q)) return table(['filter', 'flux'], [['V', 3.75], ['B', 4.4]]);
+  if (/FROM ident WHERE oidref = 2\b/.test(q)) return table(['id'], [['* del Cep'], ['V* del Cep'], ['HD 213306']]);
   if (/FROM basic WHERE main_id = '\* alf CMa'/.test(q)) return table(BASIC, [[1, '* alf CMa', 101.2872, -16.7161, 379.21, 1.58, 'A0mA1Va', 'SB*', -5.5, 3000, null, null, null, null, null]]);
   if (/FROM mesFe_H WHERE oidref = 1\b/.test(q)) return table(['teff', 'log_g', 'fe_h', 'bibcode'], [[9900, 4.3, 0.4, '2000fixt.....1F']]);
   if (/FROM flux WHERE oidref = 1\b/.test(q)) return table(['filter', 'flux'], [['V', -1.46], ['B', -1.46]]);
@@ -30,6 +35,9 @@ function tapReply(q) {
 
 // ORB6: Sirius AB elemanları (check-binary.mjs ile aynı)
 function vizierReply(source) {
+  // VSX: δ Cephei (AAVSO VSX değerleri)
+  if (/vsx/.test(source)) return ['#Table B/vsx/vsx', 'Name\tType\tmax\tn_max\tf_min\tmin\tPeriod\tEpoch',
+    '\t\tmag\t\t\tmag\td\td', '-\t-\t-\t-\t-\t-\t-\t-', 'del Cep\tDCEP\t3.48\tV\t\t4.37\t5.366266\t2436075.445', ''].join('\n');
   if (!/orb6/.test(source)) return '';
   return ['#Table B/orb6/orb6orb', 'WDS\tHD\tP\tu_P\ta\tu_a\ti\tNode\tT\tu_T\te\tomega\tGrade',
     '\t\t\t\tarcsec\t\tdeg\tdeg\t\t\t\tdeg\t', '-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-',
@@ -104,6 +112,15 @@ try {
   await page.click('[data-binary-scene]');
   assert.equal(await page.getAttribute('body', 'data-kind'), 'star');
   step('çift yıldız yörüngesi');
+
+  // Değişen yıldız: δ Cephei (VSX sabiti), ışık eğrisi ve P–L uzaklığı
+  await page.goto(`${BASE}?star=${encodeURIComponent('* del Cep')}`);
+  await page.waitForSelector('[data-variable]');
+  assert.match(await page.textContent('[data-variable]'), /Klasik Sefeid/);
+  assert.match(await page.textContent('[data-variable]'), /pc/);
+  assert.ok(await page.$('.lc__path'), 'ışık eğrisi yok');
+  await snap(page, 'variable');
+  step('değişen yıldız');
 
   // 4. 3D görünüm açılıp kapanıyor
   await page.click('#corner');
