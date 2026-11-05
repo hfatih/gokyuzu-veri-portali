@@ -268,3 +268,62 @@ button { font: inherit; color: inherit; }
 .skyc__tick { stroke: var(--muted); }
 .skyc__label { fill: var(--muted); font: 10px var(--mono); }
 .skyc figcaption { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ---------- Ana sayfa: keşfet ve turlar ---------- */
+.explore { margin: 34px auto 0; max-width: 40rem; text-align: center; }
+[data-state="object"] .explore, [data-state="3d"] .explore { display: none; }
+.explore__today { margin: 0 0 18px; font-size: 15px; }
+.explore__tag { display: inline-block; padding: 0 8px; margin-right: 4px; font: 500 10px/20px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(255,179,102,.4); border-radius: 4px; }
+.explore__h { margin: 18px 0 10px; font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip { padding: 6px 13px; font-size: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color .2s, color .2s; }
+.chip:hover:not(:disabled) { border-color: rgba(255,179,102,.55); color: var(--title); }
+.chip:disabled { opacity: .4; cursor: default; }
+.chip--small { padding: 4px 11px; font-size: 13px; }
+.chip--accent { border-color: rgba(255,179,102,.55); color: var(--accent); }
+.chip[aria-pressed="true"] { border-color: var(--measured); color: var(--measured); }
+.chips--rel { justify-content: flex-start; flex-direction: column; gap: 6px; }
+.chips--rel li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.chip__meta { font: 12px var(--mono); color: var(--muted); }
+.tours { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 8px; }
+.tour-btn { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 14px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.tour-btn:hover { border-color: rgba(255,179,102,.55); }
+.tour-btn__name { color: var(--title); font-weight: 400; }
+.tour-btn__meta { font: 12px var(--mono); color: var(--muted); }
+[data-state="home"] .hero { padding-top: 16vh; }
+[data-state="home"] .stage { padding-bottom: 80px; }
+
+/* ---------- Tur çubuğu ---------- */
+.tourbar { margin: -4px 0 16px; padding: 12px 14px; border: 1px solid rgba(255,179,102,.35); border-radius: 12px; background: rgba(255,179,102,.05); }
+.tourbar__head { margin: 0; font-size: 13px; color: var(--muted); }
+.tourbar__tag { color: var(--accent); font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; margin-right: 4px; }
+.tourbar__text { margin: 6px 0 0; font-size: 14px; line-height: 1.5; }
+.tourbar__nav { margin: 10px 0 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tourbar__nav .linkbtn { margin-left: auto; font-size: 13px; }
+
+/* ---------- Karşılaştırma ---------- */
+.card__actions { margin: 10px 0 0; }
+.top__right { display: flex; align-items: center; gap: 8px; }
+.cmp-pill { white-space: nowrap; padding: 6px 12px; background: var(--panel); border: 1px solid rgba(255,179,102,.5); border-radius: 999px; color: var(--accent); cursor: pointer; font-size: 14px; }
+.cmp { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 18px 20px; color: var(--fg); background: rgba(10, 12, 19, .97); border: 1px solid var(--line); border-radius: 18px; }
+.cmp::backdrop { background: rgba(3, 4, 7, .7); backdrop-filter: blur(4px); }
+.cmp__head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.cmp__title { margin: 0 auto 0 0; font-weight: 400; font-size: 22px; color: var(--title); }
+.cmp__scale { font-size: 13px; color: var(--muted); }
+.cmp__svg { width: 100%; height: auto; display: block; margin: 8px 0; }
+.cmp__label { fill: var(--fg); font: 11px var(--font); }
+.cmp__ground { stroke: var(--line); }
+.cmp__dot { stroke: #fff; stroke-width: .5; }
+.cmp__table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cmp__table th { text-align: left; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 4px; }
+.cmp__table td { padding: 7px 4px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 13px; }
+.cmp__table td:first-child { font-family: var(--font); font-size: 14px; }
+.cmp__refs { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.cmp__foot { margin: 12px 0 0; font-size: 13px; text-align: right; }
+@media (max-width: 760px) {
+  .cmp__table th:nth-child(3), .cmp__table td:nth-child(3) { display: none; }
+}
+@media (max-width: 480px) {
+  .cmp-pill__txt { display: none; }
+  .brand { font-size: 14px; }
+}

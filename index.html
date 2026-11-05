@@ -28,7 +28,10 @@
 
   <header class="top">
     <a id="brand" class="brand" href="./"><span class="brand__dot" aria-hidden="true"></span><span data-i18n="title">Gökyüzü Veri Portalı</span></a>
-    <a id="lang" class="lang" href="?lang=en">English</a>
+    <div class="top__right">
+      <button id="cmp-open" class="cmp-pill" type="button" hidden></button>
+      <a id="lang" class="lang" href="?lang=en">English</a>
+    </div>
   </header>
 
   <main class="stage">
@@ -44,6 +47,13 @@
       </div>
       <p id="status" class="search__status" aria-live="polite"></p>
       <p id="nowebgl" class="search__status"></p>
+      <section class="explore" aria-labelledby="ex-h">
+        <p class="explore__today" id="today"></p>
+        <h2 class="explore__h" id="ex-h" data-i18n="ex.explore"></h2>
+        <ul class="chips" id="chips"></ul>
+        <h2 class="explore__h" data-i18n="ex.tours"></h2>
+        <ul class="tours" id="tours"></ul>
+      </section>
     </section>
 
     <article id="card" class="card" hidden aria-live="polite"></article>
@@ -69,6 +79,16 @@
       <p class="v3d__model" data-i18n="v3d.model"></p>
     </div>
   </aside>
+
+  <dialog id="cmp" class="cmp" aria-labelledby="cmp-h">
+    <header class="cmp__head">
+      <h2 id="cmp-h" class="cmp__title" data-i18n="cmp.title"></h2>
+      <label class="chk"><input id="cmp-log" type="checkbox"> <span data-i18n="cmp.log"></span></label>
+      <button id="cmp-close" class="v3d__close" type="button" data-i18n="cmp.close"></button>
+    </header>
+    <div id="cmp-body"></div>
+    <p class="cmp__foot"><button id="cmp-clear" type="button" class="linkbtn" data-i18n="cmp.clear"></button></p>
+  </dialog>
 
   <footer class="foot"><p data-i18n="footer"></p></footer>
   <div id="toast" class="toast" role="status"></div>

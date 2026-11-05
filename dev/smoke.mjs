@@ -55,6 +55,10 @@ try {
   assert.equal(await page.getAttribute('body', 'data-state'), 'home');
   assert.ok(await litFraction(page) > 0.01, 'ana sayfada Güneş çizilmedi');
   step('ana sayfa ve Güneş sahnesi');
+  assert.ok((await page.$$('#chips .chip')).length >= 10, 'keşfet listesi');
+  assert.equal((await page.$$('#tours .tour-btn')).length, 3);
+  await snap(page, 'home');
+  step('ana sayfa: keşfet ve turlar');
 
   // 2. Arama: yerel ad → gezegen kartı
   await page.fill('#q', 'Mars');
@@ -97,7 +101,47 @@ try {
   await page.waitForSelector('.card .props');
   step('hata ve tekrar dene');
 
-  // 6. İngilizce arayüz
+  // 6. Karşılaştırma: Sirius + Güneş başvurusu
+  await page.click('[data-cmp-add]');
+  assert.equal(await page.getAttribute('[data-cmp-add]', 'aria-pressed'), 'true');
+  await page.click('#cmp-open');
+  await page.click('[data-cmp-ref="sun"]');
+  assert.equal((await page.$$('.cmp__table tbody tr')).length, 2);
+  await snap(page, 'compare');
+  await page.click('#cmp-close');
+  step('ölçek karşılaştırması');
+
+  // 7. Rehberli tur: Güneş Sistemi turu, Güneş → Merkür (yerel kimlikler)
+  await page.goto(`${BASE}?tour=solar&step=1`);
+  await page.waitForSelector('.tourbar');
+  assert.match(await page.textContent('.tourbar'), /1\/13/);
+  await page.click('[data-tour-nav="1"]');
+  await page.waitForFunction(() => document.querySelector('.card__title')?.textContent === 'Merkür');
+  assert.match(await page.textContent('.tourbar'), /2\/13/);
+  assert.match(page.url(), /tour=solar&step=2/);
+  await snap(page, 'tour');
+  step('rehberli tur');
+
+  // 8. Güneş kartındaki gezegen bağlantısı
+  await page.goto(`${BASE}?star=Sun`);
+  await page.waitForSelector('[data-goto]');
+  await page.click('[data-goto="planet:Q2"]');
+  await page.waitForFunction(() => document.querySelector('.card__title')?.textContent === 'Dünya');
+  step('kart içi bağlantılar');
+
+  // 9. Dar ekran: yatay taşma yok (ana sayfa ve kart)
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const url of [BASE, `${BASE}?star=${encodeURIComponent('* alf CMa')}`]) {
+    await page.goto(url);
+    await page.waitForTimeout(600);
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(over <= 0, `dar ekranda ${over}px yatay taşma (${url})`);
+  }
+  await snap(page, 'mobile');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  step('dar ekran');
+
+  // 10. İngilizce arayüz
   await page.goto(`${BASE}?lang=en`);
   assert.equal(await page.getAttribute('html', 'lang'), 'en');
   assert.match(await page.textContent('.hero__tagline'), /[A-Za-z]/);

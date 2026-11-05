@@ -13,6 +13,13 @@ import { isSolarPlanetId } from './planet/solar.js';
 import { stopPulses } from './pulsar/sound.js';
 import { kindById, kindByObj } from './kinds/index.js';
 import { skyHtml, bindSky } from './ui/sky-card.js';
+import { lookupIds } from './search/simbad.js';
+import { fetchRelated, blackHolesIn, hostOfBlackHole } from './search/related.js';
+import { FEATURED, todaysPick } from './explore/featured.js';
+import { TOURS, tourById } from './explore/tours.js';
+import { resolveRef } from './explore/refs.js';
+import { radiusOf } from './explore/size.js';
+import { compareHtml, bindCompare, toggleCompare, inCompare, compareItems, onCompareChange, clearCompare } from './ui/compare.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { attachOrbitControls } from './render/view3d.js';
@@ -122,7 +129,7 @@ const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 function makeCtx(sel, obj, signal) {
   const ctx = {
     sel, obj, signal, card, info: {},
-    show: showScene,
+    show: (scene, params, size, css, pitch) => { ctx.color = css; showScene(scene, params, size, css, pitch); },
     corner: (on) => { cornerBtn.hidden = !on || !mini; },
     kind: (k) => { body.dataset.kind = k; },
     setLabel: (label) => { sel.label = label; input.value = label; },
@@ -139,7 +146,11 @@ function makeCtx(sel, obj, signal) {
   return ctx;
 }
 
-async function choose(sel) {
+let tour = null;   // { def, i } etkin rehberli tur
+
+/** sel: { label, mainId, otype, fromUrl? }. opts.tour: tur adımı olarak açılıyorsa tur sürer. */
+async function choose(sel, opts = {}) {
+  if (!opts.tour) tour = null;
   suggester.cancel();
   stopPulses();
   list.hidden = true; input.setAttribute('aria-expanded', 'false');
@@ -150,12 +161,13 @@ async function choose(sel) {
   body.dataset.state = 'object';
   card.hidden = false;
   card.setAttribute('aria-busy', 'true');
-  card.innerHTML = `<p class="card__loading">${t('search.loading')}</p>`;
+  card.innerHTML = `${tourBar()}<p class="card__loading">${t('search.loading')}</p>`;
+  bindTour();
   frameBackground();
   try {
     let kind = kindById(sel.mainId), obj = null;
     if (!kind) {
-      obj = await fetchObject(sel.mainId, signal);
+      obj = await fetchObjectAny(sel.mainId, signal);
       // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
       if (sel.fromUrl) sel.label = bestName(obj) ?? sel.label;
       input.value = sel.label;
@@ -167,32 +179,176 @@ async function choose(sel) {
     if (obj?.partial) ctx.partial();
     afterLoad(ctx);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
+    if (tour) { q.set('tour', tour.def.id); q.set('step', String(tour.i + 1)); }
     if (lang === 'en') q.set('lang', 'en');
     history.replaceState(null, '', `?${q}`);
     document.title = `${sel.label} · ${t('title')}`;
   } catch (e) {
     if (signal.aborted) return;
-    card.innerHTML = `<p class="note">${t(e.message === 'not-found' ? 'load.notFound' : 'load.fail')}</p>
+    card.innerHTML = `${tourBar()}<p class="note">${t(e.message === 'not-found' ? 'load.notFound' : 'load.fail')}</p>
       ${e.message === 'not-found' ? '' : `<button type="button" class="retry" data-retry>${t('load.retry')}</button>`}`;
-    card.querySelector('[data-retry]')?.addEventListener('click', () => choose(sel));
+    bindTour();
+    card.querySelector('[data-retry]')?.addEventListener('click', () => choose(sel, { tour: !!tour }));
     toast(t('load.fail'));
   } finally {
     if (!signal.aborted) card.removeAttribute('aria-busy');
   }
 }
 
-// Kartın ortak ekleri: gökyüzü konumu ve kısmi veri uyarısı (tekrar dene)
+// main_id değilse (Wikidata'nın verdiği ya da elle yazılan kimlik) SIMBAD kimlik tablosundan çözülür
+async function fetchObjectAny(id, signal) {
+  try { return await fetchObject(id, signal); } catch (e) {
+    if (e.message !== 'not-found') throw e;
+    const [hit] = await lookupIds([id], signal);
+    if (!hit || hit.mainId === id) throw e;
+    return fetchObject(hit.mainId, signal);
+  }
+}
+
+// Kartın ortak ekleri: tur, karşılaştırma, gökyüzü konumu, ilişkili cisimler, kısmi veri uyarısı
 function afterLoad(ctx) {
+  card.insertAdjacentHTML('afterbegin', tourBar());
+  bindTour();
+  addCompareButton(ctx);
   const sky = skySourceFor(ctx);
   if (sky) {
     try { insertBeforeLinks(skyHtml(sky.src, sky.opts)); bindSky(card, sky.src, sky.opts); }
     catch (e) { console.warn('gökyüzü hesabı', e); }
   }
+  addRelated(ctx);
   if (ctx.isPartial) {
     insertBeforeLinks(`<p class="note note--warn">${t('load.partial')}
       <button type="button" class="retry retry--inline" data-retry>${t('load.retry')}</button></p>`);
-    card.querySelector('[data-retry]')?.addEventListener('click', () => choose({ ...ctx.sel, fromUrl: false }));
+    card.querySelector('[data-retry]')?.addEventListener('click', () => choose({ ...ctx.sel, fromUrl: false }, { tour: !!tour }));
   }
+  bindGoto(card);
+}
+
+/** data-goto düğmeleri (kart içi bağlantılar) o cismi açar. */
+function bindGoto(root) {
+  root.querySelectorAll('[data-goto]:not([data-bound])').forEach((b) => {
+    b.dataset.bound = '1';
+    b.addEventListener('click', () => choose({ label: b.textContent.trim(), mainId: b.dataset.goto, otype: null }));
+  });
+}
+
+// ---------- İlişkili cisimler (SIMBAD hiyerarşisi, Wikidata "parçası") ----------
+function addRelated(ctx) {
+  const { obj, info, signal } = ctx, kind = body.dataset.kind;
+  let job = null;
+  if (info.bh) job = hostOfBlackHole(info.bh.qid, signal);
+  else if (obj && obj.mainId !== 'Sun' && obj.basic.oid) {
+    const kids = ['star', 'other', 'nebula', 'pulsar'].includes(kind);
+    job = Promise.all([
+      fetchRelated(obj, signal, kids),
+      kind === 'galaxy' ? blackHolesIn(obj.mainId, lang, signal).catch(() => []) : [],
+    ]).then(([a, b]) => [...b, ...a]);
+  }
+  if (!job) return;
+  insertBeforeLinks('<div data-related hidden></div>');
+  job.then((items) => {
+    const el = card.querySelector('[data-related]');
+    if (signal.aborted || !el || !items.length) return;
+    el.outerHTML = `<h3 class="card__h">${t('rel.h')}</h3><ul class="chips chips--rel">${items.map((it) => `<li>
+      <button type="button" class="chip" data-goto="${esc(it.mainId)}">${esc(it.label)}</button>
+      <span class="chip__meta">${esc([t('rel.' + it.rel), otypeName(it.otype)].filter(Boolean).join(' · '))}</span></li>`).join('')}</ul>`;
+    bindGoto(card);
+  }).catch(() => {});
+}
+
+// ---------- Ölçek karşılaştırması ----------
+const cmpDialog = $('#cmp'), cmpBody = $('#cmp-body'), cmpOpen = $('#cmp-open'), cmpLog = $('#cmp-log');
+
+function addCompareButton(ctx) {
+  const r = radiusOf(body.dataset.kind, ctx.info);
+  if (!r) return;
+  const id = ctx.obj?.mainId ?? ctx.sel.mainId;
+  const head = card.querySelector('.card__head');
+  if (!head) return;
+  head.insertAdjacentHTML('afterend', `<p class="card__actions"><button type="button" class="chip chip--small" data-cmp-add aria-pressed="${inCompare(id)}">${t(inCompare(id) ? 'cmp.added' : 'cmp.add')}</button></p>`);
+  const btn = card.querySelector('[data-cmp-add]');
+  btn.addEventListener('click', () => {
+    toggleCompare({ label: ctx.sel.label, mainId: id, kind: body.dataset.kind, m: r.m, color: ctx.color ?? '#ccc', origin: r.origin, note: r.note });
+    const on = inCompare(id);
+    btn.textContent = t(on ? 'cmp.added' : 'cmp.add');
+    btn.setAttribute('aria-pressed', String(on));
+  });
+}
+
+function renderCompare() {
+  cmpBody.innerHTML = compareHtml(cmpLog.checked);
+  bindCompare(cmpBody, renderCompare);
+}
+function syncComparePill() {
+  const n = compareItems().length;
+  cmpOpen.hidden = n === 0;
+  cmpOpen.innerHTML = `<span aria-hidden="true">⚖</span> <span class="cmp-pill__txt">${t('cmp.open')}</span> ${n}`;
+  cmpOpen.setAttribute('aria-label', `${t('cmp.open')} (${n})`);
+}
+cmpOpen.addEventListener('click', () => { renderCompare(); cmpDialog.showModal(); });
+$('#cmp-close').addEventListener('click', () => cmpDialog.close());
+$('#cmp-clear').addEventListener('click', () => { clearCompare(); renderCompare(); });
+cmpLog.addEventListener('change', renderCompare);
+cmpDialog.addEventListener('click', (e) => { if (e.target === cmpDialog) cmpDialog.close(); });
+onCompareChange(syncComparePill);
+syncComparePill();
+
+// ---------- Ana sayfa: bugünün cismi, keşfet, turlar ----------
+async function openRef(ref, label, opts) {
+  const ctrl = new AbortController();
+  try {
+    const sel = await resolveRef(ref, label, lang, ctrl.signal);
+    if (sel) return choose(sel, opts);
+  } catch {}
+  // Çözülemedi: ad arama kutusuna yazılır, öneriler açılır
+  tour = null;
+  goHome();
+  input.value = label;
+  suggester.query(label);
+  toast(t('ex.resolveFail'));
+}
+
+function renderExplore() {
+  const today = todaysPick();
+  $('#today').innerHTML = `<span class="explore__tag">${t('ex.today')}</span> <button type="button" class="linkbtn" data-feat="${FEATURED.indexOf(today)}">${esc(today[lang])}</button>`;
+  $('#chips').innerHTML = FEATURED.map((f, i) => `<li><button type="button" class="chip chip--${f.kind}" data-feat="${i}">${esc(f[lang])}</button></li>`).join('');
+  $('#tours').innerHTML = TOURS.map((x) => `<li><button type="button" class="tour-btn" data-tour="${x.id}">
+    <span class="tour-btn__name">${esc(x[lang])}</span><span class="tour-btn__meta">${t('ex.steps', { n: x.steps.length })}</span></button></li>`).join('');
+  document.querySelectorAll('[data-feat]').forEach((b) => b.addEventListener('click', () => {
+    const f = FEATURED[Number(b.dataset.feat)];
+    openRef(f.ref, f[lang]);
+  }));
+  document.querySelectorAll('[data-tour]').forEach((b) => b.addEventListener('click', () => startTour(b.dataset.tour, 0)));
+}
+
+// ---------- Rehberli tur ----------
+function startTour(id, i) {
+  const def = tourById(id);
+  if (!def) return;
+  tour = { def, i: Math.max(0, Math.min(def.steps.length - 1, i)) };
+  const st = def.steps[tour.i];
+  openRef(st.ref, st.label[lang], { tour: true });
+}
+
+function tourBar() {
+  if (!tour) return '';
+  const { def, i } = tour, st = def.steps[i], last = i === def.steps.length - 1;
+  return `<aside class="tourbar" aria-label="${esc(def[lang])}">
+    <p class="tourbar__head"><span class="tourbar__tag">${t('tour.label')}</span> ${esc(def[lang])} · ${i + 1}/${def.steps.length}</p>
+    <p class="tourbar__text">${esc(st[lang])}</p>
+    ${last ? `<p class="tourbar__text muted">${t('tour.done')}</p>` : ''}
+    <p class="tourbar__nav">
+      <button type="button" class="chip chip--small" data-tour-nav="-1"${i === 0 ? ' disabled' : ''}>${t('tour.prev')}</button>
+      ${last ? `<button type="button" class="chip chip--small" data-tour-home>${t('tour.home')}</button>`
+        : `<button type="button" class="chip chip--small chip--accent" data-tour-nav="1">${t('tour.next')}</button>`}
+      <button type="button" class="linkbtn" data-tour-exit>${t('tour.exit')}</button></p>
+  </aside>`;
+}
+
+function bindTour() {
+  card.querySelectorAll('[data-tour-nav]').forEach((b) => b.addEventListener('click', () => startTour(tour.def.id, tour.i + Number(b.dataset.tourNav))));
+  card.querySelector('[data-tour-exit]')?.addEventListener('click', () => { tour = null; card.querySelector('.tourbar')?.remove(); history.replaceState(null, '', location.search.replace(/&?(tour|step)=[^&]*/g, '')); });
+  card.querySelector('[data-tour-home]')?.addEventListener('click', () => { tour = null; goHome(); });
 }
 
 // Gözle görülebilen Güneş Sistemi gezegenleri; Uranüs ve Neptün dürbünle
@@ -234,6 +390,7 @@ function bestName(obj) {
 }
 
 function goHome() {
+  tour = null;
   loadCtrl?.abort();
   stopPulses();
   body.dataset.state = 'home';
@@ -294,6 +451,9 @@ $('#v3d-exp').addEventListener('input', (e) => { bg.exposure = Number(e.target.v
 $('#v3d-reset').addEventListener('click', () => { Object.assign(bg.cam, { yaw: 0.6 }); frameBackground(); });
 
 // ---------- Açılış ----------
-const startId = new URLSearchParams(location.search).get('star');
-if (startId) choose(startId === 'Sun' ? { ...SUN_ITEM, label: lang === 'en' ? 'Sun' : 'Güneş' } :{ label: prettyId(startId), mainId: startId, otype: null, fromUrl: true });
+renderExplore();
+const startQ = new URLSearchParams(location.search);
+const startId = startQ.get('star');
+if (startQ.get('tour') && tourById(startQ.get('tour'))) startTour(startQ.get('tour'), Number(startQ.get('step') || 1) - 1);
+else if (startId) choose(startId === 'Sun' ? { ...SUN_ITEM, label: lang === 'en' ? 'Sun' : 'Güneş' } : { label: prettyId(startId), mainId: startId, otype: null, fromUrl: true });
 else goHome();
