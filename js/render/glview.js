@@ -38,6 +38,10 @@ export function createView(canvas, opts = {}) {
   if (!gl) return null;
   const programs = new Map();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Telefon ve tabletlerde (dokunmatik, küçük ekran) piksel yoğunluğu ve kare hızı sınırlanır:
+  // tam ekran ışın yürütme pil ve ısı için en pahalı iş
+  const handheld = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 900;
+  const maxDpr = handheld ? 1.25 : 2, minFrameMs = 1000 / (opts.maxFps ?? (handheld ? 30 : 60)) - 2;
   const view = {
     gl, canvas,
     cam: { yaw: 0.6, pitch: 0.25, dist: 3.2 },
@@ -50,12 +54,13 @@ export function createView(canvas, opts = {}) {
     scene: null,
     params: null,
     t: 0,
+    wall: 0,                 // gerçek saniye (zaman hızından bağımsız; granülasyon gibi hızlı süreçler için)
     onDraw: null,            // her kareden sonra (ör. 3D panelindeki saat)
   };
   let visible = true, raf = 0, last = 0;
 
   function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2) * view.scale;
+    const dpr = Math.min(devicePixelRatio || 1, maxDpr) * view.scale;
     const w = Math.max(1, Math.round(canvas.clientWidth * dpr)), h = Math.max(1, Math.round(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
   }
@@ -89,9 +94,11 @@ export function createView(canvas, opts = {}) {
 
   function frame(now) {
     raf = 0;
+    if (last && now - last < minFrameMs) { schedule(); return; }   // kare hızı sınırı
     const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
     view.t += dt * view.timeScale;
+    view.wall += dt;
     draw();
     schedule();
   }

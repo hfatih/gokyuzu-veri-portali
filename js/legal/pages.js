@@ -14,6 +14,7 @@ const HOSTS = [
   ['simbad.cds.unistra.fr, vizier.cds.unistra.fr, alasky.cds.unistra.fr', CDS, 'katalog verisi ve gökyüzü görüntüleri'],
   ['query.wikidata.org', 'Wikimedia Vakfı (ABD)', 'adlar, gezegen ve kara delik değerleri'],
   ['api.ssodnet.imcce.fr, ssp.imcce.fr', 'IMCCE (Paris Gözlemevi, Fransa)', 'asteroit ve kuyruklu yıldız verisi'],
+  ['services.swpc.noaa.gov', 'NOAA Uzay Havası Tahmin Merkezi (ABD)', 'Güneş\'teki güncel leke bölgeleri (ana sayfa ve Güneş kartı)'],
 ];
 const hostTable = () => `<div class="tbl"><table><thead><tr><th scope="col">Sunucu</th><th scope="col">Kuruluş</th><th scope="col">Ne için</th></tr></thead>
   <tbody>${HOSTS.map(([h, o, w]) => `<tr><td><code>${h}</code></td><td>${o}</td><td>${w}</td></tr>`).join('')}</tbody></table></div>`;
@@ -35,7 +36,7 @@ const kvkk = () => `
     <li>Üyelik, hesap ya da form yok; adını ve e-postanı yalnız bize yazarsan öğreniriz.</li>
     <li>“Konumumu kullan” dediğinde konumun tarayıcında hesaplanır, bize gelmez.</li>
     <li>Reklam, istatistik ya da izleme aracı kullanmıyoruz. Yazı tipleri dahil sitenin tüm dosyaları kendi sunucumuzdan gelir.</li>
-    <li>Bilimsel kataloglar ilgili kuruluşlarda durduğu için tarayıcın onları doğrudan ister.</li>
+    <li>Bilimsel kataloglar ve Güneş'in güncel leke raporu ilgili kuruluşlarda durduğu için tarayıcın onları doğrudan ister.</li>
   </ul></section>
   <h2>1. Veri sorumlusu</h2>
   <p>6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca veri sorumlusu ${owner()}'dır.
@@ -150,6 +151,7 @@ const SOURCES = [
   ['Wikidata', 'Wikimedia Vakfı', 'Yapılandırılmış veriler CC0 kamu malı adanmasıyla kullanılır.'],
   ['SsODNet', 'IMCCE, Paris Gözlemevi', 'Berthier vd. 2023, A&amp;A 671, A151.'],
   ['Gezegen dokuları', 'NASA / USGS', 'Merkür (MESSENGER MDIS), Dünya (Blue Marble, Terra/MODIS) ve Mars (Viking MDIM 2.1) haritaları ABD hükümeti eseri olarak kamu malıdır.'],
+  ['Güneş aktif bölgeleri', 'NOAA SWPC', 'Günlük aktif bölge raporu (ABD hükümeti verisi, kamu malı). Leke modeli: Hathaway vd. 1994, Hathaway 2011, Stenflo &amp; Kosovichev 2012, Snodgrass &amp; Ulrich 1990, Gnevyshev–Waldmeier kuralı.'],
   ['Kuasar tayfı', 'SDSS', 'Bileşik kuasar tayfı: Vanden Berk vd. 2001, AJ 122, 549.'],
   ['Yazı tipleri', 'Indestructible Type, IBM', 'Jost ve IBM Plex Mono, SIL Open Font License 1.1 ile kendi sunucumuzdan verilir.'],
 ];

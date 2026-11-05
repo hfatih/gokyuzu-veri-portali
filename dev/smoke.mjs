@@ -63,6 +63,10 @@ try {
     }
     if (url.host === 'query.wikidata.org') return route.fulfill({ contentType: 'application/json', body: '{"results":{"bindings":[]}}' });
     if (url.host === 'api.ssodnet.imcce.fr') return route.fulfill({ contentType: 'application/json', body: '{"data":[]}' });
+    // NOAA SWPC bölge raporu: iki örnek bölge (biçim sınaması için; gerçek veri değil)
+    if (url.host === 'services.swpc.noaa.gov') return route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+      { observed_date: '2026-11-05', region: 14001, location: 'N12E20', area: 240 },
+      { observed_date: '2026-11-05', region: 14002, location: 'S09W35', area: 90 }]) });
     if (url.host === 'vizier.cds.unistra.fr') return route.fulfill({ contentType: 'text/plain', body: vizierReply(url.searchParams.get('-source') ?? '') });
     return route.fulfill({ status: 404, body: '' });   // yazı tipleri, gözlem görüntüleri
   });
@@ -196,6 +200,11 @@ try {
   // 8. Güneş kartındaki gezegen bağlantısı
   await page.goto(`${BASE}?star=Sun`);
   await page.waitForSelector('[data-goto]');
+  // Güneş kartı: etkinlik bölümü önce modelle, sonra NOAA bölgeleriyle
+  await page.waitForFunction(() => document.querySelector('[data-sun-activity]')?.textContent.includes('NOAA'));
+  assert.match(await page.textContent('[data-sun-activity]'), /25\. döngü/);
+  assert.equal(await page.getAttribute('body', 'data-kind'), 'sun');
+  step('Güneş etkinliği (NOAA bölgeleri)');
   await page.click('[data-goto="planet:Q2"]');
   await page.waitForFunction(() => document.querySelector('.card__title')?.textContent === 'Dünya');
   step('kart içi bağlantılar');

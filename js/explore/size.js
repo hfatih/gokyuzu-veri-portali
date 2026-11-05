@@ -10,7 +10,7 @@ export function radiusOf(kind, info) {
   const d = info.derived;
   const v = (x, f, note) => (x?.value > 0 ? { m: x.value * f, origin: x.origin, note } : null);
   switch (kind) {
-    case 'star': return v(d?.R, RSUN);
+    case 'star': case 'sun': return v(d?.R, RSUN);
     case 'planet': case 'moon': return v(d?.radius, REARTH);
     case 'nebula': return v(d?.radiusPc, PC);
     case 'cluster': return v(d?.radiusPc, PC);

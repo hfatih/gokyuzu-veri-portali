@@ -17,6 +17,8 @@ import { isVariableCandidate, fetchVariable } from '../variable/fetch.js';
 import { deriveVariable, pulseParams } from '../variable/derive.js';
 import { variableHtml } from '../ui/variable-card.js';
 import { t } from '../ui/i18n.js';
+import { sunModel, realSunModel } from '../sun/model.js';
+import { sunActivityHtml } from '../ui/sun-card.js';
 
 // Güneş SIMBAD'da olmadığından Wikipedia adresi sabit
 const SUN_WIKI = { tr: 'https://tr.wikipedia.org/wiki/G%C3%BCne%C5%9F', en: 'https://en.wikipedia.org/wiki/Sun' };
@@ -29,10 +31,12 @@ export const starKind = {
     const { obj } = ctx;
     const star = isStar(obj.basic.otype);
     const d = star ? deriveStar(obj.raw) : null;
-    ctx.kind(star ? 'star' : 'other');
+    ctx.kind(star ? (obj.mainId === 'Sun' ? 'sun' : 'star') : 'other');
     renderCard(ctx.card, ctx.sel, obj, d, buildLinks(obj));
     // Sahne durumu: yıldız parametreleri (değişen yıldızda zonklama eklenir) ve çift yıldız görünümü açık mı
     const view = star ? { params: starVisualParams(d), css: blackbodyCss(d.teff?.value ?? 5772), binary: false } : null;
+    // Güneş: lekeler ve faküller etkinlik modelinden (sun/activity.js)
+    if (obj.mainId === 'Sun') view.params = { ...view.params, sun: sunModel() };
     if (star) ctx.show(starScene, view.params, 1, view.css);
     ctx.corner(star);
     const sun = obj.mainId === 'Sun';
@@ -40,6 +44,7 @@ export const starKind = {
     ctx.describe({ derived: d });
     if (star && isBinaryCandidate(obj)) addBinary(ctx, d, view);
     if (star && isVariableCandidate(obj)) addVariable(ctx, d, view);
+    if (sun) addSunActivity(ctx, view);
   },
 };
 
@@ -55,7 +60,7 @@ function addBinary(ctx, d, view) {
       view.binary = btn.getAttribute('aria-pressed') !== 'true';
       btn.setAttribute('aria-pressed', String(view.binary));
       btn.textContent = t(view.binary ? 'b.showStar' : 'b.show3d');
-      ctx.kind(view.binary ? 'binary' : 'star');
+      ctx.kind(view.binary ? 'binary' : 'star');   // Güneş çift değil; bu düğme yalnız ORB6 yıldızlarında
       if (view.binary) ctx.show(binaryScene, binaryVisualParams(orb.el, bd, d.teff?.value ?? 5772, year), 1.15, view.css, 0.12);
       else ctx.show(starScene, view.params, 1, view.css);
     });
@@ -73,6 +78,18 @@ function addVariable(ctx, d, view) {
       view.params = { ...view.params, pulse };
       if (!view.binary) ctx.show(starScene, view.params, 1, view.css);
     }
+  }).catch(() => {});
+}
+
+// Güneş etkinliği bölümü: önce model; NOAA'dan bugünkü bölgeler gelirse görünen yüz onlarla yeniden kurulur
+function addSunActivity(ctx, view) {
+  ctx.insert(`<div data-sun-activity>${sunActivityHtml(view.params.sun.summary(0), 0)}</div>`);
+  realSunModel(ctx.signal).then((m) => {
+    if (!m || ctx.signal.aborted) return;
+    view.params = { ...view.params, sun: m };
+    if (!view.binary) ctx.show(starScene, view.params, 1, view.css);
+    const s = m.summary(0), el = ctx.card.querySelector('[data-sun-activity]');
+    if (el) el.innerHTML = sunActivityHtml(s, s.realGroups);
   }).catch(() => {});
 }
 

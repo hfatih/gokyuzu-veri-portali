@@ -63,6 +63,26 @@ Her değerin yanında köken etiketi bulunur: **ölçülen**, **hesaplanan** ya 
 
 Bunlar fiziksel değerlerden üretilmiş bir modeldir, gözlem görüntüsü değildir.
 
+## Güneş (ana sayfa ve Güneş kartı)
+
+Ana sayfada sağ üstte (telefonda altta) duran Güneş, yıldız modelinin üstüne bir leke etkinliği
+modeli ekler (`js/sun/activity.js`).
+
+- **Lekelerin yaşamı:** doğar, büyür, söner ve Güneş'le birlikte döner. 1 sn = 6 saat, yani
+  Güneş ~100 saniyede bir döner.
+- **Döngü:** Hathaway+ 1994 işlevi. 25. döngü Aralık 2019'da başladı, tepesi ~160 (Ekim 2024).
+- **Enlem:** Spörer yasası, λ = 28° · exp(−t/90 ay); 2026 sonunda ~11°.
+- **Eğiklik:** Joy yasası, γ = 32,1° sin|λ|; öndeki leke ekvatora yakındır.
+- **Ömür:** Gnevyshev–Waldmeier kuralı, T = A_max / 10 gün; en büyük alanlar log-normal dağılır.
+- **Farklı dönme:** Snodgrass & Ulrich 1990; ekvatorda 24,5 gün, 60° enlemde ~30 gün.
+- **Leke yapısı:** gölge 4040 K, yarı gölge 5370 K. Faküller kenara doğru parlar ve lekelerden uzun
+  yaşar.
+- **Gerçek bölgeler:** NOAA SWPC günlük aktif bölge raporu gelirse, görünen yüzdeki lekeler bugünkü
+  gerçek bölgelerden kurulur. Gelmezse lekeler istatistikseldir (kartta yazar).
+- **Telefon:** dokunmatik cihazlarda piksel yoğunluğu 1,25'e, kare hızı 30'a sınırlanır. Uzaktan
+  bakınca granülasyon hesaplanmaz; leke döngüsü yalnız disk üzerindeki piksellerde çalışır.
+- **Kontrol:** `dev/check-sun.mjs`.
+
 ## Gezegenler (faz 2)
 
 - **Kapsam:** Güneş Sistemi'nin 8 gezegeni ve SIMBAD'daki ötegezegenler.
@@ -262,6 +282,7 @@ js/sso/      fetch (IMCCE), orbit (Kepler, MOID), derive (saf), visual
 js/quasar/   derive (ΛCDM, saf), spectrum (bileşik tayf, renk)
 js/binary/   fetch (VizieR ORB6), derive (görünen yörünge, Kepler III, saf)
 js/variable/ fetch (VizieR VSX), derive (ışık eğrisi, P–L, zonklama, saf)
+js/sun/      activity (leke döngüsü, saf), noaa (aktif bölgeler), model
 js/sky/      ephem (Güneş, Ay, gezegenler, presesyon), visibility (24 saatlik yol), location
 js/explore/  featured, tours, refs (başvuru çözümü), size (karşılaştırma yarıçapı)
 js/render/   glview (ortak WebGL görünümü), star / planet / nebula / galaxy / blackhole / cluster / pulsar / sso / binary (sahneler), color, view3d

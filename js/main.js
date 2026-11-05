@@ -14,6 +14,7 @@ import { stopPulses } from './pulsar/sound.js';
 import { kindById, kindByObj } from './kinds/index.js';
 import { skyHtml, bindSky } from './ui/sky-card.js';
 import { initChrome, showPage, hidePage } from './ui/chrome.js';
+import { sunModel, realSunModel } from './sun/model.js';
 import { lookupIds } from './search/simbad.js';
 import { fetchRelated, blackHolesIn, hostOfBlackHole } from './search/related.js';
 import { FEATURED, todaysPick } from './explore/featured.js';
@@ -53,10 +54,16 @@ const showStar = (params) => showScene(starScene, params, 1, blackbodyCss(params
 function frameBackground() {
   if (!bg) return;
   const wide = innerWidth / innerHeight > 1.1, state = body.dataset.state;
-  if (state === 'home') Object.assign(bg.cam, { dist: 2.6, pitch: 0.18 }), (bg.shift = [0, -1.55]);
+  // Ana sayfa: geniş ekranda Güneş sağ üstte (kısmen ekran dışında), dar ekranda altta
+  if (state === 'home') {
+    if (wide) Object.assign(bg.cam, { dist: 4.3, pitch: 0.12, yaw: 0.6 }), (bg.shift = [1.5, 0.78]);
+    else Object.assign(bg.cam, { dist: 2.6, pitch: 0.18, yaw: 0.6 }), (bg.shift = [0, -1.55]);
+  }
   // Dar ekranda yıldız üstte, ekran genişliğinin ~%80'i (uv birimi ekran yüksekliğine göre)
   else if (state === 'object') Object.assign(bg.cam, { dist: (wide ? 3.0 : 8) * extent, pitch: basePitch }), (bg.shift = wide ? [0.95, 0] : [0, 0.55]);
   else Object.assign(bg.cam, { dist: 3.2 * extent, pitch: basePitch }), (bg.shift = [0, 0]);
+  // Ana sayfada pozlama düşük: kenar kararması ve Güneş'in tonu görünsün, yazılar okunur kalsın
+  if (state !== '3d') bg.exposure = state === 'home' ? 0.6 : 0.85;
   bg.redraw();
 }
 addEventListener('resize', frameBackground);
@@ -397,6 +404,21 @@ function bestName(obj) {
   return names.sort((a, b) => (/[a-z]/.test(b) - /[a-z]/.test(a)) || b.length - a.length)[0];
 }
 
+// Ana sayfadaki Güneş: fiziksel model (lekeler, faküller, farklı dönme); NOAA'dan bugünkü bölgeler
+// gelirse görünen yüzde onlar. Aynı gün içinde ikinci kez kurulmaz.
+let homeSun = null;
+function showHomeSun() {
+  if (!homeSun) {
+    homeSun = fetchObject('Sun').then((o) => ({ ...starVisualParams(deriveStar(o.raw)), sun: sunModel() }));
+    homeSun.then((p) => realSunModel().then((m) => {
+      if (!m) return;
+      p.sun = m;
+      if (body.dataset.state === 'home') showStar(p);
+    }));
+  }
+  homeSun.then((p) => { if (body.dataset.state === 'home') showStar(p); });
+}
+
 function goHome({ focus = true } = {}) {
   tour = null;
   loadCtrl?.abort();
@@ -406,7 +428,7 @@ function goHome({ focus = true } = {}) {
   hidePage();
   history.replaceState(null, '', lang === 'en' ? '?lang=en' : location.pathname);
   document.title = t('title');
-  fetchObject('Sun').then((o) => showStar(starVisualParams(deriveStar(o.raw))));
+  showHomeSun();
   frameBackground();
   if (focus) input.focus();
 }
@@ -428,7 +450,7 @@ function open3D() {
   if (!bg) return;
   body.dataset.state = '3d';
   $('#v3d').hidden = false;
-  $('.v3d__model').textContent = t({ planet: 'v3d.modelPlanet', moon: 'v3d.modelMoon', binary: 'v3d.modelBinary', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
+  $('.v3d__model').textContent = t({ sun: 'v3d.modelSun', planet: 'v3d.modelPlanet', moon: 'v3d.modelMoon', binary: 'v3d.modelBinary', nebula: 'v3d.modelNebula', galaxy: 'v3d.modelGalaxy', bh: 'v3d.modelBH', cluster: 'v3d.modelCluster', pulsar: 'v3d.modelPulsar', sso: 'v3d.modelSso', quasar: 'v3d.modelQuasar' }[body.dataset.kind] ?? 'v3d.model');
   bg.scale = 1;
   frameBackground();
   detach = attachOrbitControls(bg, bgCanvas);

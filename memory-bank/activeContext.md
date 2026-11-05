@@ -26,6 +26,9 @@
 - **Yazı tipleri:** kendi sunucumuzdan veriliyor.
 - **Bekleyen:** `js/legal/site-info.js` doldurulacak ve hukuki inceleme yapılacak; sonra `draft: false`.
 
+- **Fiziksel Güneş:** `js/sun/` ve shader'da `uSpot`/`uFac` dizileri. NOAA SWPC biçimi canlı serviste
+  doğrulanmadı; ayrıştırıcı esnek, hata olursa istatistiksel modelle devam eder.
+
 **Sıradaki olası işler:**
 - Yayına alma (gokyuzuveriportali alan adı; onay gerekir).
 - **Küçük işler:**

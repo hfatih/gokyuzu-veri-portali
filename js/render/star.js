@@ -3,6 +3,7 @@
 
 import { blackbodyTable } from './color.js';
 import { pulseState } from '../variable/derive.js';
+import { MAX_SPOTS, MAX_FAC } from '../sun/activity.js';
 
 const BB_N = 256, BB_TMIN = 1500, BB_TMAX = 60000;
 
@@ -14,6 +15,9 @@ uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
 uniform sampler2D uBB;
 uniform vec2 uBBRange;
+uniform vec4 uSpot[${MAX_SPOTS}], uFac[${MAX_FAC}];
+uniform float uFacS[${MAX_FAC}];
+uniform int uNSpot, uNFac;
 uniform float uScale, uTeff, uGranF, uGranAmp, uGiantAmp, uGranPhase, uSpots, uOblate, uGEq, uBeta, uRot, uU1, uU2;
 
 vec4 bb(float T) {
@@ -87,8 +91,35 @@ void main() {
     // Süperdevlerde yüzeyi birkaç dev hücre kaplar (Chiavassa+ 2010); daha yavaş evrilir
     if (uGiantAmp > 0.0) T *= 1.0 + uGiantAmp * granule(q * 1.3 + 7.0, uGranPhase * 0.15);
 
+    // Güneş modeli (sun/activity.js): lekeler ve faküller yıldızla dönmeyen çerçevede (p), konumları
+    // farklı dönmeyle JS'te hesaplanır. Gölge 4040 K (0,70·T), yarı gölge 5370 K (0,93·T); gölge
+    // yarıçapı lekenin ~0,42'si (alan oranı ~1/6, Solanki 2003). Faküller kenara doğru parlar.
+    if (uNSpot > 0 || uNFac > 0) {
+      float pen = 0.0, umb = 0.0, fac = 0.0;
+      for (int i = 0; i < ${MAX_SPOTS}; i++) {
+        if (i >= uNSpot) break;
+        vec4 s = uSpot[i];
+        vec3 dv = p - s.xyz;
+        float d2 = dot(dv, dv);
+        if (d2 > s.w * s.w * 1.3) continue;
+        float d = sqrt(d2);
+        pen = max(pen, 1.0 - smoothstep(s.w * 0.82, s.w, d));
+        umb = max(umb, 1.0 - smoothstep(s.w * 0.36, s.w * 0.46, d));
+      }
+      for (int i = 0; i < ${MAX_FAC}; i++) {
+        if (i >= uNFac) break;
+        vec4 f = uFac[i];
+        vec3 dv = p - f.xyz;
+        float d2 = dot(dv, dv);
+        if (d2 > f.w * f.w) continue;
+        fac = max(fac, uFacS[i] * (1.0 - smoothstep(f.w * 0.35, f.w, sqrt(d2))));
+      }
+      // Fakül: ağsı yapı (fbm) ve kenar parlaması; görünür ışıkta ΔI/I ≈ %10 kenarda ↔ ΔT/T ≈ %2,5
+      if (fac > 0.0) T *= 1.0 + 0.03 * fac * smoothstep(0.95, 0.15, mu) * (0.4 + 1.2 * fbm(q * 60.0));
+      T *= mix(1.0, 0.93, pen) * mix(1.0, 0.7527, umb);
+    }
     // Lekeler: aktivite kuşağında (|enlem| ≈ 5°–40°) eşik üstü gürültü; gölge 0,7·T, yarı gölge 0,85·T
-    if (uSpots > 0.0) {
+    else if (uSpots > 0.0) {
       float belt = smoothstep(0.08, 0.18, abs(q.y)) * (1.0 - smoothstep(0.55, 0.7, abs(q.y)));
       float nz = fbm(q * 4.0 + 11.0);
       float th = 0.78 - 0.18 * uSpots;
@@ -152,7 +183,15 @@ export const starScene = {
     gl.uniform1f(U.uGiantAmp, view.granulation ? p.giantCellAmp : 0);
     // Zonklamada zaman çok hızlı akar; granüller yine ~4 sn'lik ömürle evrilsin
     const granT = p.pulse ? view.t * (p.granLifeSec / 4) / (p.pulse.periodS / 6) : view.t;
-    gl.uniform1f(U.uGranPhase, granT / p.granLifeSec * 2 * Math.PI);
+    // Güneş modelinde zaman hızlı akar (lekelerin doğup sönmesi görünsün); granüller gerçek saatle ~4 sn ömürlü
+    gl.uniform1f(U.uGranPhase, p.sun ? view.wall / 4 * 2 * Math.PI : granT / p.granLifeSec * 2 * Math.PI);
+    const sun = p.sun && view.spots ? p.sun.stateAt(view.t / 86400) : null;
+    gl.uniform1i(U.uNSpot, sun ? sun.nSpots : 0);
+    gl.uniform1i(U.uNFac, sun ? sun.nFac : 0);
+    if (sun) {
+      if (sun.nSpots) gl.uniform4fv(U['uSpot[0]'], sun.spots);
+      if (sun.nFac) { gl.uniform4fv(U['uFac[0]'], sun.fac); gl.uniform1fv(U['uFacS[0]'], sun.facS); }
+    }
     gl.uniform1f(U.uSpots, view.spots ? p.spots : 0);
     gl.uniform1f(U.uOblate, p.oblateness);
     gl.uniform1f(U.uGEq, p.gEqRatio);
@@ -162,5 +201,6 @@ export const starScene = {
     gl.uniform1f(U.uU2, p.u2);
   },
   // Zonklayan yıldızda bir dönem ~6 sn
-  timeScale: (p) => (p.pulse ? p.pulse.periodS / 6 : p.granLifeSec / 4),
+  // Zonklayan yıldızda bir dönem ~6 sn; Güneş modelinde 1 sn = 6 saat (Güneş ~100 sn'de bir döner)
+  timeScale: (p) => (p.sun ? 21600 : p.pulse ? p.pulse.periodS / 6 : p.granLifeSec / 4),
 };
