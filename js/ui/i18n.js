@@ -231,6 +231,8 @@ const DICT = {
     'q.noZ': 'SIMBAD kırmızıya kayma vermiyor; kozmolojik değerler hesaplanamıyor.',
     'link.ned': 'Gökada dışı veritabanı: kırmızıya kayma, SED, kaynakça',
     'v3d.modelQuasar': 'Model: merkezdeki kara delik ve yığılma diski (Schwarzschild ışın izleme), kütle Eddington kestiriminden.',
+    'load.retry': 'Tekrar dene',
+    'load.partial': 'Bazı kaynaklar yanıt vermedi; kart eldeki verilerle çizildi.',
     'nowebgl': 'Tarayıcın WebGL 2 desteklemiyor; durağan renk gösteriliyor.',
   },
   en: {
@@ -463,6 +465,8 @@ const DICT = {
     'q.noZ': 'SIMBAD gives no redshift; cosmological values cannot be derived.',
     'link.ned': 'Extragalactic database: redshift, SED, bibliography',
     'v3d.modelQuasar': 'Model: central black hole and accretion disc (Schwarzschild ray tracing), mass from the Eddington estimate.',
+    'load.retry': 'Try again',
+    'load.partial': 'Some sources did not respond; the card shows the data that arrived.',
     'nowebgl': 'Your browser does not support WebGL 2; showing a static colour.',
   },
 };

@@ -3,6 +3,7 @@
 // Sıralama istemcide nbref'e göre yapılır.
 
 import { likeVariants, sqlStr, prettyId } from './variants.js';
+import { get } from '../net/http.js';
 
 const TAP = 'https://simbad.cds.unistra.fr/simbad/sim-tap/sync';
 const TIMEOUT_MS = 6000;
@@ -10,10 +11,7 @@ const TIMEOUT_MS = 6000;
 /** ADQL çalıştırır, satırları nesne dizisi olarak döner. Hata ya da zaman aşımında fırlatır. */
 export async function tap(adql, signal, timeoutMs = TIMEOUT_MS) {
   const url = `${TAP}?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=${encodeURIComponent(adql)}`;
-  const timeout = AbortSignal.timeout(timeoutMs);
-  const res = await fetch(url, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
-  if (!res.ok) throw new Error(`SIMBAD ${res.status}`);
-  const { metadata, data } = await res.json();
+  const { metadata, data } = await get(url, { signal, timeoutMs, name: 'SIMBAD' });
   return data.map((row) => Object.fromEntries(metadata.map((m, i) => [m.name, row[i]])));
 }
 

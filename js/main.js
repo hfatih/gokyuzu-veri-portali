@@ -3,53 +3,17 @@
 
 import { t, lang, otypeName, num, applyStatic } from './ui/i18n.js';
 import { createSuggester, SUN_ITEM } from './search/suggest.js';
-import { wikipediaFor, wikipediaForQid } from './search/wikidata.js';
 import { prettyId } from './search/variants.js';
-import { fetchObject, isStar } from './star/fetch.js';
+import { fetchObject } from './star/fetch.js';
 import { deriveStar, starVisualParams } from './star/derive.js';
-import { buildLinks } from './star/links.js';
-import { renderCard, linkItems } from './ui/card.js';
-import { renderPlanetCard } from './ui/planet-card.js';
-import { fetchPlanet } from './planet/fetch.js';
-import { derivePlanet } from './planet/derive.js';
-import { planetVisualParams } from './planet/visual.js';
-import { buildPlanetLinks } from './planet/links.js';
-import { solarPlanet, isSolarPlanetId } from './planet/solar.js';
-import { nebulaKind, deriveNebula } from './nebula/derive.js';
-import { nebulaVisualParams } from './nebula/visual.js';
-import { renderNebulaCard } from './ui/nebula-card.js';
-import { nebulaScene } from './render/nebula.js';
-import { isGalaxy, deriveGalaxy } from './galaxy/derive.js';
-import { galaxyVisualParams } from './galaxy/visual.js';
-import { renderGalaxyCard } from './ui/galaxy-card.js';
-import { galaxyScene } from './render/galaxy.js';
-import { fetchBlackHole, isBlackHoleId } from './bh/fetch.js';
-import { deriveBlackHole } from './bh/derive.js';
-import { renderBlackHoleCard, buildBlackHoleLinks } from './ui/bh-card.js';
-import { blackHoleScene } from './render/blackhole.js';
-import { clusterKind, deriveCluster } from './cluster/derive.js';
-import { fetchMembers } from './cluster/fetch.js';
-import { clusterVisualParams } from './cluster/visual.js';
-import { renderClusterCard } from './ui/cluster-card.js';
-import { clusterScene } from './render/cluster.js';
-import { isPulsar, derivePulsar } from './pulsar/derive.js';
-import { fetchPulsar } from './pulsar/fetch.js';
-import { pulsarVisualParams } from './pulsar/visual.js';
-import { playPulses, stopPulses } from './pulsar/sound.js';
-import { renderPulsarCard, buildPulsarLinks } from './ui/pulsar-card.js';
-import { pulsarScene } from './render/pulsar.js';
-import { fetchSso, isSsoId } from './sso/fetch.js';
-import { deriveSso } from './sso/derive.js';
-import { jdNow } from './sso/orbit.js';
-import { ssoVisualParams } from './sso/visual.js';
-import { renderSsoCard, buildSsoLinks } from './ui/sso-card.js';
-import { ssoScene } from './render/sso.js';
-import { isQuasar, deriveQuasar } from './quasar/derive.js';
-import { observedRgb } from './quasar/spectrum.js';
-import { renderQuasarCard, buildQuasarLinks, rgbCss } from './ui/quasar-card.js';
+import { linkItems } from './ui/card.js';
+import { isBlackHoleId } from './bh/fetch.js';
+import { isSsoId } from './sso/fetch.js';
+import { isSolarPlanetId } from './planet/solar.js';
+import { stopPulses } from './pulsar/sound.js';
+import { kindById, kindByObj } from './kinds/index.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
-import { planetScene } from './render/planet.js';
 import { attachOrbitControls } from './render/view3d.js';
 import { blackbodyCss } from './render/color.js';
 
@@ -151,6 +115,29 @@ function toast(msg) {
   clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('is-on'), 5000);
 }
 
+const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Türlerin kullandığı ortak arayüz (kinds/index.js)
+function makeCtx(sel, obj, signal) {
+  const ctx = {
+    sel, obj, signal, card, info: {},
+    show: showScene,
+    corner: (on) => { cornerBtn.hidden = !on || !mini; },
+    kind: (k) => { body.dataset.kind = k; },
+    setLabel: (label) => { sel.label = label; input.value = label; },
+    choose,
+    // Wikipedia bağlantıları ayrı gelir; gelmezse kart yine tamdır
+    wiki: (promise, build) => promise.then((wiki) => {
+      if (signal.aborted) return;
+      const ul = card.querySelector('[data-links]');
+      if (ul) ul.innerHTML = linkItems(build(wiki));
+    }).catch(() => {}),
+    partial: () => { ctx.isPartial = true; },
+    describe: (info) => Object.assign(ctx.info, info),
+  };
+  return ctx;
+}
+
 async function choose(sel) {
   suggester.cancel();
   stopPulses();
@@ -165,32 +152,46 @@ async function choose(sel) {
   card.innerHTML = `<p class="card__loading">${t('search.loading')}</p>`;
   frameBackground();
   try {
-    if (isBlackHoleId(sel.mainId) || isSsoId(sel.mainId)) {
-      await (isSsoId(sel.mainId) ? loadSso : loadBlackHole)(sel, signal);
-      history.replaceState(null, '', `?${new URLSearchParams({ star: sel.mainId, ...(lang === 'en' ? { lang: 'en' } : {}) })}`);
-      return;
+    let kind = kindById(sel.mainId), obj = null;
+    if (!kind) {
+      obj = await fetchObject(sel.mainId, signal);
+      // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
+      if (sel.fromUrl) sel.label = bestName(obj) ?? sel.label;
+      input.value = sel.label;
+      kind = kindByObj(obj);
     }
-    const obj = isSolarPlanetId(sel.mainId) ? null : await fetchObject(sel.mainId, signal);
-    // Adresten açıldıysa okunur ad SIMBAD'ın "NAME …" kimliğinden
-    if (sel.fromUrl && obj) sel.label = bestName(obj) ?? sel.label;
-    input.value = sel.label;
-    if (!obj || obj.basic.otype === 'Pl' || obj.basic.otype === 'Pl?') await loadPlanet(sel, obj, signal);
-    else if (nebulaKind(obj.basic.otype)) loadNebula(sel, obj, signal);
-    else if (isGalaxy(obj.basic.otype)) loadGalaxy(sel, obj, signal);
-    else if (clusterKind(obj.basic.otype)) await loadCluster(sel, obj, signal);
-    else if (isPulsar(obj.basic.otype)) await loadPulsar(sel, obj, signal);
-    else if (isQuasar(obj.basic.otype)) loadQuasar(sel, obj, signal);
-    else loadStar(sel, obj, signal);
+    const ctx = makeCtx(sel, obj, signal);
+    await kind.load(ctx);
+    if (signal.aborted) return;
+    if (obj?.partial) ctx.partial();
+    afterLoad(ctx);
     const q = new URLSearchParams({ star: obj?.mainId ?? sel.mainId });
     if (lang === 'en') q.set('lang', 'en');
     history.replaceState(null, '', `?${q}`);
+    document.title = `${sel.label} · ${t('title')}`;
   } catch (e) {
     if (signal.aborted) return;
-    card.innerHTML = `<p class="note">${t(e.message === 'not-found' ? 'load.notFound' : 'load.fail')}</p>`;
+    card.innerHTML = `<p class="note">${t(e.message === 'not-found' ? 'load.notFound' : 'load.fail')}</p>
+      ${e.message === 'not-found' ? '' : `<button type="button" class="retry" data-retry>${t('load.retry')}</button>`}`;
+    card.querySelector('[data-retry]')?.addEventListener('click', () => choose(sel));
     toast(t('load.fail'));
   } finally {
     if (!signal.aborted) card.removeAttribute('aria-busy');
   }
+}
+
+// Kartın ortak ekleri: kısmi veri uyarısı (tekrar dene)
+function afterLoad(ctx) {
+  if (ctx.isPartial) insertBeforeLinks(`<p class="note note--warn">${t('load.partial')}
+    <button type="button" class="retry retry--inline" data-retry>${t('load.retry')}</button></p>`);
+  card.querySelector('[data-retry]')?.addEventListener('click', () => choose({ ...ctx.sel, fromUrl: false }));
+}
+
+/** Kartta "Kaynaklarda ara" başlığının önüne HTML ekler (yoksa sona). */
+function insertBeforeLinks(html) {
+  const ul = card.querySelector('[data-links]');
+  const anchor = ul?.previousElementSibling?.matches('.card__h') ? ul.previousElementSibling : ul;
+  if (anchor) anchor.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
 }
 
 // SIMBAD'ın "NAME …" kimliklerinden okunur olanı: küçük harf içeren ve en uzun ("CRAB NEB" değil "Crab Nebula")
@@ -199,149 +200,13 @@ function bestName(obj) {
   return names.sort((a, b) => (/[a-z]/.test(b) - /[a-z]/.test(a)) || b.length - a.length)[0];
 }
 
-// Wikipedia bağlantıları ayrı gelir; gelmezse kart yine tamdır
-function addWiki(promise, build) {
-  promise.then((wiki) => { const ul = card.querySelector('[data-links]'); if (ul) ul.innerHTML = linkItems(build(wiki)); }).catch(() => {});
-}
-
-function loadStar(sel, obj, signal) {
-  const star = isStar(obj.basic.otype);
-  const d = star ? deriveStar(obj.raw) : null;
-  body.dataset.kind = star ? 'star' : 'other';
-  renderCard(card, sel, obj, d, buildLinks(obj));
-  if (star) showStar(starVisualParams(d));
-  cornerBtn.hidden = !star || !mini;
-  addWiki(wikipediaFor(obj.mainId === 'Sun' ? [] : [obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal),
-    (wiki) => buildLinks(obj, sunWiki(obj, wiki)));
-}
-
-async function loadBlackHole(sel, signal) {
-  const bh = await fetchBlackHole(sel.mainId, signal);
-  if (sel.fromUrl) sel.label = bh.label;
-  input.value = sel.label;
-  const bd = bh.massSun ? deriveBlackHole({ massSun: bh.massSun, distLy: bh.distLy }) : null;
-  body.dataset.kind = 'bh';
-  renderBlackHoleCard(card, sel, bh, bd ?? { cls: 'supermassive' }, buildBlackHoleLinks(bh));
-  // Kütle yoksa da model çizilir: görüntü r_s biriminde ölçeksizdir, yalnız zaman ölçeği ve disk sıcaklığı kütleye bağlı
-  const params = bd
-    ? { rsM: bd.rsKm.value * 1e3, tmax: bd.diskTmax.value, iscoPeriodS: bd.iscoPeriodS.value }
-    : { rsM: 1.2e10, tmax: 2e5, iscoPeriodS: 1800 };
-  showScene(blackHoleScene, params, 1.1, '#000', 0.12);
-  cornerBtn.hidden = !mini;
-  addWiki(wikipediaForQid(bh.qid, signal), (wiki) => buildBlackHoleLinks(bh, wiki));
-}
-
-// Asteroit, kuyruklu yıldız, cüce gezegen (IMCCE); bugünkü konum ve evre açısı açılış anından
-async function loadSso(sel, signal) {
-  const b = await fetchSso(sel.mainId, signal);
-  if (sel.fromUrl) sel.label = b.title;
-  input.value = sel.label;
-  const sd = deriveSso(b, jdNow());
-  body.dataset.kind = 'sso';
-  renderSsoCard(card, sel, b, sd, buildSsoLinks(b));
-  showScene(ssoScene, ssoVisualParams(b, sd), 1, '#9a948c', 0.2);
-  cornerBtn.hidden = !mini;
-}
-
-// Kuasar: kırmızıya kaymadan kozmoloji; sahne merkezdeki kara delik (Eddington kütlesiyle)
-function loadQuasar(sel, obj, signal) {
-  const b = obj.basic;
-  const qd = deriveQuasar({ z: b.z, mags: obj.mags });
-  const rgb = qd ? observedRgb(qd.z.value) : null;
-  body.dataset.kind = 'quasar';
-  renderQuasarCard(card, sel, obj, qd, rgb, buildQuasarLinks(obj));
-  const bd = qd?.massEdd ? deriveBlackHole({ massSun: qd.massEdd.value, distLy: qd.distLy }) : null;
-  const params = bd
-    ? { rsM: bd.rsKm.value * 1e3, tmax: bd.diskTmax.value, iscoPeriodS: bd.iscoPeriodS.value }
-    : { rsM: 1.2e12, tmax: 6e4, iscoPeriodS: 2e5 };
-  showScene(blackHoleScene, params, 1.1, rgb ? rgbCss(rgb) : '#cfe0ff', 0.12);
-  cornerBtn.hidden = !mini;
-  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildQuasarLinks(obj, wiki));
-}
-
-async function loadCluster(sel, obj, signal) {
-  const members = await fetchMembers(obj.basic.oid, signal).catch((e) => { if (signal.aborted) throw e; return []; });
-  const b = obj.basic;
-  const cd = deriveCluster({ kind: clusterKind(b.otype), majArcmin: b.dimMaj, distances: obj.distances, members, center: b });
-  body.dataset.kind = members.length ? 'cluster' : 'other';
-  renderClusterCard(card, sel, obj, cd, buildLinks(obj));
-  if (members.length) {
-    showScene(clusterScene, clusterVisualParams(cd, members, b, obj.mainId), 1.1, '#fff3dc', 0.3);
-    cornerBtn.hidden = !mini;
-  } else cornerBtn.hidden = true;
-  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
-}
-
-async function loadPulsar(sel, obj, signal) {
-  const row = await fetchPulsar(obj, signal).catch((e) => { if (signal.aborted) throw e; return null; });
-  const pd = row?.P0 > 0 ? derivePulsar(row) : null;
-  // Veri yoksa sahne çizilmez; önceki cismin sahnesi 'other' gibi soluk kalır
-  body.dataset.kind = pd ? 'pulsar' : 'other';
-  renderPulsarCard(card, sel, obj, row, pd, buildPulsarLinks(obj, row));
-  if (pd) {
-    const vp = pulsarVisualParams(pd);
-    // Bakış yüksekliği 90° − α: üst ışın her dönüşte kameranın üzerinden geçer (deniz feneri çakması)
-    showScene(pulsarScene, vp, 1.25, '#cfe0ff', Math.PI / 2 - vp.alpha);
-    cornerBtn.hidden = !mini;
-    const btn = card.querySelector('[data-listen]');
-    btn?.addEventListener('click', () => {
-      const on = btn.getAttribute('aria-pressed') !== 'true';
-      if (on) playPulses(pd.periodS.value, pd.w50Ms?.value); else stopPulses();
-      btn.setAttribute('aria-pressed', String(on));
-    });
-  } else cornerBtn.hidden = true;
-  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildPulsarLinks(obj, row, wiki));
-}
-
-function loadGalaxy(sel, obj, signal) {
-  const b = obj.basic;
-  const gd = deriveGalaxy({ morph: b.morph, majArcmin: b.dimMaj, minArcmin: b.dimMin, cz: b.rv, z: b.z, mags: obj.mags, distances: obj.distances });
-  body.dataset.kind = 'galaxy';
-  renderGalaxyCard(card, sel, obj, gd, buildLinks(obj));
-  const vp = galaxyVisualParams(gd, obj);
-  // Bakış yüksekliği = 90° − eğiklik: kenardan görünen gökada arka planda da kenardan görünür
-  const pitch = Math.min(1.45, Math.max(0.05, (90 - vp.inclination) * Math.PI / 180));
-  showScene(galaxyScene, vp, 1.1, `rgb(${vp.old.map((c) => Math.round(255 * c ** (1 / 2.2))).join(',')})`, pitch);
-  cornerBtn.hidden = !mini;
-  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
-}
-
-function loadNebula(sel, obj, signal) {
-  const b = obj.basic;
-  const nd = deriveNebula({ kind: nebulaKind(b.otype), majArcmin: b.dimMaj, minArcmin: b.dimMin, distances: obj.distances });
-  body.dataset.kind = 'nebula';
-  renderNebulaCard(card, sel, obj, nd, buildLinks(obj));
-  const vp = nebulaVisualParams(nd, obj);
-  showScene(nebulaScene, vp, 1, `rgb(${vp.ha.map((c) => Math.round(255 * c)).join(',')})`);
-  cornerBtn.hidden = !mini;
-  addWiki(wikipediaFor([obj.mainId, obj.mainId.replace(/\s+/g, ' ')], signal), (wiki) => buildLinks(obj, wiki));
-}
-
-// Güneş Sistemi gezegeni (obj null) ya da SIMBAD'daki ötegezegen
-async function loadPlanet(sel, obj, signal) {
-  const planet = await fetchPlanet(sel.mainId, obj, signal);
-  if (sel.fromUrl && planet.solar) sel.label = planet.solar[lang];
-  input.value = sel.label;
-  const pd = derivePlanet(planet.props, planet.host && { teff: planet.host.teff, R: planet.host.R, L: planet.host.L });
-  body.dataset.kind = 'planet';
-  renderPlanetCard(card, sel, planet, pd, buildPlanetLinks(planet, obj));
-  const vp = planetVisualParams(pd, planet.solar, planet.host?.teff);
-  showScene(planetScene, vp, vp.ring ? vp.ring.outer * 1.05 : 1, `rgb(${vp.zone.map((c) => Math.round(255 * c ** (1 / 2.2))).join(',')})`);
-  card.querySelector('.swatch--planet')?.style.setProperty('--planet', $('#fallback').style.getPropertyValue('--star'));
-  card.querySelector('[data-host]')?.addEventListener('click', (e) => choose({ label: e.target.textContent, mainId: e.target.dataset.host, otype: null }));
-  cornerBtn.hidden = !mini;
-  addWiki(wikipediaForQid(planet.qid, signal), (wiki) => buildPlanetLinks(planet, obj, wiki));
-}
-
-// Güneş SIMBAD'da olmadığından Wikipedia adresi sabit
-const sunWiki = (obj, wiki) => (obj.mainId === 'Sun' ? { tr: 'https://tr.wikipedia.org/wiki/G%C3%BCne%C5%9F', en: 'https://en.wikipedia.org/wiki/Sun' } : wiki);
-
 function goHome() {
   loadCtrl?.abort();
   stopPulses();
   body.dataset.state = 'home';
   card.hidden = true; cornerBtn.hidden = true;
   history.replaceState(null, '', lang === 'en' ? '?lang=en' : location.pathname);
+  document.title = t('title');
   fetchObject('Sun').then((o) => showStar(starVisualParams(deriveStar(o.raw))));
   frameBackground();
   input.focus();

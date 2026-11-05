@@ -48,6 +48,8 @@ export async function fetchObject(mainId, signal) {
     tap(`SELECT dist, unit, method, bibcode FROM mesDistance WHERE oidref = ${oid}`, signal),
   ]);
   if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
+  // Bir ölçüm tablosu gelmediyse kart "tekrar dene" uyarısı gösterir (hatalar önbelleğe alınmaz)
+  const partial = settled.some((s) => s.status === 'rejected');
   const [fe, rot, flux, ids, kids, dists] = settled.map((s) => (s.status === 'fulfilled' ? s.value : []));
 
   const meas = {
@@ -70,6 +72,7 @@ export async function fetchObject(mainId, signal) {
     meas, mags,
     ids: ids.map((r) => r.id),
     planets: kids.map((k) => k.main_id),
+    partial,
   };
 }
 

@@ -2,17 +2,16 @@
 // EntitySearch'ü SIMBAD kimliği (P3083) olan öğelerle süzer (~0,6 sn). wbgetentities ile
 // süzmek 20 öğe için ~700 KB indiriyordu.
 
-const SPARQL = 'https://query.wikidata.org/sparql';
-const TIMEOUT_MS = 8000;
+import { get } from '../net/http.js';
 
-async function sparql(query, signal) {
-  const timeout = AbortSignal.timeout(TIMEOUT_MS);
-  const res = await fetch(`${SPARQL}?format=json&query=${encodeURIComponent(query)}`, {
-    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-    headers: { Accept: 'application/sparql-results+json' },
+const SPARQL = 'https://query.wikidata.org/sparql';
+
+/** SPARQL sorgusu; satır bağlamaları (bindings) döner. */
+export async function sparql(query, signal, timeoutMs = 8000) {
+  const res = await get(`${SPARQL}?format=json&query=${encodeURIComponent(query)}`, {
+    signal, timeoutMs, name: 'Wikidata', headers: { Accept: 'application/sparql-results+json' },
   });
-  if (!res.ok) throw new Error(`Wikidata ${res.status}`);
-  return (await res.json()).results.bindings;
+  return res.results.bindings;
 }
 
 const lit = (s) => '"' + s.replace(/["\\]/g, '\\$&').replace(/\s+/g, ' ') + '"';

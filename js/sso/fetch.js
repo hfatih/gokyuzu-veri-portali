@@ -2,18 +2,15 @@
 // parametreler ssoCard (her değerin kaynağı kartta). JPL SBDB API'si CORS başlığı göndermiyor.
 // Kimlik biçimi 'sso:<IMCCE id>' (ör. sso:Ceres, sso:1P, sso:Apophis).
 
+import { get } from '../net/http.js';
+
 const QUAERO = 'https://api.ssodnet.imcce.fr/quaero/1/sso/instant-search';
 const SSOCARD = 'https://ssp.imcce.fr/webservices/ssodnet/api/ssocard/';
 const TYPES = new Set(['Asteroid', 'Comet', 'Dwarf Planet']);
 
 export const isSsoId = (id) => typeof id === 'string' && id.startsWith('sso:');
 
-async function getJson(url, signal, ms = 8000) {
-  const timeout = AbortSignal.timeout(ms);
-  const res = await fetch(url, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
-  if (!res.ok) throw new Error(res.status === 404 ? 'not-found' : `IMCCE ${res.status}`);
-  return res.json();
-}
+const getJson = (url, signal, ms = 8000) => get(url, { signal, timeoutMs: ms, name: 'IMCCE', notFound: true });
 
 /**
  * Önek araması. Bilinirlik ölçüsü yok; sıralama için kaba değer: cüce gezegen 5 × 10⁵, numaralı

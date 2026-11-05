@@ -3,8 +3,8 @@
 
 import { pickValue } from '../planet/units.js';
 import { lang } from '../ui/i18n.js';
+import { sparql } from '../search/wikidata.js';
 
-const SPARQL = 'https://query.wikidata.org/sparql';
 export const isBlackHoleId = (id) => typeof id === 'string' && id.startsWith('bh:');
 
 const PROPS = { P2067: 'massSun', P2583: 'distLy', P6257: 'deg', P6258: 'deg' };
@@ -21,13 +21,7 @@ export async function fetchBlackHole(id, signal) {
     OPTIONAL { ?item wdt:P3083 ?s }
     OPTIONAL { VALUES (?prop ?pp ?ppsv) { ${pairs} }
       ?item ?pp ?st. ?st ?ppsv ?v; wikibase:rank ?rank. ?v wikibase:quantityAmount ?amount; wikibase:quantityUnit ?unit. } }`;
-  const timeout = AbortSignal.timeout(10000);
-  const res = await fetch(`${SPARQL}?format=json&query=${encodeURIComponent(q)}`, {
-    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-    headers: { Accept: 'application/sparql-results+json' },
-  });
-  if (!res.ok) throw new Error(`Wikidata ${res.status}`);
-  const rows = (await res.json()).results.bindings;
+  const rows = await sparql(q, signal, 10000);
   if (!rows.length) throw new Error('not-found');
   const short = (u) => u?.value.split(/[/#]/).pop();
   const out = { qid, label: rows[0].label?.value ?? qid, simbadId: rows[0].s?.value ?? null };

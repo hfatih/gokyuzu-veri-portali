@@ -6,8 +6,8 @@ import { fetchObject } from '../star/fetch.js';
 import { deriveStar } from '../star/derive.js';
 import { pickValue } from './units.js';
 import { solarPlanet } from './solar.js';
+import { sparql } from '../search/wikidata.js';
 
-const SPARQL = 'https://query.wikidata.org/sparql';
 const lit = (s) => '"' + s.replace(/["\\]/g, '\\$&').replace(/\s+/g, ' ') + '"';
 
 // Wikidata özelliği → units.js türü
@@ -21,13 +21,7 @@ async function wikidataProps(valuesClause, signal) {
     ?item ?pp ?st. ?st ?ppsv ?v; wikibase:rank ?rank.
     OPTIONAL { ?v wikibase:quantityAmount ?amount; wikibase:quantityUnit ?unit }
     OPTIONAL { ?v wikibase:timeValue ?time } }`;
-  const timeout = AbortSignal.timeout(10000);
-  const res = await fetch(`${SPARQL}?format=json&query=${encodeURIComponent(q)}`, {
-    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-    headers: { Accept: 'application/sparql-results+json' },
-  });
-  if (!res.ok) throw new Error(`Wikidata ${res.status}`);
-  const rows = (await res.json()).results.bindings;
+  const rows = await sparql(q, signal, 10000);
   const short = (u) => u?.value.split(/[/#]/).pop();
   const byProp = {};
   for (const r of rows) {

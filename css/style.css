@@ -243,3 +243,9 @@ button { font: inherit; color: inherit; }
 /* ---------- Kuasar ---------- */
 [data-kind="quasar"] .v3d .chk { display: none; }
 .swatch--quasar { box-shadow: 0 0 14px var(--q); background: radial-gradient(circle, #fff 0 12%, var(--q) 26%, transparent 60%); }
+
+/* ---------- Hata ve tekrar dene ---------- */
+.note--warn { color: var(--estimated); }
+.retry { margin-top: 10px; padding: 6px 14px; background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 13px; }
+.retry:hover { border-color: var(--accent); color: var(--accent); }
+.retry--inline { margin: 0 0 0 6px; padding: 1px 10px; font-size: 12px; }
