@@ -31,3 +31,5 @@
 - ORB6/VSX VizieR sütun adları, uydu QID'leri, kara delik ↔ gökada Wikidata bağı ve albedo niteleyici
   sorgusu canlı serviste doğrulanmadı (2026-11-05 oturumunda ağ kapalıydı); hata olursa sessiz atlanır.
 - Işık eğrileri şematik; çift yıldız sahnesinde beyaz cüce yoldaş anakol varsayımıyla yanlış renkte.
+
+- [x] SIMBAD yedek aynası, üst bar/dil seçici, KVKK çerez ve yasal metin güncellemesi — 2026-11-05

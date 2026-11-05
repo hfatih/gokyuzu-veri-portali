@@ -7,11 +7,20 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 /** Künye alanı ya da sarı yer tutucu. */
 const f = (v, label) => (v ? esc(v) : `<mark class="ph">[${label}]</mark>`);
 const owner = () => f(S.owner, 'VERİ SORUMLUSU ADI / UNVANI');
-const mail = () => (S.email ? `<a href="mailto:${esc(S.email)}">${esc(S.email)}</a>` : f(null, 'E-POSTA'));
+/** İletişim kanalları: e-posta varsa o, yoksa astronews'teki gibi GitHub (Issues + profil). */
+const mail = () => [
+  S.email && `<a href="mailto:${esc(S.email)}">${esc(S.email)}</a>`,
+  S.repo && `<a href="${esc(S.repo)}/issues" rel="noopener">GitHub Issues</a>`,
+  S.owner && `<a href="https://github.com/${esc(S.owner)}" rel="noopener">github.com/${esc(S.owner)}</a>`,
+].filter(Boolean).join(' · ') || f(null, 'E-POSTA');
+/** Adres yalnız tanımlıysa: " · Adres: …" */
+const addr = (lead = ' · Adres: ') => (S.address ? `${lead}${esc(S.address)}` : '');
+const PUBLIC_WARN = '<strong>GitHub Issues herkese açıktır:</strong> oraya kimlik numarası, adres gibi kişisel bilgi yazma; yalnız başvurmak istediğini belirt, sana özel bir iletişim yolu bildirilir.';
 
 const CDS = 'CDS (Centre de Données astronomiques de Strasbourg, Fransa)';
 const HOSTS = [
   ['simbad.cds.unistra.fr, vizier.cds.unistra.fr, alasky.cds.unistra.fr', CDS, 'katalog verisi ve gökyüzü görüntüleri'],
+  ['simbad.cfa.harvard.edu', 'Harvard–Smithsonian Astrofizik Merkezi (ABD)', 'SIMBAD yedek aynası; yalnız CDS yanıt vermezse'],
   ['query.wikidata.org', 'Wikimedia Vakfı (ABD)', 'adlar, gezegen ve kara delik değerleri'],
   ['api.ssodnet.imcce.fr, ssp.imcce.fr', 'IMCCE (Paris Gözlemevi, Fransa)', 'asteroit ve kuyruklu yıldız verisi'],
   ['services.swpc.noaa.gov', 'NOAA Uzay Havası Tahmin Merkezi (ABD)', 'Güneş\'teki güncel leke bölgeleri (ana sayfa ve Güneş kartı)'],
@@ -39,18 +48,25 @@ const kvkk = () => `
     <li>Bilimsel kataloglar ve Güneş'in güncel leke raporu ilgili kuruluşlarda durduğu için tarayıcın onları doğrudan ister.</li>
   </ul></section>
   <h2>1. Veri sorumlusu</h2>
-  <p>6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca veri sorumlusu ${owner()}'dır.
-    Adres: ${f(S.address, 'ADRES')} · E-posta: ${mail()}${S.kep ? ` · KEP: ${esc(S.kep)}` : ''}${S.registry ? ` · ${esc(S.registry)}` : ''}.</p>
+  <p>Bu aydınlatma metni, 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (“KVKK”) 10. maddesi ve Aydınlatma Yükümlülüğünün
+    Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ uyarınca, Gökyüzü Veri Portalı’nı yayımlayan site sahibi
+    (GitHub: ${owner()}) tarafından veri sorumlusu sıfatıyla hazırlanmıştır.
+    İletişim: ${mail()}${addr()}${S.kep ? ` · KEP: ${esc(S.kep)}` : ''}${S.registry ? ` · ${esc(S.registry)}` : ''}.</p>
   <h2>2. İşlenen kişisel veriler</h2>
   <div class="tbl"><table><thead><tr><th scope="col">Kategori</th><th scope="col">Veriler</th><th scope="col">Ne zaman</th></tr></thead><tbody>
     <tr><td>İşlem güvenliği</td><td>IP adresi, tarih-saat, istenen sayfa, tarayıcı bilgisi (sunucu kayıtları)</td><td>Her ziyarette</td></tr>
     <tr><td>İletişim</td><td>Ad, e-posta, mesaj ve başvuru içeriği</td><td>Bize yazarsan ya da başvurursan</td></tr>
+    <tr><td>Geri bildirim</td><td>GitHub kullanıcı adın ve bildirimin içeriği (herkese açık)</td><td>GitHub Issues’a yazarsan</td></tr>
   </tbody></table></div>
+  <p>Hesap, üyelik ya da veri tabanı yoktur. Kimlik numarası, sağlık verisi gibi özel nitelikli kişisel veri işlenmez;
+    profil çıkarma ya da yalnız otomatik sistemlerle sana ilişkin bir karar verme yapılmaz.</p>
   <p>Gözlem konumun ve ölçek karşılaştırma listen yalnız cihazında, tarayıcı depolamasında tutulur; bize iletilmez (bkz. <a href="?page=cerez">Çerez Politikası</a>).</p>
   <h2>3. Amaçlar ve hukuki sebepler</h2>
   <ul>
     <li><strong>Sitenin güvenli çalışması, kötüye kullanımın önlenmesi:</strong> KVKK m. 5/2 (ç) hukuki yükümlülük ve (f) meşru menfaat.</li>
     <li><strong>Sorularına ve başvurularına yanıt:</strong> KVKK m. 5/2 (c) ve (f).</li>
+    <li><strong>GitHub’da herkese açık yazdığın geri bildirimler:</strong> KVKK m. 5/2 (d) ilgili kişinin kendisi tarafından alenileştirilmiş olması.</li>
+    <li><strong>Tarayıcında tutulan konum ve karşılaştırma listesinin kalıcı olması:</strong> açık rızan (KVKK m. 5/1); istediğin an geri alabilirsin.</li>
   </ul>
   <h2>4. Aktarım ve doğrudan bağlantılar</h2>
   <p>Sunucu kayıtları yalnız barındırma hizmeti aldığımız ${f(S.host, 'BARINDIRMA SAĞLAYICISI, ÜLKE')} ile paylaşılır.</p>
@@ -58,14 +74,24 @@ const kvkk = () => `
     bunları aşağıdaki sunuculardan doğrudan ister; bu sırada IP adresin ve tarayıcı bilgin, her internet bağlantısında olduğu gibi
     bu sunuculara ulaşır. Biz bu kuruluşlara ayrıca kişisel veri göndermeyiz; kendi gizlilik politikaları geçerlidir.</p>
   ${hostTable()}
+  <p><strong>Yurt dışı:</strong> Yukarıdaki sunucular Fransa ve ABD’dedir. Bu bağlantıyı senin isteğin üzerine, açtığın cismin
+    verisini almak için tarayıcın kurar; veri sorumlusu bu kuruluşlara kişisel veri aktarmaz. Barındırma sağlayıcısı yurt dışında
+    olursa sunucu kayıtları, 7499 sayılı Kanunla 1 Haziran 2024’te yürürlüğe giren KVKK m. 9 uyarınca yeterlilik kararı ya da
+    Kurul’a bildirilen standart sözleşme gibi uygun güvencelerle aktarılır.</p>
+  <p>GitHub Issues’a yazdığın geri bildirimler GitHub, Inc. (ABD) sunucularında, GitHub’ın gizlilik bildirimine tabi olarak
+    herkese açık yayımlanır. Bunun dışında kişisel verin üçüncü kişilere aktarılmaz, satılmaz ve reklam amacıyla kullanılmaz.</p>
   <h2>5. Toplama yöntemi ve saklama süresi</h2>
   <p>Veriler otomatik yollarla (sunucu kayıtları) ve iletişim kanallarıyla toplanır. Sunucu kayıtları ${f(S.logRetention, 'SÜRE')},
-    yazışmalar ${f(S.mailRetention, 'SÜRE')} saklanır; süre bitince silinir ya da anonim hale getirilir.</p>
+    yazışmalar ${S.mailRetention ? esc(S.mailRetention) : 'yalnız yanıt vermek için kullanılır ve amaç ortadan kalkınca'} saklanır;
+    süre bitince KVKK m. 7 uyarınca silinir, yok edilir ya da anonim hale getirilir.</p>
   <h2>6. KVKK m. 11 kapsamındaki hakların</h2>
   <ol type="a">${RIGHTS.map((r) => `<li>${r}</li>`).join('')}</ol>
   <h2>7. Başvuru</h2>
   <p>Haklarını kullanmak için <a href="?page=basvuru">Veri Sahibi Başvuru Formu</a> sayfasındaki yollardan birini kullanabilirsin.
-    Başvurun en geç 30 gün içinde ücretsiz yanıtlanır.</p>`;
+    Başvurun en geç 30 gün içinde ücretsiz yanıtlanır. Yanıt vermezsek ya da yanıtı yeterli bulmazsan, yanıtı öğrendiğin tarihten
+    itibaren 30 gün ve her durumda başvurudan itibaren 60 gün içinde Kişisel Verileri Koruma Kurulu’na şikâyette bulunabilirsin (KVKK m. 14).</p>
+  <p>Tarayıcında tutulan kayıtları <button type="button" class="linkbtn" data-open-consent>Çerez tercihleri</button> ile ya da
+    tarayıcının site verilerini temizleyerek kendin silebilirsin.</p>`;
 
 const gizlilik = () => `
   <p>Bu sayfa, sitenin hangi bilgilere dokunduğunu sade bir dille anlatır. Hukuki ayrıntı <a href="?page=kvkk">KVKK Aydınlatma Metni</a>'ndedir.</p>
@@ -95,22 +121,30 @@ const cerez = () => `
     yalnız aşağıdaki üç kayıt için kullanır. Hepsi cihazında kalır, sunucumuza gönderilmez.</p>
   <div class="tbl"><table><thead><tr><th scope="col">Ad</th><th scope="col">Tür</th><th scope="col">Amaç</th><th scope="col">Süre</th><th scope="col">Yer</th></tr></thead>
     <tbody>${STORE.map((r) => `<tr>${r.map((c, i) => `<td>${i === 0 ? `<code>${c}</code>` : c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-  <h2>Türler</h2>
-  <ul><li><strong>Zorunlu:</strong> sitenin senin seçimine uyması için gerekir; KVKK Çerez Uygulamaları Rehberi'ne göre onaya tabi değildir.</li>
-    <li><strong>Tercih:</strong> yalnız onay verirsen kalıcı olur. Onay vermezsen özellikler yine çalışır ama sekme kapanınca unutulur.</li>
-    <li><strong>İstatistik ve reklam:</strong> kullanılmıyor.</li></ul>
+  <h2>Türler ve hukuki sebep</h2>
+  <p>Kişisel Verileri Koruma Kurumu’nun Çerez Uygulamaları Hakkında Rehberi (2022), çerezlerle aynı işi gören tarayıcı depolamasını
+    da kapsar ve kayıtları amacına göre ayırır:</p>
+  <ul><li><strong>Zorunlu:</strong> yalnız senin açıkça istediğin bir hizmetin sunulması için gerekir (burada: seçimini hatırlamak).
+      Rehber’e göre açık rızaya tabi değildir; KVKK m. 5/2 (c) ve (f) kapsamında tutulur.</li>
+    <li><strong>Tercih (işlevsel):</strong> yalnız açık rızanla (KVKK m. 5/1) kalıcı olur. Kutucuklar baştan kapalıdır; onay vermezsen
+      özellikler yine çalışır ama sekme kapanınca unutulur.</li>
+    <li><strong>İstatistik, pazarlama ve reklam:</strong> kullanılmıyor; hiçbir üçüncü taraf bu amaçla kayıt oluşturmaz.</li></ul>
+  <p>Seçimini “Tümünü reddet” ve “Tümünü kabul et” düğmeleri aynı görünürlükle sunulur. Reddetmek sitenin hiçbir bölümünü kapatmaz;
+    siteyi kullanmak için onay vermen gerekmez.</p>
   <h2>Seçimini değiştirmek</h2>
   <p>Her sayfanın altındaki <button type="button" class="linkbtn" data-open-consent>Çerez tercihleri</button> düğmesiyle istediğin an değiştirebilirsin.
     Onayını geri alırsan tercih kayıtları kalıcı depodan silinir. Tarayıcının site verilerini temizleyerek de hepsini silebilirsin.</p>
   <h2>Üçüncü taraf sunucular</h2>
   <p>Gökyüzü görüntüleri ve katalog verisi bilimsel kuruluşların sunucularından gelir (bkz. <a href="?page=gizlilik">Gizlilik Politikası</a>).
-    Bu sunucuların kendi çerez uygulamaları kendi politikalarına tabidir.</p>`;
+    Veri istekleri bu sunuculara çerez göndermeden yapılır; görüntüleri veren sunucuların olası çerez uygulamaları kendi politikalarına tabidir.
+    Kartlardaki “Kaynaklarda ara” bağlantıları yalnız sen tıkladığında başka sitelere gider.</p>`;
 
 const basvuru = () => `
   <p>KVKK m. 11'deki haklarını kullanmak için başvurunu Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ'e uygun olarak iletebilirsin:</p>
-  <ul><li><strong>Yazılı:</strong> ıslak imzalı dilekçeyle ${f(S.address, 'ADRES')} adresine,</li>
+  <ul>${S.address ? `<li><strong>Yazılı:</strong> ıslak imzalı dilekçeyle ${esc(S.address)} adresine,</li>` : ''}
     <li><strong>KEP, güvenli e-imza ya da mobil imza</strong> ile${S.kep ? ` ${esc(S.kep)} adresine` : ''},</li>
-    <li>daha önce bize bildirdiğin ve sistemimizde kayıtlı <strong>e-posta adresinden</strong> ${mail()} adresine.</li></ul>
+    <li>${S.email ? `daha önce bize bildirdiğin <strong>e-posta adresinden</strong> ${mail()} adresine.` : `iletişim kanallarımızdan (${mail()}).`}</li></ul>
+  ${S.email ? '' : `<p>${PUBLIC_WARN}</p>`}
   <p>Başvuruda adın soyadın, T.C. kimlik numaran (yabancıysan uyruğun ve pasaport / kimlik numaran), tebligata esas adresin,
     varsa e-posta ve telefonun ile talebinin açıkça yer alması gerekir. Başvurun en geç 30 gün içinde ücretsiz yanıtlanır.</p>
   <h2>Başvuru taslağı oluştur</h2>
@@ -138,14 +172,21 @@ const kosullar = () => `
     (bkz. <a href="?page=kaynaklar">Veri Kaynakları ve Lisanslar</a>).</p>
   <h2>4. Kullanım</h2>
   <p>Siteyi otomatik araçlarla aşırı yükleyecek ya da kaynak sunucuları zorlayacak biçimde kullanmamalısın.</p>
-  <h2>5. Dış bağlantılar</h2>
-  <p>Başka sitelere verilen bağlantıların içeriğinden o siteler sorumludur.</p>
-  <h2>6. Değişiklik ve uygulanacak hukuk</h2>
-  <p>Koşullar güncellenebilir; geçerli sürüm bu sayfadadır. Uyuşmazlıklarda Türkiye Cumhuriyeti hukuku uygulanır ve
-    ${f(S.court, 'İL')} mahkemeleri ile icra daireleri yetkilidir.</p>`;
+  <h2>5. Gökyüzü bilgileri ve Güneş</h2>
+  <p>Doğuş, batış, “bu gece” listesi ve yükseklik eğrileri yaklaşık hesaplardır. Güneş’e hiçbir zaman çıplak gözle, dürbünle
+    ya da teleskopla, uygun bir Güneş filtresi olmadan bakma. Sitedeki Güneş bir modeldir, fotoğraf değildir.</p>
+  <h2>6. Sorumluluğun sınırı</h2>
+  <p>Site “olduğu gibi” sunulur. Kesintisiz ya da hatasız çalışacağı, değerlerin eksiksiz ve güncel olacağı garanti edilmez;
+    kaynak sunucular yanıt vermezse bazı bölümler eksik görünebilir. Siteye ya da bağlantı verilen sitelere dayanarak alınan
+    kararlardan doğan zararlardan, yürürlükteki hukukun izin verdiği ölçüde, sorumluluk kabul edilmez.</p>
+  <h2>7. Dış bağlantılar</h2>
+  <p>Başka sitelere verilen bağlantıların içeriğinden ve gizlilik uygulamalarından o siteler sorumludur.</p>
+  <h2>8. Değişiklik ve uygulanacak hukuk</h2>
+  <p>Koşullar güncellenebilir; geçerli sürüm bu sayfadadır ve üstteki tarih değişir. Uyuşmazlıklarda Türkiye Cumhuriyeti hukuku
+    uygulanır${S.court ? ` ve ${esc(S.court)} mahkemeleri ile icra daireleri yetkilidir` : ''}.</p>`;
 
 const SOURCES = [
-  ['SIMBAD', 'CDS, Strasbourg, Fransa', 'Bu sitede CDS tarafından işletilen SIMBAD veritabanı kullanılmaktadır. Wenger vd. 2000, A&amp;AS 143, 9.'],
+  ['SIMBAD', 'CDS, Strasbourg, Fransa', 'Bu sitede CDS tarafından işletilen SIMBAD veritabanı kullanılmaktadır. Wenger vd. 2000, A&amp;AS 143, 9. CDS yanıt vermediğinde aynı veritabanı Harvard–Smithsonian aynasından (simbad.cfa.harvard.edu) alınır.'],
   ['VizieR', 'CDS, Strasbourg, Fransa', 'Ochsenbein, Bauer &amp; Marcout 2000, A&amp;AS 143, 23. Kataloglar: ATNF Pulsar Kataloğu (Manchester vd. 2005, AJ 129, 1993), Altıncı Görsel Çift Yıldız Yörünge Kataloğu ORB6 (Hartkopf, Mason &amp; Worley 2001, AJ 122, 3472), AAVSO VSX (Watson, Henden &amp; Price 2006).'],
   ['hips2fits ve Aladin', 'CDS, Strasbourg, Fransa', 'Gökyüzü görüntüleri Pan-STARRS1 (Chambers vd. 2016) ve Digitized Sky Survey 2 (STScI) taramalarından anlık kesilir.'],
   ['Wikidata', 'Wikimedia Vakfı', 'Yapılandırılmış veriler CC0 kamu malı adanmasıyla kullanılır.'],
@@ -165,9 +206,9 @@ const kunye = () => `
     üreten ve gökyüzünde ne zaman görüleceklerini hesaplayan bir <a href="https://astronews.com.tr/">Astronews</a> projesidir.</p>
   <h2>Künye</h2>
   <dl class="srcs">
-    <div><dt>Site sahibi ve içerik sağlayıcı</dt><dd>${owner()}</dd></div>
-    <div><dt>Adres</dt><dd>${f(S.address, 'ADRES')}</dd></div>
-    <div><dt>E-posta</dt><dd>${mail()}</dd></div>
+    <div><dt>Site sahibi ve içerik sağlayıcı</dt><dd>GitHub: ${owner()}</dd></div>
+    ${S.address ? `<div><dt>Adres</dt><dd>${esc(S.address)}</dd></div>` : ''}
+    <div><dt>İletişim</dt><dd>${mail()}</dd></div>
     ${S.kep ? `<div><dt>KEP</dt><dd>${esc(S.kep)}</dd></div>` : ''}
     ${S.registry ? `<div><dt>MERSİS / vergi no</dt><dd>${esc(S.registry)}</dd></div>` : ''}
     <div><dt>Yer sağlayıcı</dt><dd>${f(S.host, 'BARINDIRMA SAĞLAYICISI, ÜLKE')}</dd></div>

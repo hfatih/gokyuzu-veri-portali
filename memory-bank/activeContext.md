@@ -38,3 +38,10 @@
   - Kerr kara delik
   - Örten çiftleri 3D'de tutulmayla göstermek
   - Beyaz cüce yoldaşı tanımak
+
+**2026-11-05 (devam 2):**
+- **Arama:** SIMBAD Harvard yedek aynası (`tap()`); Betelgeuse kartı canlıda dolu açıldı.
+- **Arayüz:** üst şerit kalktı, TR/EN ana barda kayan hap; "veriler anlık alınır, saklanmaz" alt bilgide.
+- **Hukuk:** çerez kutusu ve yasal sayfalar astronews metinlerinden uyarlandı. `draft: true` duruyor; barındırma ve
+  sunucu kaydı süresi belli olunca `site-info.js` doldurulacak, sonra hukuki inceleme.
+- **Yerel çalışma kopyası:** `Desktop/Websites/gokyuzu-veri-portali`, dal `claude/hopeful-edison-mvlabk` (master'a birleşmedi).

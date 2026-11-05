@@ -134,3 +134,15 @@ Ayrıntı: [docs/specs/2026-10-09-faz9-kuasarlar-design.md](../../docs/specs/202
   sahnesinde kip 4.
 
 Ayrıntı: [docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](../../docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md)
+
+## 2026-11-05 · Üst bar, dil seçici, çerez metinleri ve yasal sayfalar
+
+- **Üst bar:** "Astronews projesi · veriler anlık alınır, saklanmaz" şeridi kaldırıldı. Cümle alt bilgideki tanıtım
+  metnine (`ft.about`) taşındı; başlık 32 px kısaldı, sayfa boşlukları buna göre azaltıldı.
+- **Dil seçici:** TR/EN ana barın sağında, seçili dilin altında kayan vurgulu iki parçalı hap (`.langs`, `:has()`).
+- **Çerez kutusu:** KVKK Çerez Uygulamaları Rehberi'ne göre yeni metinler; eşit ağırlıkta reddet/kabul, "reddetmek
+  hiçbir bölümü kapatmaz", bilimsel veri sunucuları için bilgi satırı (`cs.c.third`).
+- **Yasal sayfalar (`js/legal/`):** astronews `astro/legal.py` temel alındı. Veri sorumlusu GitHub: hfatih, iletişim
+  GitHub Issues (e-posta tanımlanırsa o). Adres yoksa gösterilmez. Harvard aynası sunucu tablosunda, KVKK m. 9
+  (7499 sayılı Kanun, 2024) yurt dışı aktarım paragrafı, m. 14 Kurul'a şikâyet, açık rıza ve alenileştirme sebepleri,
+  Kullanım Koşulları'na sorumluluk sınırı ve Güneş uyarısı. Barındırma ve kayıt süresi yer tutucu (yer belli değil).

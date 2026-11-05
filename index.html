@@ -30,10 +30,6 @@
   <div class="starfield" aria-hidden="true"><div class="stars s1"></div><div class="stars s2"></div><div class="stars s3"></div></div>
 
   <header class="top">
-    <div class="top__strip"><div class="wrap">
-      <span data-i18n-html="strip.text"></span>
-      <nav class="langs" aria-label="Dil / Language"><a id="lang-tr" href="?">TR</a><a id="lang-en" href="?lang=en">EN</a></nav>
-    </div></div>
     <div class="top__bar"><div class="wrap">
       <a id="brand" class="brand" href="./"><span class="brand__dot" aria-hidden="true"></span><span class="brand__name">Gökyüzü <span>Veri Portalı</span></span></a>
       <nav class="mainnav" aria-label="Ana menü" data-i18n-label="nav.label">
@@ -44,6 +40,10 @@
       </nav>
       <div class="top__right">
         <button id="cmp-open" class="cmp-pill" type="button" hidden></button>
+        <nav class="langs" aria-label="Dil / Language">
+          <a id="lang-tr" href="?" hreflang="tr" lang="tr" title="Türkçe">TR</a>
+          <a id="lang-en" href="?lang=en" hreflang="en" lang="en" title="English">EN</a>
+        </nav>
       </div>
     </div></div>
   </header>
@@ -160,6 +160,7 @@
       <li><div><strong><label for="cs-prefs" data-i18n="cs.c.prefs"></label></strong><p data-i18n="cs.c.prefsText"></p></div>
         <input id="cs-prefs" class="switch" type="checkbox" role="switch"></li>
       <li><div><strong data-i18n="cs.c.stats"></strong><p data-i18n="cs.c.statsText"></p></div><span class="cs-tag cs-tag--off" data-i18n="cs.unused"></span></li>
+      <li><div><strong data-i18n="cs.c.third"></strong><p data-i18n="cs.c.thirdText"></p></div><span class="cs-tag cs-tag--off" data-i18n="cs.info"></span></li>
     </ul>
     <div class="consent__btns consent__btns--3">
       <button type="button" class="btn btn--ghost" data-consent="reject" data-i18n="cs.reject"></button>
