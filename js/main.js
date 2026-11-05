@@ -12,6 +12,7 @@ import { isSsoId } from './sso/fetch.js';
 import { isSolarPlanetId } from './planet/solar.js';
 import { stopPulses } from './pulsar/sound.js';
 import { kindById, kindByObj } from './kinds/index.js';
+import { skyHtml, bindSky } from './ui/sky-card.js';
 import { createView } from './render/glview.js';
 import { starScene } from './render/star.js';
 import { attachOrbitControls } from './render/view3d.js';
@@ -180,11 +181,43 @@ async function choose(sel) {
   }
 }
 
-// Kartın ortak ekleri: kısmi veri uyarısı (tekrar dene)
+// Kartın ortak ekleri: gökyüzü konumu ve kısmi veri uyarısı (tekrar dene)
 function afterLoad(ctx) {
-  if (ctx.isPartial) insertBeforeLinks(`<p class="note note--warn">${t('load.partial')}
-    <button type="button" class="retry retry--inline" data-retry>${t('load.retry')}</button></p>`);
-  card.querySelector('[data-retry]')?.addEventListener('click', () => choose({ ...ctx.sel, fromUrl: false }));
+  const sky = skySourceFor(ctx);
+  if (sky) {
+    try { insertBeforeLinks(skyHtml(sky.src, sky.opts)); bindSky(card, sky.src, sky.opts); }
+    catch (e) { console.warn('gökyüzü hesabı', e); }
+  }
+  if (ctx.isPartial) {
+    insertBeforeLinks(`<p class="note note--warn">${t('load.partial')}
+      <button type="button" class="retry retry--inline" data-retry>${t('load.retry')}</button></p>`);
+    card.querySelector('[data-retry]')?.addEventListener('click', () => choose({ ...ctx.sel, fromUrl: false }));
+  }
+}
+
+// Gözle görülebilen Güneş Sistemi gezegenleri; Uranüs ve Neptün dürbünle
+const PLANET_INST = { mercury: 'eye', venus: 'eye', mars: 'eye', jupiter: 'eye', saturn: 'eye', uranus: 'binoculars', neptune: 'binoculars' };
+
+/** Kartın gökyüzü kaynağı (sky/visibility.js) ya da null (Dünya, koordinatsız cisimler). */
+function skySourceFor(ctx) {
+  const { obj, info } = ctx;
+  if (info.sky?.src) return info.sky;
+  if (obj?.mainId === 'Sun') return { src: { type: 'sun' }, opts: { sun: true } };
+  const solar = info.planet?.solar;
+  if (solar) return PLANET_INST[solar.key] ? { src: { type: 'planet', key: solar.key }, opts: { instrument: PLANET_INST[solar.key] } } : null;
+  if (info.planet?.host) {
+    const hb = info.planet.host.obj.basic;
+    return hb.ra != null ? { src: { type: 'fixed', ra: hb.ra, dec: hb.dec }, opts: { vmag: info.planet.host.obj.mags?.V } } : null;
+  }
+  if (info.sso) {
+    const el = info.sso.el;
+    const ok = ['a', 'e', 'i', 'node', 'peri', 'M0', 'epoch'].every((k) => Number.isFinite(el[k])) && el.e < 1;
+    return ok ? { src: { type: 'elements', el }, opts: { vmag: info.derived?.magNow?.value } } : null;
+  }
+  if (info.sky) return { src: { type: 'fixed', ...info.sky }, opts: {} };
+  const b = obj?.basic;
+  if (b?.ra != null && b?.dec != null) return { src: { type: 'fixed', ra: b.ra, dec: b.dec }, opts: { vmag: obj.mags?.V } };
+  return null;
 }
 
 /** Kartta "Kaynaklarda ara" başlığının önüne HTML ekler (yoksa sona). */

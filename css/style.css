@@ -249,3 +249,22 @@ button { font: inherit; color: inherit; }
 .retry { margin-top: 10px; padding: 6px 14px; background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 13px; }
 .retry:hover { border-color: var(--accent); color: var(--accent); }
 .retry--inline { margin: 0 0 0 6px; padding: 1px 10px; font-size: 12px; }
+
+/* ---------- Gökyüzünde ---------- */
+.sky__now { margin: 0 0 6px; font-size: 14px; }
+.sky__now b { font-weight: 500; color: var(--title); }
+.sky__loc { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.linkbtn { padding: 0; background: none; border: 0; border-bottom: 1px dashed rgba(255,179,102,.6); color: var(--title); cursor: pointer; font: inherit; }
+.linkbtn:hover { color: var(--accent); }
+.linkbtn:disabled { opacity: .6; cursor: wait; }
+.skyc { margin: 12px 0 0; }
+.skyc svg { width: 100%; height: auto; display: block; }
+.skyc__night { fill: rgba(80, 100, 170, .16); }
+.skyc__twilight { fill: rgba(80, 100, 170, .07); }
+.skyc__horizon { stroke: var(--muted); stroke-width: 1; }
+.skyc__grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 4; }
+.skyc__path { fill: none; stroke: var(--accent); stroke-width: 1.8; }
+.skyc__now { fill: var(--title); stroke: var(--accent); stroke-width: 1.5; }
+.skyc__tick { stroke: var(--muted); }
+.skyc__label { fill: var(--muted); font: 10px var(--mono); }
+.skyc figcaption { font-size: 12px; color: var(--muted); margin-top: 2px; }

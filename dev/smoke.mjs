@@ -64,6 +64,9 @@ try {
   assert.equal(await page.textContent('.card__title'), 'Mars');
   assert.equal(await page.getAttribute('body', 'data-kind'), 'planet');
   step('arama ve gezegen kartı');
+  assert.match(await page.textContent('[data-sky]'), /çıplak göz/);
+  step('gökyüzünde bölümü (Mars)');
+  await snap(page, 'mars');
 
   // 3. Adresten yıldız: SIMBAD sabitiyle Sirius
   await page.goto(`${BASE}?star=${encodeURIComponent('* alf CMa')}`);
@@ -73,6 +76,10 @@ try {
   assert.ok(await litFraction(page) > 0.02, 'yıldız sahnesi çizilmedi');
   assert.match(await page.title(), /Sirius/);
   step('adresten yıldız kartı ve sahnesi');
+  assert.match(await page.textContent('[data-sky]'), /Doğuş|hiç/);
+  assert.ok(await page.$('.skyc__path'), 'yükseklik eğrisi yok');
+  step('gökyüzünde bölümü (Sirius)');
+  await snap(page, 'sirius');
 
   // 4. 3D görünüm açılıp kapanıyor
   await page.click('#corner');
@@ -107,6 +114,11 @@ try {
 }
 
 function step(name) { console.log(`✓ ${name}`); }
+
+// SHOTS=klasör verilirse adım ekran görüntüleri (tam sayfa) kaydedilir
+async function snap(page, name) {
+  if (process.env.SHOTS) await page.screenshot({ path: join(process.env.SHOTS, `${name}.png`), fullPage: true });
+}
 
 async function waitForServer() {
   for (let i = 0; i < 50; i++) {
