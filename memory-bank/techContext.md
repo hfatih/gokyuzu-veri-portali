@@ -15,3 +15,5 @@
 - **VizieR katalogları:** `B/psr` (pulsar), `B/orb6` (çift yıldız yörüngeleri), `B/vsx` (değişen
   yıldızlar). Hepsi ASU TSV ile alınır.
 - **Yazı tipleri:** Jost ve IBM Plex Mono, kendi sunucumuzdan (`css/fonts.css`, `assets/fonts/`, OFL 1.1; Fontsource 5.3.0, latin + latin-ext). Google Fonts kullanılmaz.
+- **Yayın:** GitHub Pages (`master` kökü, legacy build, `.nojekyll`). Adres https://hfatih.github.io/gokyuzu-veri-portali/.
+  Site göreli yollar kullanır; alt yolda çalışır.

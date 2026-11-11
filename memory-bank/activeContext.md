@@ -45,3 +45,9 @@
 - **Hukuk:** çerez kutusu ve yasal sayfalar astronews metinlerinden uyarlandı. `draft: true` duruyor; barındırma ve
   sunucu kaydı süresi belli olunca `site-info.js` doldurulacak, sonra hukuki inceleme.
 - **Yerel çalışma kopyası:** `Desktop/Websites/gokyuzu-veri-portali`, dal `claude/hopeful-edison-mvlabk` (master'a birleşmedi).
+
+**2026-11-12:** Yayında: https://hfatih.github.io/gokyuzu-veri-portali/ (GitHub Pages, `master` kökü, `.nojekyll`).
+- Dal `master`'a ileri sarıldı; depo public yapıldı (özel depoda Actions startup_failure veriyordu).
+- Canlıda Betelgeuse araması ve kartı, KVKK sayfası doğrulandı. CDS bu gün CORS başlıksız yanıt verdi; SIMBAD
+  Harvard'a düştü, VizieR ekleri (ORB6, VSX) eksik.
+- Sıradaki: alan adını bağlamak, `site-info.js` barındırma = GitHub, Inc. (ABD) ve kayıt süresi, hukuki inceleme.

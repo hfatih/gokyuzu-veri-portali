@@ -8,7 +8,8 @@
       basıklık ve kütleçekimsel kararma
 - [x] 3D görünüm ve ayar paneli
 - [x] TR/EN dil, mobil düzen, paylaşılabilir adres
-- [ ] Yayına alma (gokyuzuveriportali alan adı)
+- [x] Yayına alma: GitHub Pages, https://hfatih.github.io/gokyuzu-veri-portali/ — 2026-11-12
+- [ ] Alan adı (gokyuzuveriportali) Pages'e bağlanacak
 - [x] Faz 2: gezegenler (Güneş Sistemi + ötegezegenler, Wikidata) — 2026-10-08
 - [x] Faz 3: bulutsular + tüm kartlarda gözlem görüntüsü (CDS hips2fits) — 2026-10-08
 - [x] Faz 4: gökadalar (analitik model, ölçülen eğiklikle bakış) — 2026-10-08
