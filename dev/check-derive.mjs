@@ -11,6 +11,8 @@ assert.deepEqual(parseSpType('K1.5IIIFe-0.5'), { cls: 'K', sub: 1.5, lum: 'III' 
 assert.deepEqual(parseSpType('F7:Ib-IIv SB'), { cls: 'F', sub: 7, lum: 'I' });
 assert.equal(parseSpType(''), null);
 near(teffFromSpType('G2V'), 5700, 5850, 'G2V Teff');
+// Pecaut & Mamajek: O9V 33 300 K (31 900 K O9.5V'nin değeridir), M9V 2380 K
+assert.equal(teffFromSpType('O9V'), 33300); assert.equal(teffFromSpType('M9V'), 2380);
 // Dev ve süperdev ölçekleri: Arcturus K1.5III (ölçülen 4286 K), Aldebaran K5III (~3900–4050 K),
 // Rigel B8Ia (~12 100 K), Betelgeuse M1–M2Ia (~3600 K). Anakoldaki K1.5V ~5100 K olurdu.
 near(teffFromSpType('K1.5III'), 4250, 4600, 'Arcturus Teff (dev tablosu)');

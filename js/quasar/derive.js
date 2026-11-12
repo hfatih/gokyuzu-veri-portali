@@ -2,12 +2,12 @@
 // geriye bakış ve o anki evren yaşı; K düzeltmeli mutlak parlaklık, 5100 Å ışıması, bolometrik ışıma
 // ve Eddington kütlesi; Lyα'nın gözlenen dalga boyu. Ağ ya da DOM bilgisi yoktur.
 
-import { COSMO, lookbackGyr } from '../galaxy/derive.js';
+import { COSMO, lookbackGyr, comovingMpc } from '../galaxy/derive.js';
 import { visibleAbsorbed } from './spectrum.js';
 
 const val = (value, origin) => (value == null || !Number.isFinite(value) ? null : { value, origin });
 
-const C_KMS = 299792.458, MPC_M = 3.0857e22, LSUN = 3.828e26, LY_MPC = 3.2616e6;
+const MPC_M = 3.0857e22, LSUN = 3.828e26, LY_MPC = 3.2616e6;
 const HUBBLE_GYR = 977.8 / COSMO.H0;
 const OL = 1 - COSMO.Om;
 
@@ -24,14 +24,7 @@ export const isQuasar = (otype) => TYPES.has(otype);
 // Parlaklık bandı tercihi ve etkin dalga boyu (nm); hepsi AB sayılır (Vega farkı < 0,2 kadir)
 const BANDS = [['g', 477], ['V', 551], ['G', 623], ['r', 623], ['B', 445], ['R', 658], ['i', 763]];
 
-/** Eş hareketli uzaklık (Mpc): (c/H0) ∫ dz/E(z), Simpson. */
-export function comovingMpc(z) {
-  const E = (x) => Math.sqrt(COSMO.Om * (1 + x) ** 3 + OL);
-  const n = 400, h = z / n;
-  let s = 1 / E(0) + 1 / E(z);
-  for (let i = 1; i < n; i++) s += (i % 2 ? 4 : 2) / E(i * h);
-  return C_KMS / COSMO.H0 * s * h / 3;
-}
+export { comovingMpc };   // tanımı galaxy/derive.js'te; uzak gökadalar da kullanır
 
 /** z anındaki evren yaşı (milyar yıl), düz ΛCDM'de analitik. */
 export const ageGyr = (z) => HUBBLE_GYR * 2 / (3 * Math.sqrt(OL)) * Math.asinh(Math.sqrt(OL / COSMO.Om) * (1 + z) ** -1.5);

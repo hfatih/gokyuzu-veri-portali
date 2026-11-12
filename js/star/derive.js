@@ -26,12 +26,12 @@ export function parseSpType(sp) {
 
 // Anakol tayf türü → Teff (Pecaut & Mamajek 2013, sürüm 2022). Kod: sınıf·10 + alt tür.
 const TEFF_TABLE = [
-  [3, 44900], [5, 41400], [7, 36500], [9, 31900], [10, 31400], [11, 26000], [12, 20600],
+  [3, 44900], [5, 41400], [7, 36500], [9, 33300], [10, 31400], [11, 26000], [12, 20600],
   [13, 17000], [15, 15700], [17, 14000], [18, 12500], [19, 10700], [20, 9700], [22, 8840],
   [25, 8080], [27, 7800], [30, 7220], [32, 6810], [35, 6510], [38, 6170], [40, 5920],
   [42, 5770], [45, 5660], [48, 5490], [50, 5280], [52, 5040], [53, 4830], [55, 4450],
   [57, 4050], [60, 3850], [62, 3560], [63, 3430], [64, 3210], [65, 3060], [66, 2810],
-  [68, 2570], [69, 2300],
+  [68, 2570], [69, 2380],
 ];
 
 function interp(table, x) {
@@ -200,8 +200,9 @@ export function starVisualParams(d) {
     radiusRsun: R,
     granScale: H ? clamp(2 * Math.PI * R * RSUN_KM / (10 * H), 3, 1e5) : 300,
     granContrast: clamp((8000 - teff) / 1500, 0, 1),
-    // ΔT/T: Güneş'te ~%4 (granül/şerit parlaklık farkı ~%15); kırmızı süperdevlerin
-    // benzetimlerinde çok daha yüksek (Chiavassa+ 2011), yaklaşık 3 kat alınır
+    // Küçük ölçekli granüllerde ΔT/T: Güneş'te ~%4 (granül/şerit parlaklık farkı ~%15), devlerde %3.
+    // Kırmızı süperdev benzetimlerindeki ~3 kat yüksek kontrast (Chiavassa+ 2011) buradan değil,
+    // aşağıdaki dev hücre katmanından (giantCellAmp = 0,1) gelir.
     granAmp: giant ? 0.03 : 0.04,
     // Dev konveksiyon hücreleri yalnız soğuk süperdev/devlerde (log g < 1, Teff < 5000 K)
     giantCellAmp: (d.logg?.value ?? 4.4) < 1 && teff < 5000 ? 0.1 : 0,

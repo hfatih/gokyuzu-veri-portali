@@ -31,6 +31,9 @@
 - Sönümleme renk fazlasından kaba tahmin (±0,3 mag); B parlaklığı yoksa düzeltme yok.
 - ORB6/VSX VizieR sütun adları, uydu QID'leri, kara delik ↔ gökada Wikidata bağı ve albedo niteleyici
   sorgusu canlı serviste doğrulanmadı (2026-11-05 oturumunda ağ kapalıydı); hata olursa sessiz atlanır.
+- Zonklama sıcaklığında TiO payı aile başına tek sabit (Mira/SR 0,5); kara delik diski toplam ışımayla parlar.
 - Işık eğrileri şematik; çift yıldız sahnesinde beyaz cüce yoldaş anakol varsayımıyla yanlış renkte.
 
 - [x] SIMBAD yedek aynası, üst bar/dil seçici, KVKK çerez ve yasal metin güncellemesi — 2026-11-05
+
+- [x] Model denetimi ve 8 düzeltme (zonklama, çift yıldız, Ay ışığı, gökada, yaşanabilir bölge) — 2026-11-13

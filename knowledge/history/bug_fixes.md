@@ -106,3 +106,28 @@
   Kontrol: `dev/check-simbad.mjs`.
 - **Kalan:** VizieR (pulsar, ORB6, VSX) ve hips2fits gözlem görüntüsü için çalışan ayna bulunamadı
   (vizier.cfa.harvard.edu 502); CDS dönene kadar bu ekler eksik kalır. İlk aramada CDS'nin 6 sn zaman aşımı beklenir.
+
+## 2026-11-13 · Model denetimi: fizik ve görünüş hesapları
+
+Bütün `derive.js`, `visual.js` ve shader'lar kaynaklarıyla karşılaştırıldı; 60'tan fazla değer bağımsız hesapla,
+gezegen ve Ay konumları JPL Horizons'la sınandı (Mars/Merkür 0,3′, Jüpiter/Satürn 4′, Ay 3–4′). Bulunanlar:
+
+- **Zonklama sıcaklığı (`variable/derive.js` `pulseState`):** V genliği toplam ışıma (T⁴) sayılıyordu; Mira modelde
+  1400–6300 K arasında salınıyordu (gözlenen ~2400–3200 K). Sıcaklık artık V bandı Planck akısının tersinden çözülür;
+  Mira ve yarı düzenlilerde genliğin yarısı TiO soğurmasına verilir (Reid & Goldston 2002). Mira 2470–3600 K,
+  Betelgeuse 3400–3830 K; Sefeid ve RR Lyrae değişmedi. Sahne parlaklığı da ışık eğrisini izler (`uBright`, ±1,25 kadir).
+- **Çift yıldız sahnesi (`render/binary.js`):** yüzey parlaklığı oranı T⁴ yerine kara cisim tablosunun görsel parlaklık
+  kanalından (yıldız sahnesiyle aynı); görünürlük için %2 taban. Yoldaş sıcaklığı T ∝ M^0,6 (önce 0,5; R ∝ M^0,8 ile tutarlı).
+- **Havasız cisimler (`render/planet.js`):** Ay, Merkür, uydular ve çıplak kaya Lambert yerine Lommel–Seeliger ağırlıklı
+  (dolunay kenara kadar eşit parlak). Atmosferli cisimler değişmedi.
+- **Gökadalar (`galaxy/derive.js`):** ölçüm yoksa ve z > 0,05 ise düz ΛCDM: parlaklık ışıma uzaklığıyla, çap açısal çap
+  uzaklığıyla (`method: 'cosmo'`). Tully–Fisher'dan önce RC3 iç sönümleme düzeltmesi (`internalExtinctionB`); M31 187 → 227 km/s
+  (gözlenen ~250). `comovingMpc` buraya taşındı, `quasar/derive.js` yeniden dışa verir.
+- **Yaşanabilir bölge (`planet/derive.js`):** katsayılar Kopparapu 2013 "nemli sera" idi (0,99–1,71 AU), yorum "kaçak sera"
+  diyordu. Kopparapu 2014 kaçak sera – en büyük sera: Güneş 0,95–1,68 AU.
+- **Teff tablosu (`star/derive.js`):** O9V 31 900 → 33 300 K (31 900 O9.5V'nin değeri), M9V 2300 → 2380 K.
+- **Yorum/etiket:** Tully–Fisher katsayıları Pierce & Tully 1992'ye ait (kartta "Tully & Pierce 2000" yazıyordu);
+  granülasyon ve Rhines bant yorumları koda uyduruldu.
+
+Kontroller: `check-variable`, `check-galaxy`, `check-planet`, `check-derive`, `check-binary` (hepsi eski kodda kırmızı).
+Dokunulmadı (bilinçli): kara delik diskinde parlaklık toplam ışıma (T⁴) ile ölçeklenir.

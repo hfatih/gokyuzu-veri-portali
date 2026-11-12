@@ -19,10 +19,12 @@ assert.equal(planetClass(6), 'neptune');
 assert.equal(planetClass(11.2), 'giant');
 assert.equal(planetClass(9.14, 95.2), 'giant');   // Satürn
 
-// Kopparapu 2013: Güneş için iç sınır ~0,95–0,99 AU, dış ~1,67–1,70 AU
+// Kopparapu 2014 (kaçak sera – en büyük sera): Güneş için 0,95–1,68 AU; TRAPPIST-1 e (0,029 AU) içeride
 const hz = habitableZone(5772, 1);
-near(hz.inner, 0.93, 1.0, 'YB iç');
-near(hz.outer, 1.6, 1.75, 'YB dış');
+near(hz.inner, 0.945, 0.955, 'YB iç');
+near(hz.outer, 1.67, 1.685, 'YB dış');
+const hzT1 = habitableZone(2566, 0.000553);
+assert.ok(hzT1.inner < 0.0293 && hzT1.outer > 0.0293, 'TRAPPIST-1 e yaşanabilir bölgede');
 
 // Rhines: Jüpiter yarıküre başına ~11 bant
 near(rhinesBands(69911, 9.925 * 3600), 9, 13, 'Jüpiter bant sayısı');

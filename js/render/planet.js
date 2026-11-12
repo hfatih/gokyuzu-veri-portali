@@ -53,7 +53,7 @@ vec3 surface(vec3 q) {
     return pow(textureGrad(uTex, uv, dx, dy).rgb, vec3(2.2));
   }
   if (uMode == 1 || uMode == 2) {
-    // Bantlar: yarıküre başına uBands kuşak/kemer çifti, sınırlar türbülansla dalgalanır
+    // Bantlar: yarıküre başına uBands bant (kuşak ve kemer sırayla; uBands/2 çift), sınırlar türbülansla dalgalanır
     float turb = fbm(q * vec3(3.0, 14.0, 3.0) + vec3(uTime * 0.05, 0.0, 0.0)) - 0.5;
     float l = lat + turb * (uMode == 2 ? 0.25 : 0.05);
     float phase = l / 1.5707963 * uBands * 3.1415927;
@@ -112,6 +112,9 @@ void main() {
     float ndl = dot(n, L), mu = max(dot(n, -rd), 0.0);
     float day = max(ndl, 0.0);
     if (uMode == 1 || uMode == 2) day *= pow(mu, 0.15);   // bulutlu atmosferde kenar kararması
+    // Havasız, tozlu yüzey (Ay, Merkür, uydular, çıplak kaya): Lommel–Seeliger ağırlıklı saçılma.
+    // Lambert dolunayı kenara doğru karartır; gerçek Ay kenara kadar neredeyse eşit parlaktır.
+    else if (uAtm.a < 0.01) day = mix(2.0 * day / (day + mu + 1e-4), day, 0.3);
     // Halkanın gezegene düşen gölgesi
     float shade = 1.0;
     if (uRingOn > 0.5 && abs(L.y) > 1e-3) {

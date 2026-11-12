@@ -51,3 +51,8 @@
 - Canlıda Betelgeuse araması ve kartı, KVKK sayfası doğrulandı. CDS bu gün CORS başlıksız yanıt verdi; SIMBAD
   Harvard'a düştü, VizieR ekleri (ORB6, VSX) eksik.
 - Sıradaki: alan adını bağlamak, `site-info.js` barındırma = GitHub, Inc. (ABD) ve kayıt süresi, hukuki inceleme.
+
+**2026-11-13:** Bütün modellerin fizik ve görünüş hesabı denetlendi, 8 bulgu düzeltildi (ayrıntı `knowledge/history/bug_fixes.md`):
+zonklama sıcaklığı V bandı Planck'tan, çift yıldız görsel parlaklık oranı, havasız cisimlerde Lommel–Seeliger, uzak gökadada
+ΛCDM uzaklıkları ve iç sönümleme, Kopparapu 2014 yaşanabilir bölge, Teff tablosu. CDS bozukken VSX/ORB6 gelmediği için
+zonklama ve çift yıldız sahneleri tarayıcıda test parametreleriyle doğrulandı, canlı veriyle değil.

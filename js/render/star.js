@@ -18,6 +18,7 @@ uniform vec2 uBBRange;
 uniform vec4 uSpot[${MAX_SPOTS}], uFac[${MAX_FAC}];
 uniform float uFacS[${MAX_FAC}];
 uniform int uNSpot, uNFac;
+uniform float uBright;   // zonklayan yıldızda ışık eğrisinden yüzey parlaklığı çarpanı (ortalama 1)
 uniform float uScale, uTeff, uGranF, uGranAmp, uGiantAmp, uGranPhase, uSpots, uOblate, uGEq, uBeta, uRot, uU1, uU2;
 
 vec4 bb(float T) {
@@ -130,12 +131,12 @@ void main() {
     float limb = 1.0 - uU1 * (1.0 - mu) - uU2 * (1.0 - mu) * (1.0 - mu);
     vec4 bt = bb(T);
     // Disk merkezinin en parlak kanalı 1 olacak biçimde: turuncu yıldız turuncu kalır
-    col = bt.rgb * exp2(bt.a - bbEff.a) * max(limb, 0.0) / max(bbEff.r, max(bbEff.g, bbEff.b));
+    col = bt.rgb * exp2(bt.a - bbEff.a) * max(limb, 0.0) / max(bbEff.r, max(bbEff.g, bbEff.b)) * uBright;
   } else {
     // Işık hâlesi: ışının merkeze en yakın uzaklığı (yarıçap biriminde)
     float bimp = length(cross(ro, rd));
     float glow = 0.3 * exp(-(bimp - 1.0) * 10.0) + 0.01 / (bimp * bimp * bimp);
-    col = bbEff.rgb / max(bbEff.r, max(bbEff.g, bbEff.b)) * glow;
+    col = bbEff.rgb / max(bbEff.r, max(bbEff.g, bbEff.b)) * glow * uBright;
     // Uzak yıldızlar: yöne bağlı seyrek noktalar (kamerayla döner, yıldızla değil)
     vec3 cell = floor(rd * 220.0), h = hash3(cell);
     float sd = length(fract(rd * 220.0) - 0.5 - (h - 0.5) * 0.6);
@@ -175,8 +176,9 @@ export const starScene = {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     // Değişen yıldız: ışık eğrisinden sıcaklık, sinüsle yarıçap (variable/derive.js)
-    const ps = p.pulse ? pulseState(p.pulse, (view.t / p.pulse.periodS) % 1) : null;
+    const ps = p.pulse ? pulseState(p.pulse, (view.t / p.pulse.periodS) % 1, p.teff) : null;
     gl.uniform1f(U.uScale, ps ? ps.rScale : 1);
+    gl.uniform1f(U.uBright, ps ? ps.bright : 1);
     gl.uniform1f(U.uTeff, ps ? p.teff * ps.tScale : p.teff);
     gl.uniform1f(U.uGranF, p.granScale / (2 * Math.PI));
     gl.uniform1f(U.uGranAmp, view.granulation ? p.granContrast * p.granAmp : 0);

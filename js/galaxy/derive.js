@@ -43,17 +43,40 @@ export function parseMorph(s) {
 
 const UNIT_MPC = { pc: 1e-6, kpc: 1e-3, Mpc: 1 };
 
+/** Eş hareketli uzaklık (Mpc): (c/H0) ∫ dz/E(z), Simpson. Kuasar kartı da bunu kullanır. */
+export function comovingMpc(z) {
+  const E = (x) => Math.sqrt(COSMO.Om * (1 + x) ** 3 + (1 - COSMO.Om));
+  const n = 400, h = z / n;
+  let s = 1 / E(0) + 1 / E(z);
+  for (let i = 1; i < n; i++) s += (i % 2 ? 4 : 2) / E(i * h);
+  return C_KMS / COSMO.H0 * s * h / 3;
+}
+
+const Z_COSMO = 0.05;   // bunun üstünde d = cz/H0 yeterli değil (ışıma ve açısal çap uzaklığı %5'ten fazla ayrışır)
+
 /**
- * SIMBAD mesDistance satırları ve cz (km/s) → { value Mpc, method, n } ya da null.
+ * RC3 iç sönümleme düzeltmesi (de Vaucouleurs+ 1991): diskli gökada eğik görüldükçe kendi tozu B
+ * ışığını soldurur. A_B = α(T) log(a/b), α = 1,5 − 0,03 (T − 5)², T ≥ 0. q: eksen oranı b/a. Kadir.
+ */
+export function internalExtinctionB(T, q) {
+  if (!(T >= 0) || !(q > 0 && q < 1)) return 0;
+  return Math.max(0, 1.5 - 0.03 * (T - 5) ** 2) * Math.log10(1 / q);
+}
+
+/**
+ * SIMBAD mesDistance satırları, cz (km/s) ve z → { value Mpc, method, n, dA? } ya da null.
  * Yakın gökadalarda özel hızlar Hubble akışıyla karşılaştırılabilir olduğu için "redshift"
  * yöntemli satırlar, başka ölçüm varsa dışlanır (M33: 4,11 yerine Sefeid 0,84 Mpc).
+ * Ölçüm yoksa: z ≤ 0,05'te Hubble yasası; üstünde düz ΛCDM (method 'cosmo'): value ışıma uzaklığı
+ * (parlaklık için), dA açısal çap uzaklığı (boyut için).
  */
-export function pickGalaxyDistanceMpc(rows, cz) {
+export function pickGalaxyDistanceMpc(rows, cz, z = null) {
   const conv = rows.map((r) => ({ d: Number(r.dist) * (UNIT_MPC[String(r.unit).trim()] ?? NaN), z: /redshift/i.test(r.method ?? '') }))
     .filter((r) => r.d > 0);
   const median = (xs) => { const s = xs.sort((a, b) => a - b), k = s.length >> 1; return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; };
   const direct = conv.filter((r) => !r.z).map((r) => r.d);
   if (direct.length) return { value: median(direct), method: 'measured', n: direct.length };
+  if (z > Z_COSMO) { const dc = comovingMpc(z); return { value: dc * (1 + z), dA: dc / (1 + z), method: 'cosmo', n: 0 }; }
   if (cz > 1000) return { value: cz / COSMO.H0, method: 'hubble', n: 0 };
   const zrows = conv.map((r) => r.d);
   return zrows.length ? { value: median(zrows), method: 'redshift', n: zrows.length } : null;
@@ -81,12 +104,14 @@ export function lookbackGyr(z) {
  */
 export function deriveGalaxy(g) {
   const morph = parseMorph(g.morph);
-  const dist = pickGalaxyDistanceMpc(g.distances ?? [], g.cz);
+  const z = g.z ?? (g.cz != null ? g.cz / C_KMS : null);
+  const dist = pickGalaxyDistanceMpc(g.distances ?? [], g.cz, z);
   const distanceMpc = dist
-    ? { ...val(dist.value, { measured: 'measured', hubble: 'derived', redshift: 'estimated' }[dist.method]), method: dist.method, n: dist.n }
+    ? { ...val(dist.value, { measured: 'measured', hubble: 'derived', cosmo: 'derived', redshift: 'estimated' }[dist.method]), method: dist.method, n: dist.n }
     : null;
-  const dKpc = distanceMpc ? distanceMpc.value * 1e3 : null;
-  const diameterKpc = dKpc && g.majArcmin ? val(g.majArcmin * ARCMIN_RAD * dKpc, 'derived') : null;
+  const dKpc = distanceMpc ? distanceMpc.value * 1e3 : null;   // parlaklık için (ışıma uzaklığı)
+  const dSizeKpc = dist ? (dist.dA ?? dist.value) * 1e3 : null;   // boyut için (açısal çap uzaklığı)
+  const diameterKpc = dSizeKpc && g.majArcmin ? val(g.majArcmin * ARCMIN_RAD * dSizeKpc, 'derived') : null;
   const disk = morph && morph.family !== 'E';
   const q = g.majArcmin && g.minArcmin ? g.minArcmin / g.majArcmin : null;
   // Şişkinlik baskın türlerde (T ≤ 1) görünen biçimi şişkinlik belirler; Hubble yöntemi diski varsayar
@@ -97,14 +122,16 @@ export function deriveGalaxy(g) {
   const absB = dKpc && B != null ? val(B - 5 * Math.log10(dKpc * 1e3) + 5, 'derived') : null;
   const lumB = absB ? val(10 ** (-0.4 * (absB.value - MB_SUN)), 'derived') : null;
 
-  // Tully–Fisher (Tully & Pierce 2000, B): M_B = −7,48 (log W − 2,5) − 19,55, W = 2 V; yalnız sarmallarda
+  // Tully–Fisher (Pierce & Tully 1992, B): M_B = −7,48 (log W − 2,5) − 19,55, W = 2 V; yalnız sarmallarda.
+  // Bağıntı yüzü dönük (sönümlemesi düzeltilmiş) parlaklık içindir: eğikliğe bağlı iç sönümleme çıkarılır
+  // (M31 düzeltmesiz 187, düzeltmeyle ~230 km/s; gözlenen ~250). Samanyolu sönümlemesi düzeltilmez.
+  const intExtB = morph?.family === 'S' && q ? internalExtinctionB(morph.T, q) : 0;
   const vRot = absB && morph?.family === 'S'
-    ? val(10 ** (2.5 + (-19.55 - absB.value) / 7.48) / 2, 'estimated') : null;
+    ? val(10 ** (2.5 + (-19.55 - (absB.value - intExtB)) / 7.48) / 2, 'estimated') : null;
   // Dinamik kütle M = V² R / G, R = optik yarıçap
   const dynMass = vRot && diameterKpc
     ? val((vRot.value * 1e3) ** 2 * (diameterKpc.value / 2 * 3.0857e19) / 6.674e-11 / 1.989e30, 'estimated') : null;
 
-  const z = g.z ?? (g.cz != null ? g.cz / C_KMS : null);
   const lookback = z > 0.001 ? val(lookbackGyr(z), 'derived') : null;
-  return { morph, distanceMpc, diameterKpc, axisRatio: q ?? 1, inclination, absB, lumB, vRot, dynMass, z, lookback };
+  return { morph, distanceMpc, diameterKpc, axisRatio: q ?? 1, inclination, absB, lumB, intExtB, vRot, dynMass, z, lookback };
 }

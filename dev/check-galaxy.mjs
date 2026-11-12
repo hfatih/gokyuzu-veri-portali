@@ -1,6 +1,6 @@
 // node dev/check-galaxy.mjs — gökada fiziği: Hubble türü, uzaklık seçimi, eğiklik, boyut, ışıma, kozmoloji
 import assert from 'node:assert/strict';
-import { isGalaxy, parseMorph, pickGalaxyDistanceMpc, inclinationDeg, lookbackGyr, deriveGalaxy } from '../js/galaxy/derive.js';
+import { isGalaxy, parseMorph, pickGalaxyDistanceMpc, inclinationDeg, lookbackGyr, deriveGalaxy, internalExtinctionB, comovingMpc } from '../js/galaxy/derive.js';
 
 const near = (x, lo, hi, what) => assert.ok(x >= lo && x <= hi, `${what}: ${x} [${lo}, ${hi}] dışında`);
 
@@ -44,9 +44,20 @@ const m31 = deriveGalaxy({
 });
 near(m31.absB.value, -20.5, -19.8, 'M31 M_B');
 near(m31.diameterKpc.value, 40, 50, 'M31 çap');
-near(m31.vRot.value, 150, 280, 'M31 Tully–Fisher hızı');
+// İç sönümleme (RC3) düzeltmesiyle M31: A_B ≈ 0,62 kadir, dönüş hızı ~227 km/s (düzeltmesiz 187; gözlenen ~250)
+near(m31.intExtB, 0.55, 0.7, 'M31 iç sönümleme');
+near(m31.vRot.value, 215, 260, 'M31 Tully–Fisher hızı');
+assert.equal(internalExtinctionB(3, 1), 0); assert.equal(internalExtinctionB(-5, 0.5), 0);   // yüzü dönük ve eliptik: düzeltme yok
 near(Math.log10(m31.dynMass.value), 11, 12, 'M31 dinamik kütle');
 assert.equal(m31.vRot.origin, 'estimated');
+
+// Uzak gökada (z = 0,5, ölçüm yok): doğrusal Hubble yasası yerine düz ΛCDM. Parlaklık ışıma uzaklığıyla
+// (2833 Mpc), boyut açısal çap uzaklığıyla (1259 Mpc); cz/H0 = 2141 Mpc ikisini de yanlış verirdi.
+near(comovingMpc(0.5), 1880, 1895, 'D_C(z=0,5)');
+const far = deriveGalaxy({ morph: 'Sb', majArcmin: 0.5, minArcmin: 0.3, cz: 117000, z: 0.5, mags: { B: 21 }, distances: [] });
+assert.equal(far.distanceMpc.method, 'cosmo'); near(far.distanceMpc.value, 2820, 2845, 'z=0,5 ışıma uzaklığı');
+near(far.diameterKpc.value, 181, 185, 'z=0,5 çap (açısal çap uzaklığıyla)');
+assert.equal(deriveGalaxy({ morph: 'Sb', majArcmin: 2, minArcmin: 1, cz: 5996, z: 0.02, mags: {}, distances: [] }).distanceMpc.method, 'hubble');
 
 // Eliptikte Tully–Fisher uygulanmaz
 const m87 = deriveGalaxy({ morph: 'E-E/S0', majArcmin: 6.3, minArcmin: 5.7, cz: 1256, mags: { B: 9.59 }, distances: [{ dist: 17, unit: 'Mpc', method: '' }] });

@@ -89,7 +89,7 @@ modeli ekler (`js/sun/activity.js`).
 - **Veri:** nicelikler Wikidata'dan; deprecated ifadeler atlanır, birimler çevrilir, ortanca alınır.
 - **Fizik:**
   - Eksik kütle ya da yarıçap Chen & Kipping (2017) ile tamamlanır.
-  - Denge sıcaklığı, aldığı ışınım ve yaşanabilir bölge (Kopparapu+ 2013).
+  - Denge sıcaklığı, aldığı ışınım ve yaşanabilir bölge (Kopparapu+ 2014).
   - Bant sayısı Rhines ölçeğinden, bulut rengi Sudarsky sınıflarından.
 - **Görünüm:**
   - Merkür, Dünya ve Mars: NASA/USGS kamu malı haritaları (`assets/textures/KAYNAK.md`).

@@ -114,13 +114,28 @@ export function pulseParams(vd) {
   return { periodS: vd.period.value * 86400, amp: Math.min(vd.amp.value, 6), ar: RADIUS_AMP[vd.fam] ?? 0.05, fam: vd.fam };
 }
 
+const C2_V = 26160;   // hc / (λ k), λ = 550 nm (V bandı), kelvin
+// V genliğinin sıcaklık değişimine düşen payı. Soğuk yıldızlarda (Mira, yarı düzenli) genliğin
+// yaklaşık yarısı TiO gibi moleküllerin oluşup dağılmasından gelir (Reid & Goldston 2002); bu pay
+// sıcaklığa yazılırsa Mira 1400–6300 K arasında salınır (gözlenen ~2400–3200 K).
+// ponytail: aile başına tek sabit; yıldızın kendi tayf evrelerinden çözmek gerekirse buraya gelir
+const TEMP_SHARE = { mira: 0.5, sr: 0.5 };
+const BRIGHT_CAP_MAG = 1.25;   // sahnede gösterilen parlaklık değişimi (Mira'nın 6 kadiri ekrana sığmaz)
+
 /**
- * Zonklama anındaki ölçekler: evre φ → { rScale, tScale }. Işık eğrisinden akı (L/L₀), yarıçap
- * sinüsle (en büyük yarıçap en parlaktan ~0,4 evre sonra); sıcaklık L = R² T⁴'ten.
+ * Zonklama anındaki ölçekler: evre φ → { rScale, tScale, bright }. teff: yıldızın ortalama sıcaklığı (K).
+ * Işık eğrisi V bandı akısını verir; yarıçap sinüsle değişir (en büyük yarıçap en parlaktan ~0,4 evre
+ * sonra). Sıcaklık, V akısı ∝ R² / (e^(hc/λkT) − 1) bağıntısının tersinden çözülür: V bandı soğuk
+ * yıldızlarda Planck eğrisinin dik (Wien) yanında olduğu için küçük bir sıcaklık değişimi büyük bir
+ * genlik verir; toplam ışıma (T⁴) varsayımı sıcaklığı fazla oynatıyordu.
+ * bright: yüzey parlaklığı çarpanı (ortalama = 1), ±1,25 kadirle sınırlı.
  */
-export function pulseState(pp, phi) {
+export function pulseState(pp, phi, teff = 5772) {
   const s = lightCurve(pp.fam, phi), mean = meanDimming(pp.fam);
-  const flux = 10 ** (-0.4 * pp.amp * (s - mean));
+  const dm = pp.amp * (s - mean);   // ortalamaya göre kadir, + sönük
   const r = 1 + pp.ar * Math.sin(2 * Math.PI * (phi - 0.15));
-  return { rScale: r, tScale: (flux / (r * r)) ** 0.25 };
+  const surf = 10 ** (-0.4 * (TEMP_SHARE[pp.fam] ?? 1) * dm) / (r * r);   // sıcaklığın açıklaması gereken yüzey parlaklığı oranı
+  const T = C2_V / Math.log1p(Math.expm1(C2_V / teff) / surf);
+  const shown = Math.min(BRIGHT_CAP_MAG, Math.max(-BRIGHT_CAP_MAG, dm));
+  return { rScale: r, tScale: T / teff, bright: 10 ** (-0.4 * shown) / (r * r) };
 }

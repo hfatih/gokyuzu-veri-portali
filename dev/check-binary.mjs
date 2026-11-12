@@ -24,6 +24,10 @@ near(a.massSum.value, 1.95, 2.15, 'α Cen A+B kütlesi (1,10 + 0,91)');
 near(relativePosition(acen, 2016.0).rho, 3.5, 5.5, 'α Cen 2016 ayrımı');
 near(a.q.value, 0.7, 0.9, "α Cen kütle oranı tahmini (gerçek 0,83)");
 
+// Sahne: yoldaşın sıcaklığı anakol bağıntılarından, T ∝ M^0,6 (L ∝ M⁴, R ∝ M^0,8)
+const { binaryVisualParams } = await import('../js/render/binary.js');
+near(binaryVisualParams(acen, { q: { value: 0.5 } }, 6000, 2016).teff2, 3940, 3980, 'yoldaş Teff (q = 0,5)');
+
 // Paralaks güvenilmezse kütle verilmez
 assert.equal(deriveBinary(sirius, 2, 1, null, 2025).massSum, null);
 

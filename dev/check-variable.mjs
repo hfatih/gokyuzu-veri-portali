@@ -36,10 +36,27 @@ assert.equal(nextEvent(100, 10, 125), 130); assert.equal(nextEvent(100, 10, 130)
 // Zonklama: akı ortalama çevresinde, sıcaklık ve yarıçap makul aralıkta
 const pp = pulseParams(dcep);
 assert.equal(pp.fam, 'cep'); near(pp.periodS / 86400, 5.36, 5.37, 'zonklama dönemi');
-const bright = pulseState(pp, 0), faint = pulseState(pp, 0.7);
+const bright = pulseState(pp, 0, 6000), faint = pulseState(pp, 0.7, 6000);
 assert.ok(bright.tScale > faint.tScale, 'en parlakta daha sıcak');
 near(bright.tScale, 1.0, 1.15, 'en parlak T ölçeği'); near(faint.rScale, 0.9, 1.1, 'yarıçap ölçeği');
 assert.equal(pulseParams(algol), null);   // örten çift zonklamaz
+
+// Zonklama sıcaklığı V bandı Planck akısından çözülür. Toplam ışıma (T⁴) varsayımı Mira'yı 1400–6300 K
+// arasında oynatıyordu (gözlenen ~2400–3200 K); Sefeidlerde iki yöntem aynı aralığı verir.
+const swing = (type, teff, amp, P) => {
+  const q = pulseParams({ fam: family(type), period: { value: P }, amp: { value: amp } });
+  let lo = Infinity, hi = 0, light = [];
+  for (let k = 0; k < 400; k++) { const s = pulseState(q, k / 400, teff); lo = Math.min(lo, s.tScale); hi = Math.max(hi, s.tScale); light.push(s.bright * s.rScale ** 2); }
+  return { lo: teff * lo, hi: teff * hi, mag: 2.5 * Math.log10(Math.max(...light) / Math.min(...light)) };
+};
+const miraSw = swing('M', 2900, 6, 332);
+near(miraSw.lo, 2300, 2700, 'Mira en soğuk'); near(miraSw.hi, 3200, 3700, 'Mira en sıcak');
+const btl = swing('SRC', 3600, 1.3, 400);
+near(btl.lo, 3300, 3550, 'Betelgeuse en soğuk'); near(btl.hi, 3650, 3900, 'Betelgeuse en sıcak');
+const dc = swing('DCEP', 6000, 0.87, 5.37);
+near(dc.lo, 5300, 5700, 'δ Cep en soğuk (gözlenen ~5500)'); near(dc.hi, 6500, 7000, 'δ Cep en sıcak (gözlenen ~6800)');
+// Sahnedeki toplam ışık (yüzey parlaklığı × disk alanı) ışık eğrisini izler: Sefeidde tam genlik, Mira'da 2,5 kadirle sınırlı
+near(dc.mag, 0.85, 0.89, 'δ Cep gösterilen genlik'); near(miraSw.mag, 2.45, 2.55, 'Mira gösterilen genlik (sınırlı)');
 console.log('variable: tüm kontroller geçti');
 
 // VSX satırı ayrıştırma

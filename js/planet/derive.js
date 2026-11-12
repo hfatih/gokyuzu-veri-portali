@@ -29,10 +29,11 @@ export function planetClass(R, M = null) {
   return 'neptune';
 }
 
-// Kopparapu+ (2013, düzeltilmiş) — S_eff = S☉ + aT + bT² + cT³ + dT⁴, T = Teff − 5780 K
+// Kopparapu+ (2014, 1 M⊕) — S_eff = S☉ + aT + bT² + cT³ + dT⁴, T = Teff − 5780 K. Güneş için 0,95–1,68 AU.
+// (Önceki değerler 2013 makalesinin "nemli sera" sınırıydı: 0,99–1,71 AU; 2014'te iç sınır kaçak seraya alındı.)
 const HZ = {
-  inner: [1.0140, 8.1774e-5, 1.7063e-9, -4.3241e-12, -6.6462e-16],   // kaçak sera
-  outer: [0.3438, 5.8942e-5, 1.6558e-9, -3.0045e-12, -5.2983e-16],   // en büyük sera
+  inner: [1.107, 1.332e-4, 1.58e-8, -8.308e-12, -1.931e-15],   // kaçak sera
+  outer: [0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-16],   // en büyük sera
 };
 
 /** Muhafazakâr yaşanabilir bölge sınırları (AU). Teff 2600–7200 K dışına sıkıştırılır. */
@@ -43,7 +44,8 @@ export function habitableZone(teff, L) {
 }
 
 /**
- * Rhines ölçeği: L_β = π√(2U/β), β = 2Ω/R (ekvator). Yarıküre başına bant ≈ πR / L_β.
+ * Rhines ölçeği: L_β = π√(2U/β), β = 2Ω/R (ekvator). Bir L_β bir kuşak + bir kemer kaplar; kutuptan kutba
+ * πR / L_β çift sığar, yani yarıküre başına bant (kuşak ya da kemer) sayısı ≈ πR / L_β (Jüpiter ~11).
  * U = 100 m/s varsayılır (Jüpiter jetleri 100–150 m/s). Rkm: yarıçap km, rotSec: dönme süresi s.
  */
 export function rhinesBands(Rkm, rotSec, U = 100) {

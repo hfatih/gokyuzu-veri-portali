@@ -45,14 +45,17 @@ void main() {
 
   float t1 = hitSphere(ro, rd, uP1, uR1), t2 = hitSphere(ro, rd, uP2, uR2);
   float tHit = 1e9;
-  // Görünen yıldızın yüzeyi; parlaklık oranı L ∝ R² T⁴ olduğundan yüzey parlaklığı T⁴ ile ölçeklenir
-  float refT4 = pow(max(uT1, uT2), 4.0);
+  // Görünen yıldızın yüzeyi. Yüzey parlaklığı göze görünen (V) ışıkla ölçeklenir: kara cisim tablosunun
+  // parlaklık kanalı (yıldız sahnesiyle aynı). T⁴ toplam ışımadır; soğuk yoldaşı olduğundan parlak gösteriyordu.
+  // Taban 0,02: çok sönük yoldaş (gerçek oran 10⁻⁴'e iner) ekranda kaybolmasın; ~4 kadirden büyük fark gösterilmez.
+  float refL = max(exp2(bb(uT1).a), exp2(bb(uT2).a));
+  float l1 = max(exp2(bb(uT1).a), 0.02 * refL), l2 = max(exp2(bb(uT2).a), 0.02 * refL);
   if (t1 > 0.0 && (t2 < 0.0 || t1 < t2)) {
     vec3 n = normalize(ro + rd * t1 - uP1); float mu = max(dot(n, -rd), 0.0);
-    col = chroma(uT1) * (1.0 - 0.6 * (1.0 - mu)) * pow(uT1, 4.0) / refT4 * 1.6; tHit = t1;
+    col = chroma(uT1) * (1.0 - 0.6 * (1.0 - mu)) * l1 / refL * 1.6; tHit = t1;
   } else if (t2 > 0.0) {
     vec3 n = normalize(ro + rd * t2 - uP2); float mu = max(dot(n, -rd), 0.0);
-    col = chroma(uT2) * (1.0 - 0.6 * (1.0 - mu)) * pow(uT2, 4.0) / refT4 * 1.6; tHit = t2;
+    col = chroma(uT2) * (1.0 - 0.6 * (1.0 - mu)) * l2 / refL * 1.6; tHit = t2;
   }
   // Işık hâleleri
   for (int k = 0; k < 2; k++) {
@@ -60,7 +63,7 @@ void main() {
     float tc = dot(c - ro, rd);
     if (tc > tHit) continue;
     float d = length(cross(c - ro, rd)) / r;
-    if (d > 1.0) col += chroma(T) * (0.25 * exp(-(d - 1.0) * 4.0)) * pow(T, 4.0) / refT4;
+    if (d > 1.0) col += chroma(T) * (0.25 * exp(-(d - 1.0) * 4.0)) * (k == 0 ? l1 : l2) / refL;
   }
   // Yörünge (ikincilin birinciye göre yolu, kütle merkezine taşınmış)
   float path = 0.0;
@@ -128,8 +131,11 @@ export const binaryScene = {
   timeScale: (p) => p.el.P * 3.15576e7 / 12,
 };
 
-/** deriveBinary() ve birincilin Teff'inden sahne parametreleri. İkincilin Teff'i anakol T ∝ M^0,5 ile kaba. */
+/**
+ * deriveBinary() ve birincilin Teff'inden sahne parametreleri. İkincilin Teff'i anakol bağıntılarından kaba:
+ * L ∝ M⁴ ve R ∝ M^0,8 (sahnedeki yarıçap oranı) → T⁴ ∝ L / R² ∝ M^2,4, yani T ∝ M^0,6.
+ */
 export function binaryVisualParams(el, bd, teff1, year0) {
   const q = bd.q.value;
-  return { el, year0, q, teff1, teff2: Math.max(2400, teff1 * q ** 0.5) };
+  return { el, year0, q, teff1, teff2: Math.max(2400, teff1 * q ** 0.6) };
 }
