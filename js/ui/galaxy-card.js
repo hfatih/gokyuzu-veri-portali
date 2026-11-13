@@ -26,6 +26,7 @@ function rows(obj, gd) {
   if (gd.absB) out.push(['absB', num(gd.absB.value), 'derived', t('g.absBTip')]);
   if (gd.lumB) out.push(['lumB', `${num(gd.lumB.value / 1e10)} × 10¹⁰ L☉`, 'derived', t('g.absBTip')]);
   if (gd.vRot) out.push(['vrot', `${num(gd.vRot.value)} km/s`, 'estimated', t('g.vrotTip')]);
+  if (gd.rotPeriodMyr) out.push(['prot', `${num(gd.rotPeriodMyr.value)} ${t('g.protUnit')}`, 'estimated', t('g.protTip')]);
   if (gd.dynMass) out.push(['mdyn', `${num(gd.dynMass.value / 1e11)} × 10¹¹ M☉`, 'estimated', t('g.mdynTip')]);
   if (gd.z != null) out.push(['z', `${num(gd.z, 3)}${b.rv != null ? ` · cz = ${num(b.rv)} km/s` : ''}`, 'measured', gd.z < 0 ? t('g.blueshift') : '']);
   if (gd.lookback) out.push(['lookback', `${num(gd.lookback.value * 1e3)} ${t('g.myrAgo')}`, 'derived', t('g.lookbackTip')]);

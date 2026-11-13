@@ -163,3 +163,18 @@ Ayrıntı: [docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](../../doc
   Triton/Fobos/Deimos (tam harita yok).
 - **Maliyet:** `assets/textures` 1,5 MB → 15 MB; harita başına 0,5–3,2 MB, yalnız o cisim açılınca iner.
 - Kontrol: `dev/check-planet.mjs` (doku dosyaları depoda, kipler, renklendirme, Jüpiter basıklığı).
+
+## 2026-11-13 · Fizik yükseltmesi 1/9: gökada sahnesi
+
+- **`render/galaxy.js` (yeniden yazıldı):** sonsuz ince disk yerine kalınlığı olan katman (yarıçapta üstel, düşeyde
+  sech²; genç yıldız ve toz yarı kalınlıkta) 28 adımla geçilir; toz geçirgenliği renge göre (A_λ/A_V = 0,78 / 1 / 1,32).
+  Şişkinlik Sérsic hacim yoğunluğu (Prugniel & Simien 1997), adımlar merkeze en yakın geçişte sıklaşır (sinh).
+  Kol/çubuk deseni Ωp ile katı, madde Ω(R) = V/√(R² + Rc²) ile döner; madde çerçevesi iki evreli çapraz geçişle.
+- **`galaxy/visual.js`:** `sersicBulge` (B/T oranını sayısal integralle tutturur), `youngFraction` (B−V → genç ışık payı),
+  `ellipticalSersicN` (Graham & Guzmán 2003); tablolar: Sérsic n ve disk kalınlığı türe göre (Graham & Worley 2008,
+  de Grijs 1998), tür ortalaması B−V (Roberts & Haynes 1994). Ölçülen B−V tür ortalamasını en çok ±0,15 kaydırır
+  (SIMBAD gökada parlaklıkları güvenilmez: M51 için 0,9).
+- **`galaxy/derive.js`:** `rotPeriodMyr` (2πR/V), `bv`. Kartta "Dönme dönemi" satırı.
+- **`render/glview.js`:** `static` artık parametreye göre işlev olabilir (eliptik durağan, diskli gökada döner).
+- Kontrol: `dev/check-galaxy.mjs` (Sérsic integrali, renk → genç pay, tür eğilimleri). Tarayıcıda M51, M33, NGC 1300,
+  NGC 4565 (yandan) açıldı.

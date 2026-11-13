@@ -115,8 +115,11 @@ modeli ekler (`js/sun/activity.js`).
 
 - **Veri:** SIMBAD'dan Hubble türü, boyut, z ve uzaklık ölçümleri. Yakın gökadada kırmızıya kayma
   yöntemli uzaklıklar dışlanır; ölçüm yoksa Hubble yasası (H0 = 70) kullanılır.
-- **Fizik:** eğiklik, çap, M_B, Tully–Fisher dönüş hızı, dinamik kütle, düz ΛCDM geriye bakış süresi.
-- **Görünüm:** analitik disk (logaritmik sarmal kollar, çubuk, toz), şişkinlik ve eliptikler.
+- **Fizik:** eğiklik, çap, M_B, Tully–Fisher dönüş hızı, dönme dönemi, dinamik kütle, düz ΛCDM geriye bakış süresi.
+- **Görünüm:** kalınlığı olan disk (üstel × sech²) ve içinde ince toz katmanı ışın yürütmeyle geçilir; yandan
+  görünen gökadada toz şeridi ve şişkinlik gerçek geometriden çıkar. Sérsic şişkinlik (Prugniel & Simien 1997),
+  türe göre büyük desenli ya da yumak kollar, çubuk, dalga boyuna bağlı toz soğurması. Genç/yaşlı ışık payı
+  B−V renginden. Yıldızlar düz dönme eğrisiyle, kol ve çubuk deseni kendi hızıyla döner.
   Varsayılan bakış açısı ölçülen eğiklikten gelir.
 
 ## Kara delikler (faz 5)

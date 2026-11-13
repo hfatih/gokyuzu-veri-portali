@@ -132,6 +132,12 @@ export function deriveGalaxy(g) {
   const dynMass = vRot && diameterKpc
     ? val((vRot.value * 1e3) ** 2 * (diameterKpc.value / 2 * 3.0857e19) / 6.674e-11 / 1.989e30, 'estimated') : null;
 
+  // Optik yarıçapta bir tur: P = 2π R / V (milyon yıl)
+  const rotPeriodMyr = vRot && diameterKpc
+    ? val(2 * Math.PI * (diameterKpc.value / 2 * 3.0857e16) / vRot.value / 3.156e13, 'estimated') : null;
+  // Bütünleşik renk (sönümleme düzeltmesiz); sahnede genç/yaşlı topluluk payını belirler
+  const bv = B != null && g.mags?.V != null ? val(B - g.mags.V, 'measured') : null;
+
   const lookback = z > 0.001 ? val(lookbackGyr(z), 'derived') : null;
-  return { morph, distanceMpc, diameterKpc, axisRatio: q ?? 1, inclination, absB, lumB, intExtB, vRot, dynMass, z, lookback };
+  return { morph, distanceMpc, diameterKpc, axisRatio: q ?? 1, inclination, absB, lumB, intExtB, vRot, dynMass, rotPeriodMyr, bv, z, lookback };
 }

@@ -70,3 +70,46 @@ assert.equal(m104.inclination.origin, 'estimated');
 assert.equal(m31.inclination.origin, 'derived');
 
 console.log('galaxy: tüm kontroller geçti');
+
+// Dönme dönemi: M31 optik yarıçapta ~230 km/s ile birkaç yüz milyon yıl; Samanyolu ölçeği (220 km/s, 15 kpc) 419 Myr
+near(m31.rotPeriodMyr.value, 400, 800, 'M31 dönme dönemi (Myr)');
+assert.equal(deriveGalaxy({ morph: 'Sb', majArcmin: 10, minArcmin: 5, cz: 800, mags: { B: 10, V: 9.3 }, distances: [] }).bv.value.toFixed(2), '0.70');
+
+// Sahne parametreleri: Sérsic şişkinlik B/T oranını verir, renk genç payını belirler
+{
+  const { galaxyVisualParams, sersicBulge, youngFraction, ellipticalSersicN } = await import('../js/galaxy/visual.js');
+  // Yoğunluğun sayısal hacim integrali istenen ışığı vermeli (n = 1 ve n = 4, basık)
+  for (const [n, re] of [[1, 0.07], [4, 0.3]]) {
+    const s = sersicBulge(n, re, 0.5, 0.6, 1.2);
+    let sum = 0;
+    for (let r = 5e-5; r < 1.2; r *= 1.002) sum += s.amp * (r / re) ** -s.p * Math.exp(-s.b * (r / re) ** (1 / n)) * 4 * Math.PI * 0.6 * r ** 3 * 0.002;
+    near(sum, 0.49, 0.51, `Sérsic n=${n} toplam ışık`);
+  }
+  // Prugniel–Simien: n = 4'te p ≈ 0,851, b ≈ 7,669
+  const s4 = sersicBulge(4, 0.3, 1, 1, 1.45);
+  near(s4.p, 0.85, 0.852, 'p(n=4)'); near(s4.b, 7.66, 7.68, 'b(n=4)');
+  // Renk → genç ışık payı: eliptik rengi 0, Sb ~0,2, Sc ~0,35; tekdüze artar
+  assert.equal(youngFraction(0.95), 0);
+  near(youngFraction(0.65), 0.2, 0.26, 'Sb genç payı'); near(youngFraction(0.5), 0.33, 0.4, 'Sc genç payı');
+  // Graham & Guzmán: M_B = −21'de n ≈ 5, −18'de ≈ 2,5
+  near(ellipticalSersicN(-21), 4.8, 5.6, 'dev eliptik n'); near(ellipticalSersicN(-18), 2.2, 2.8, 'cüce eliptik n');
+
+  const obj = { mainId: 'M  31' };
+  const vp = galaxyVisualParams(m31, obj);
+  assert.equal(vp.family, 2);
+  near(vp.sersic.n, 2.1, 2.3, 'Sb şişkinliği Sérsic n');
+  near(vp.hz, 0.05, 0.065, 'Sb disk kalınlığı (R25 = 1)');
+  assert.ok(vp.rotRate > 0 && vp.omegaP > 0 && vp.youngFrac > 0 && vp.youngFrac < 0.85);
+  // Mavi gökada daha çok genç ışık taşır; geç tür daha ince, daha yumak, şişkinliği küçük
+  const blue = galaxyVisualParams({ ...m31, bv: { value: 0.45 } }, obj), red = galaxyVisualParams({ ...m31, bv: { value: 0.85 } }, obj);
+  assert.ok(blue.youngFrac > red.youngFrac, 'mavi gökadada genç pay büyük');
+  const sd = galaxyVisualParams({ ...m31, morph: { family: 'S', T: 7, bar: false }, bv: null }, obj);
+  assert.ok(sd.hz < vp.hz && sd.floc > vp.floc && sd.sersic.amp * sd.sersic.re ** 3 < vp.sersic.amp * vp.sersic.re ** 3);
+  // Eliptik: disk yok, durağan
+  const e = galaxyVisualParams(m87, { mainId: 'M  87' });
+  assert.deepEqual([e.family, e.youngFrac, e.arms], [0, 0, 0]);
+  const { galaxyScene } = await import('../js/render/galaxy.js');
+  assert.equal(galaxyScene.static(e), true); assert.equal(galaxyScene.static(vp), false);
+  assert.equal(galaxyScene.timeScale(e), 0); assert.ok(galaxyScene.timeScale(vp) > 1e10, 'bir tur yüz milyonlarca yıl');
+  console.log('galaxy: sahne parametreleri geçti');
+}

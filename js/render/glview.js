@@ -29,7 +29,7 @@ function link(gl, frag, vert = VERT) {
 
 /**
  * Sahne: { id, frag, vert?, init?(gl, view, U) → durum, uniforms(gl, U, params, view, durum),
- *   draw?(gl, params, view, durum), timeScale(params), static? }. vert ve draw verilmezse tam ekran üçgen çizilir.
+ *   draw?(gl, params, view, durum), timeScale(params), static? (boolean ya da params → boolean) }. vert ve draw verilmezse tam ekran üçgen çizilir.
  * Ortak uniform'lar (uRes, uShift, uCamPos, uTanFov, uExposure, uStars) burada atanır.
  * opts.scale: çözünürlük çarpanı, opts.stars: arka plan yıldızları. WebGL 2 yoksa null döner.
  */
@@ -104,7 +104,8 @@ export function createView(canvas, opts = {}) {
   }
   function schedule() {
     // Durağan sahne (bulutsu) yalnız istek üzerine çizilir: kamera oynayınca ya da boyut değişince
-    if (!raf && visible && !document.hidden && !reduced && !view.scene?.static) raf = requestAnimationFrame(frame);
+    const st = view.scene?.static, still = typeof st === 'function' ? st(view.params) : st;   // sahne ya da parametreye göre
+    if (!raf && visible && !document.hidden && !reduced && !still) raf = requestAnimationFrame(frame);
     if (!raf) last = 0;
   }
 
