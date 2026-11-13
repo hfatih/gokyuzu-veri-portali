@@ -46,3 +46,14 @@
   normalleştirmez.
 - **Hata dayanıklılığı:** öneri kaynakları birbirinden bağımsız başarısız olur. Kartın ikincil
   sorguları `allSettled` ile çalışır. Her istekte zaman aşımı ve `AbortController` var.
+
+## Sahne kuralları (2026-11-13 eklemeleri)
+
+- `static` bir sahnede boolean ya da `params → boolean` olabilir: gökada sahnesi eliptikte durağan, diskli gökadada
+  her karede çizilir (`render/glview.js` `schedule`).
+- Sahneye giren her sayı `*/visual.js` ya da `*/derive.js` içindeki saf bir fonksiyondan gelir ve `dev/check-*.mjs`
+  ile sınanır; shader yalnız çizer. Veri tablosu shader'a gerekiyorsa JS'te durur ve şablonla GLSL'e yazılır
+  (`SATURN_RING_TAU`).
+- `dev/check-syntax.mjs` bütün `js/` dosyalarını ayrıştırır ve sahne modüllerini içe aktarır; DOM'a bağlı dosyalardaki
+  sözdizimi hataları ve şablon içindeki tanımsız adlar başka hiçbir testte görünmez.
+- "Göze görünen parlaklık" kuralı artık istisnasız: kara delik diski de 550 nm Planck ışınımıyla parlar.

@@ -35,6 +35,8 @@ export function binaryHtml(orb, bd, path) {
     ['e', ...f(bd.e, (v) => num(v))],
     ['i', ...f(bd.i, (v) => `${num(v)}°`)],
     ['mass', ...f(bd.massSum, (v) => `${num(v)} M☉`), t('b.massTip')],
+    ['comp', bd.companion?.kind === 'wd'
+      ? `${t('b.wd')} · ${num(bd.companion.mass)} M☉${bd.companion.teff ? ` · ~${num(bd.companion.teff, 2)} K` : ''}` : null, 'estimated', t('b.compTip')],
     ['now', `${num(bd.sepNow.value)}″ · ${t('b.pa')} ${Math.round(bd.paNow.value)}°`, 'derived', t('b.nowTip')],
     ['max', `${num(bd.sepMax.value)}″ (${Math.round(bd.sepMax.year)})`, 'derived'],
     ['min', `${num(bd.sepMin.value)}″ (${Math.round(bd.sepMin.year)})`, 'derived'],

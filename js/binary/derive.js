@@ -51,17 +51,50 @@ export function relativePosition(el, year) {
   return { rho: Math.hypot(north, east), theta, x: east, y: north, z, nu, r };
 }
 
+const C2_V = 26160;   // hc / (λ k), λ = 550 nm (K)
+
+/** Beyaz cüce yarıçapı (R☉), Nauenberg (1972) kütle–yarıçap bağıntısı; Chandrasekhar sınırı 1,44 M☉. */
+export function whiteDwarfRadius(massSun) {
+  const x = massSun / 1.44;
+  return 0.0112 * Math.sqrt(Math.max(x ** (-2 / 3) - x ** (2 / 3), 0));
+}
+
+/**
+ * Yoldaşın türü ve beyaz cüceyse fiziği. Anakol yıldızında L ∝ M⁴ olduğundan kütle oranı q olan yoldaş
+ * 10 log(1/q) kadir sönük olmalıdır; kütlesine göre bundan en az 4 kadir daha sönükse ve Chandrasekhar
+ * sınırının altındaysa beyaz cücedir (Sirius B: beklenen 3, gözlenen 10 kadir). Sıcaklık: V bandındaki
+ * yüzey parlaklığı oranı S = 10^(−0,4 Δm) (R₁/R₂)² Planck işlevinden ters çözülür.
+ * primary: { mass (M☉), radius (R☉), teff (K) }. Dönüş { kind: 'ms' | 'wd', mass?, radius?, teff? }.
+ */
+export function classifyCompanion(m2, primary, dmag) {
+  if (!(m2 > 0) || !(primary?.mass > 0) || dmag == null) return { kind: 'ms' };
+  const expected = 10 * Math.log10(primary.mass / m2);
+  if (m2 >= 1.44 || dmag - expected < 4) return { kind: 'ms', mass: m2 };
+  const radius = whiteDwarfRadius(m2);
+  let teff = null;
+  if (primary.radius > 0 && primary.teff > 0) {
+    const S = 10 ** (-0.4 * dmag) * (primary.radius / radius) ** 2;
+    teff = C2_V / Math.log1p(Math.expm1(C2_V / primary.teff) / S);
+  }
+  return { kind: 'wd', mass: m2, radius, teff };
+}
+
 /**
  * Yörünge türetimi. el: Campbell elemanları; plxMas: paralaks (mas, ϖ/σ ≥ 5 ise kullanılır);
- * dmag: bileşenlerin parlaklık farkı (yoksa null); year: bugünün yılı.
+ * dmag: bileşenlerin parlaklık farkı (yoksa null); year: bugünün yılı; primary: birincil yıldızın
+ * { mass, radius, teff } değerleri (varsa yoldaşın kütlesi toplam kütleden çıkarılır).
  */
-export function deriveBinary(el, plxMas, plxErr, dmag, year) {
+export function deriveBinary(el, plxMas, plxErr, dmag, year, primary = null) {
   const plxOk = plxMas > 0 && (!plxErr || plxMas / plxErr >= 5);
   const aAu = plxOk ? el.a / (plxMas / 1000) : null;
   // Kepler III (Güneş birimlerinde): M₁ + M₂ = a³ / P², a AU, P yıl
   const massSum = aAu ? aAu ** 3 / el.P ** 2 : null;
-  // Kütle oranı yalnız sahne için: anakolda L ∝ M⁴ → q = 10^(−0,1 Δm)
-  const q = dmag != null && dmag >= 0 ? 10 ** (-0.1 * dmag) : 0.8;
+  // Kütle oranı. Dinamik: M₂ = (M₁ + M₂) − M₁, toplam Kepler III'ten, M₁ yıldızın kendi türetiminden; makul
+  // aralıktaysa (0,05–1,5) kullanılır. Yoksa fotometrik: anakolda L ∝ M⁴ → q = 10^(−0,1 Δm).
+  const m2 = massSum && primary?.mass > 0 ? massSum - primary.mass : null;
+  const qDyn = m2 != null && m2 / primary.mass > 0.05 && m2 / primary.mass < 1.5 ? m2 / primary.mass : null;
+  const q = qDyn ?? (dmag != null && dmag >= 0 ? 10 ** (-0.1 * dmag) : 0.8);
+  const companion = classifyCompanion(qDyn != null ? m2 : null, primary, dmag);
   const now = relativePosition(el, year);
   // Bir dönem boyunca en küçük ve en büyük görünen ayrım
   let min = Infinity, max = 0, minYear = year, maxYear = year;
@@ -74,7 +107,7 @@ export function deriveBinary(el, plxMas, plxErr, dmag, year) {
   return {
     periodYr: val(el.P, 'measured'), aArcsec: val(el.a, 'measured'), e: val(el.e, 'measured'), i: val(el.i, 'measured'),
     aAu: val(aAu, 'derived'), periAu: val(aAu && aAu * (1 - el.e), 'derived'), apoAu: val(aAu && aAu * (1 + el.e), 'derived'),
-    massSum: val(massSum, 'derived'), q: val(q, 'estimated'),
+    massSum: val(massSum, 'derived'), q: val(q, qDyn != null ? 'derived' : 'estimated'), companion,
     sepNow: val(now.rho, 'derived'), paNow: val(now.theta, 'derived'), now,
     sepMin: { value: min, year: minYear }, sepMax: { value: max, year: maxYear }, nextPeri,
   };

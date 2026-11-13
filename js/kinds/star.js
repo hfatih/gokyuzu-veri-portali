@@ -53,7 +53,8 @@ function addBinary(ctx, d, view) {
   fetchOrbit(obj, signal).then((orb) => {
     if (!orb || signal.aborted) return;
     const year = yearFromJd(jdNow());
-    const bd = deriveBinary(orb.el, obj.basic.plx, obj.raw.plxErr, orb.dmag, year);
+    const bd = deriveBinary(orb.el, obj.basic.plx, obj.raw.plxErr, orb.dmag, year,
+      { mass: d.M?.value, radius: d.R?.value, teff: d.teff?.value });
     ctx.insert(binaryHtml(orb, bd, apparentOrbit(orb.el)));
     const btn = ctx.card.querySelector('[data-binary-scene]');
     btn?.addEventListener('click', () => {

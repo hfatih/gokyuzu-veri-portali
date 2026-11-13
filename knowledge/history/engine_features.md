@@ -260,3 +260,15 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   çizmiyordu). Toz kuyruğunun hangi yana eğrildiği temsili: sahnede yörünge düzleminin yönü hesaplanmıyor.
 - Kontrol: `dev/check-sso.mjs`. Bugün etkin bir kuyruklu yıldız kartı olmadığı için sayfa içinde 1 AU'daki bir çekirdek
   parametreleriyle çizdirilerek bakıldı.
+
+## 2026-11-13 · Fizik yükseltmesi 9/9: çift yıldız
+
+- **Dinamik kütle oranı (`binary/derive.js`):** M₂ = (Kepler III toplamı) − M₁ (yıldızın kendi türetiminden);
+  0,05–1,5 aralığındaysa kullanılır (`q.origin: 'derived'`), yoksa eski fotometrik oran.
+- **Beyaz cüce yoldaş (`classifyCompanion`, `whiteDwarfRadius`):** kütlesine göre anakoldan ≥ 4 kadir sönük ve
+  < 1,44 M☉ ise beyaz cüce. Yarıçap Nauenberg (1972), sıcaklık V bandı yüzey parlaklığının Planck tersinden.
+  Sirius B: 1,01 M☉, 0,0077 R☉, ~21 500 K (ölçülen 1,02 / 0,0084 / 25 200); Procyon B ~7900 K (ölçülen 7740).
+- **Sahne:** beyaz cüce sıcak ve küçük çizilir (`r2`), kütle merkezi dinamik orana göre. Kartta "Yoldaş" satırı.
+- Bilinen hata (progress.md: "beyaz cüce yoldaş anakol varsayımıyla yanlış renkte") kapandı.
+- Kontrol: `dev/check-binary.mjs`. ORB6 (VizieR) CDS bozukken gelmediği için sahne sayfa içinde Sirius elemanlarıyla
+  çizdirilerek bakıldı.

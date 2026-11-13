@@ -31,11 +31,16 @@
 - Sönümleme renk fazlasından kaba tahmin (±0,3 mag); B parlaklığı yoksa düzeltme yok.
 - ORB6/VSX VizieR sütun adları, uydu QID'leri, kara delik ↔ gökada Wikidata bağı ve albedo niteleyici
   sorgusu canlı serviste doğrulanmadı (2026-11-05 oturumunda ağ kapalıydı); hata olursa sessiz atlanır.
-- Zonklama sıcaklığında TiO payı aile başına tek sabit (Mira/SR 0,5); kara delik diski toplam ışımayla parlar.
-- Işık eğrileri şematik; çift yıldız sahnesinde beyaz cüce yoldaş anakol varsayımıyla yanlış renkte.
+- Zonklama sıcaklığında TiO payı aile başına tek sabit (Mira/SR 0,5).
+- Işık eğrileri şematik.
+- Fizik yükseltmesinin (2026-11-13) bilinçli sınırları: gökada kolları türün istatistiği (o gökadanın kendi kolları
+  değil); kara delik dönmüyor (Kerr yok), kara delik sayfalarında jet verisi yok; Satürn halka tablosu bellekten;
+  kuyruk uzunluğu ölçeksiz, toz kuyruğunun eğrilme yanı temsili; küresel kümede King yerine Plummer.
 
 - [x] SIMBAD yedek aynası, üst bar/dil seçici, KVKK çerez ve yasal metin güncellemesi — 2026-11-05
 
 - [x] Model denetimi ve 8 düzeltme (zonklama, çift yıldız, Ay ışığı, gökada, yaşanabilir bölge) — 2026-11-13
 
 - [x] Gerçek gözlem haritaları: Ay, Jüpiter, 5 uydu; tüm haritalar 4k — 2026-11-13
+
+- [x] Fizik yükseltmesi, 9 sahne (gökada, kara delik, yıldız, bulutsu, küme, pulsar, gezegen, kuyruklu yıldız, çift yıldız) — 2026-11-13

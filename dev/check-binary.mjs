@@ -56,3 +56,27 @@ const o2 = orbitFromRow(row2, { Per: 'd', Axis: 'mas', T0: 'JD' });
 near(o2.el.P, 9.99, 10.01, 'gün → yıl'); assert.equal(o2.el.a, 0.25); near(o2.el.T, 1999.99, 2000.01, 'JD → yıl');
 assert.equal(orbitFromRow({ P: 10, a: 1, i: 0, Node: 0, T: 2000, e: 1.2, omega: 0 }), null);   // e ≥ 1 geçersiz
 console.log('binary: ORB6 ayrıştırma geçti');
+
+// Beyaz cüce yoldaş: dinamik kütle + parlaklık açığı
+{
+  const { classifyCompanion, whiteDwarfRadius } = await import('../js/binary/derive.js');
+  // Nauenberg: Sirius B (1,02 M☉) ölçülen 0,0084 R☉, Procyon B (0,60 M☉) 0,0123 R☉
+  near(whiteDwarfRadius(1.02), 0.007, 0.009, 'Sirius B yarıçapı'); near(whiteDwarfRadius(0.6), 0.0115, 0.013, 'Procyon B yarıçapı');
+  // Sirius: toplam ~3,1 M☉, birincil 2,06 → yoldaş ~1 M☉; Δm = 9,9 → beyaz cüce, ~25 000 K (ölçülen 25 200 K)
+  const sb = deriveBinary(sirius, 379.21, 1.58, 9.9, 2025.0, { mass: 2.06, radius: 1.71, teff: 9940 });
+  assert.equal(sb.companion.kind, 'wd'); near(sb.companion.mass, 0.9, 1.15, 'Sirius B kütlesi');
+  near(sb.companion.teff, 17000, 32000, 'Sirius B sıcaklığı'); near(sb.q.value, 0.44, 0.56, 'dinamik kütle oranı');
+  assert.equal(sb.q.origin, 'derived');
+  // Procyon B: 0,6 M☉, Δm = 10,3, birincil 1,5 M☉ / 2,05 R☉ / 6530 K → ~7700 K (ölçülen 7740 K)
+  const pb = classifyCompanion(0.6, { mass: 1.5, radius: 2.05, teff: 6530 }, 10.3);
+  assert.equal(pb.kind, 'wd'); near(pb.teff, 7000, 8600, 'Procyon B sıcaklığı');
+  // α Cen: yoldaş kütlesine uygun parlaklıkta → anakol; birincil bilinmiyorsa eski fotometrik oran
+  const ab = deriveBinary(acen, 747.1, 0.5, 1.3, 2016.0, { mass: 1.1, radius: 1.22, teff: 5790 });
+  assert.equal(ab.companion.kind, 'ms'); near(ab.q.value, 0.7, 0.95, 'α Cen kütle oranı');
+  assert.equal(s.companion.kind, 'ms'); assert.equal(s.q.origin, 'estimated');
+  const { binaryVisualParams } = await import('../js/render/binary.js');
+  const vp = binaryVisualParams(sirius, sb, 9940, 2025);
+  assert.ok(vp.teff2 > 15000 && vp.r2 < 0.02, `Sirius B sahnede sıcak ve küçük: ${vp.teff2}, ${vp.r2}`);
+  near(binaryVisualParams(acen, ab, 5790, 2016).r2, 0.05, 0.07, 'anakol yoldaşın sahne yarıçapı');
+  console.log('binary: beyaz cüce yoldaş geçti');
+}

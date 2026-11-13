@@ -87,7 +87,7 @@ void main() {
 }`;
 
 /**
- * params: { el (Campbell), year0 (açılış yılı), q (M₂/M₁), teff1, teff2 }.
+ * params: { el (Campbell), year0 (açılış yılı), q (M₂/M₁), teff1, teff2, r2 (ikincilin sahne yarıçapı) }.
  * Sahne birimi: en büyük ayrım (a(1+e)) = 1. Gökyüzü düzlemi x (doğu) – y (kuzey), bakış yönü z.
  */
 export const binaryScene = {
@@ -122,7 +122,7 @@ export const binaryScene = {
     gl.uniform3f(U.uP1, -rel[0] * f1, -rel[1] * f1, -rel[2] * f1);
     gl.uniform3f(U.uP2, rel[0] * f2, rel[1] * f2, rel[2] * f2);
     gl.uniform1f(U.uR1, 0.07);
-    gl.uniform1f(U.uR2, 0.07 * p.q ** 0.8);
+    gl.uniform1f(U.uR2, p.r2);
     gl.uniform1f(U.uT1, p.teff1);
     gl.uniform1f(U.uT2, p.teff2);
     gl.uniform3fv(U['uPath[0]'], st.path);
@@ -136,6 +136,12 @@ export const binaryScene = {
  * L ∝ M⁴ ve R ∝ M^0,8 (sahnedeki yarıçap oranı) → T⁴ ∝ L / R² ∝ M^2,4, yani T ∝ M^0,6.
  */
 export function binaryVisualParams(el, bd, teff1, year0) {
-  const q = bd.q.value;
-  return { el, year0, q, teff1, teff2: Math.max(2400, teff1 * q ** 0.6) };
+  const q = bd.q.value, wd = bd.companion?.kind === 'wd';
+  // Beyaz cüce: sıcaklık yüzey parlaklığından (derive.js); gerçek boyu birincilin ~%0,5'i, görünsün diye
+  // sahnede birincilin altıda biri çizilir
+  return {
+    el, year0, q, teff1,
+    teff2: wd && bd.companion.teff ? Math.min(60000, bd.companion.teff) : Math.max(2400, teff1 * q ** 0.6),
+    r2: wd ? 0.012 : 0.07 * q ** 0.8,
+  };
 }

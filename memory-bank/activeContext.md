@@ -61,3 +61,9 @@ zonklama ve çift yıldız sahneleri tarayıcıda test parametreleriyle doğrula
 haritalar 4096×2048 (ayrıntı `knowledge/history/engine_features.md`, kaynaklar `assets/textures/KAYNAK.md`). Satürn ve
 bulutlu cisimler modelde kaldı. Tarayıcıda on haritalı cismin hepsi açılıp bakıldı; telefonda ve yavaş bağlantıda
 (harita inene kadarki model görünümü) denenmedi.
+
+**2026-11-13 (3):** Dokuz sahnenin fiziği yükseltildi, her biri ayrı commit (ayrıntı `knowledge/history/engine_features.md`,
+"Fizik yükseltmesi 1/9 … 9/9"). En büyük değişiklik gökada (kalın disk, Sérsic, dönme). Pulsar, çift yıldız ve etkin
+kuyruklu yıldız sahneleri canlı kartla değil, sayfa içinde test parametreleriyle doğrulandı (CDS bozuk / bugün etkin
+kuyruklu yıldız yok). Telefonda kare hızı ölçülmedi; gökada sahnesi artık her karede ışın yürütüyor.
+Yeni kural: metinlerde kesme işareti kaçışsız yazılırsa site açılmaz; `dev/check-syntax.mjs` bunu yakalar.
