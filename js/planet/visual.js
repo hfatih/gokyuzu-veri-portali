@@ -26,6 +26,7 @@ export function chroma(T) {
 /**
  * pd: derivePlanet(), solar: solar.js kaydı ya da null, hostTeff: ana yıldız Teff (yoksa 5772).
  * mode: 0 doku, 1 bulut bantları, 2 Venüs bulut örtüsü, 3 kayalık yüzey modeli, 4 uydu yüzeyi (iki ton).
+ * fallback: doku inene kadar çizilecek kip. tint: dokuyla çarpılan renk (tek renkli haritalar için).
  */
 export function planetVisualParams(pd, solar, hostTeff) {
   const T = pd.temp?.value ?? pd.teq?.value ?? 250;
@@ -42,13 +43,19 @@ export function planetVisualParams(pd, solar, hostTeff) {
     rotSec, retro: rotDays < 0 ? -1 : 1,
     tilt: (solar?.tilt ?? 0) * Math.PI / 180,
     oblate: 0, ring: solar?.ring ?? null, texture: solar?.texture ?? null,
-    atm: [0, 0, 0, 0], bands: 0, zone: [0.5, 0.5, 0.5], belt: [0.5, 0.5, 0.5], contrast: 0,
+    tint: [1, 1, 1], atm: [0, 0, 0, 0], bands: 0, zone: [0.5, 0.5, 0.5], belt: [0.5, 0.5, 0.5], contrast: 0,
     teq: T, glow: 0, glowColor: [0, 0, 0],
   };
 
   // Uydular: temsili iki tonlu yüzey (kip 4) ya da bulut örtüsü (Titan)
-  if (solar?.look) return { ...base, contrast: 0.6, ...solar.look, atm: solar.look.atm ?? base.atm };
-  if (solar?.texture) {
+  if (solar?.look) {
+    const look = { ...base, contrast: 0.6, ...solar.look, atm: solar.look.atm ?? base.atm };
+    if (!solar.texture) return look;
+    // Gerçek harita. Tek renkli (gri) haritalar yüzeyin ana tonuyla renklendirilir; parlaklık haritadan gelir
+    const mx = Math.max(...look.zone);
+    return { ...look, mode: 0, fallback: look.mode, tint: solar.mono ? look.zone.map((c) => c / mx) : base.tint };
+  }
+  if (solar?.texture && !fluid) {
     return { ...base, mode: 0, atm: solar.atmosphere ? [...solar.atmosphere, solar.key === 'earth' ? 0.7 : 0.18] : base.atm };
   }
   if (solar?.clouds) {
@@ -65,7 +72,8 @@ export function planetVisualParams(pd, solar, hostTeff) {
     const q = omega ** 2 * (Rkm * 1e3) ** 3 / (6.674e-11 * M);
     const hot = Math.min(1, Math.max(0, (T - 1000) / 1000));
     return {
-      ...base, mode: 1, bands: rhinesBands(Rkm, rotSec), zone: CLOUD[cloud][0], belt: CLOUD[cloud][1], contrast,
+      // Haritası olan dev (Jüpiter): bulutlar gözlem haritasından, basıklık ve kenar kararması modelden
+      ...base, mode: solar?.texture ? 0 : 1, fallback: 1, bands: rhinesBands(Rkm, rotSec), zone: CLOUD[cloud][0], belt: CLOUD[cloud][1], contrast,
       oblate: Math.min(0.15, q * 0.75), atm: [...CLOUD[cloud][0], 0.25],
       glow: hot * 0.6, glowColor: chroma(Math.max(1000, T * 1.1)),
     };

@@ -12,6 +12,7 @@ uniform float uTanFov, uExposure, uStars;
 uniform int uMode;
 uniform sampler2D uTex;
 uniform float uHasTex;
+uniform vec3 uTint;
 uniform vec3 uLight, uLightDir;
 uniform float uRot, uTilt, uOblate, uTime;
 uniform float uBands, uContrast, uTeq, uGlow;
@@ -50,7 +51,7 @@ vec3 surface(vec3 q) {
     vec2 uv2 = vec2(fract(uv.x + 0.5), uv.y);   // dikiş çizgisinde türev sıçramasını önler
     vec2 dx = dFdx(uv), dy = dFdy(uv), dx2 = dFdx(uv2), dy2 = dFdy(uv2);
     if (abs(dx2.x) + abs(dy2.x) < abs(dx.x) + abs(dy.x)) { dx = dx2; dy = dy2; }
-    return pow(textureGrad(uTex, uv, dx, dy).rgb, vec3(2.2));
+    return pow(textureGrad(uTex, uv, dx, dy).rgb, vec3(2.2)) * uTint;
   }
   if (uMode == 1 || uMode == 2) {
     // Bantlar: yarıküre başına uBands bant (kuşak ve kemer sırayla; uBands/2 çift), sınırlar türbülansla dalgalanır
@@ -111,7 +112,8 @@ void main() {
     vec3 alb = surface(q);
     float ndl = dot(n, L), mu = max(dot(n, -rd), 0.0);
     float day = max(ndl, 0.0);
-    if (uMode == 1 || uMode == 2) day *= pow(mu, 0.15);   // bulutlu atmosferde kenar kararması
+    // Bulutlu atmosferde kenar kararması (haritalı dev gezegende de: kip 0 ve bant sayısı > 0)
+    if (uMode == 1 || uMode == 2 || (uMode == 0 && uBands > 0.0)) day *= pow(mu, 0.15);
     // Havasız, tozlu yüzey (Ay, Merkür, uydular, çıplak kaya): Lommel–Seeliger ağırlıklı saçılma.
     // Lambert dolunayı kenara doğru karartır; gerçek Ay kenara kadar neredeyse eşit parlaktır.
     else if (uAtm.a < 0.01) day = mix(2.0 * day / (day + mu + 1e-4), day, 0.3);
@@ -191,6 +193,8 @@ export const planetScene = {
     if (p.texture) {
       const img = loadImage(p.texture, () => view.redraw());
       if (img.complete && img.naturalWidth && st.url !== p.texture) {
+        // ponytail: 4096 px harita küçültülmeden yüklenir; WebGL2 cihazlarının hepsi bunu taşır
+        // (MAX_TEXTURE_SIZE ≥ 4096). Daha küçük sınırlı bir cihaz çıkarsa burada canvas ile küçült.
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -201,8 +205,9 @@ export const planetScene = {
       }
       hasTex = st.url === p.texture ? 1 : 0;
     }
-    // Doku henüz yoksa kayalık model geçici olarak çizilir
-    gl.uniform1i(U.uMode, p.mode === 0 && !hasTex ? 3 : p.mode);
+    // Doku henüz yoksa model geçici olarak çizilir (uydu: iki ton, dev: bantlar, diğer: kayalık)
+    gl.uniform1i(U.uMode, p.mode === 0 && !hasTex ? p.fallback ?? 3 : p.mode);
+    gl.uniform3f(U.uTint, ...p.tint);
     gl.uniform1f(U.uHasTex, hasTex);
     gl.uniform3f(U.uLight, ...p.light);
     const l = [-0.35, 0.2, 1.0], ln = Math.hypot(...l);

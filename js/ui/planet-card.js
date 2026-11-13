@@ -114,7 +114,7 @@ export function renderMoonCard(container, sel, m, md, links) {
     <dl class="props">${rows.map(([k, v, o]) => `
       <div class="props__row"><dt>${t('m.row.' + k)}</dt><dd>${esc(v)} ${o ? badge(o) : ''}</dd></div>`).join('')}
     </dl>
-    <p class="note">${t('m.note')}</p>
+    <p class="note">${t('m.note')} ${t(m.moon?.texture ? 'm.noteTexture' : 'm.noteLook')}</p>
     <h3 class="card__h">${t('card.links')}</h3>
     <ul class="links" data-links>${linkItems(links)}</ul>`;
 }

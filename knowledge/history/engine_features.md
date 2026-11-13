@@ -146,3 +146,20 @@ Ayrıntı: [docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](../../doc
   GitHub Issues (e-posta tanımlanırsa o). Adres yoksa gösterilmez. Harvard aynası sunucu tablosunda, KVKK m. 9
   (7499 sayılı Kanun, 2024) yurt dışı aktarım paragrafı, m. 14 Kurul'a şikâyet, açık rıza ve alenileştirme sebepleri,
   Kullanım Koşulları'na sorumluluk sınırı ve Güneş uyarısı. Barındırma ve kayıt süresi yer tutucu (yer belli değil).
+
+## 2026-11-13 · Gerçek gözlem haritaları: Ay, Jüpiter ve büyük uydular
+
+- **Kapsam:** Ay, Jüpiter, İo, Europa, Ganymede, Kallisto ve Enceladus artık NASA/USGS kamu malı haritasıyla çizilir
+  (önce yalnız Merkür, Dünya, Mars). Mevcut üç harita da kaynaktan 4096×2048'e yeniden üretildi (Dünya 3840×1920).
+  Kaynak ve işlem ayrıntısı `assets/textures/KAYNAK.md`.
+- **`planet/solar.js`:** Jüpiter ve altı uyduya `texture`; tek renkli haritalara `mono: true`.
+- **`planet/visual.js`:** haritalı uydu kip 0, `fallback` = eski temsili kip (harita inene kadar çizilir), `tint` =
+  tek renkli haritada `look.zone` tonu. Haritalı dev gezegen (Jüpiter) kip 0 ama basıklık, atmosfer kenarı ve
+  kenar kararması modelden; `fallback` bant modeli.
+- **`render/planet.js`:** `uTint` uniform'u; doku yokken `p.fallback ?? 3`; kip 0 + bant sayısı > 0 iken bulutlu
+  atmosfer kenar kararması.
+- **Kart:** uydu notu haritalıysa `m.noteTexture`, değilse `m.noteLook`. Yasal sayfadaki doku satırı genişletildi.
+- **Dokunulmayan:** Satürn (kamu malı tam harita yok), Venüs/Uranüs/Neptün/Titan (görünür ışıkta yüzey yok),
+  Triton/Fobos/Deimos (tam harita yok).
+- **Maliyet:** `assets/textures` 1,5 MB → 15 MB; harita başına 0,5–3,2 MB, yalnız o cisim açılınca iner.
+- Kontrol: `dev/check-planet.mjs` (doku dosyaları depoda, kipler, renklendirme, Jüpiter basıklığı).

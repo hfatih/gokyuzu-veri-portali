@@ -37,3 +37,5 @@
 - [x] SIMBAD yedek aynası, üst bar/dil seçici, KVKK çerez ve yasal metin güncellemesi — 2026-11-05
 
 - [x] Model denetimi ve 8 düzeltme (zonklama, çift yıldız, Ay ışığı, gökada, yaşanabilir bölge) — 2026-11-13
+
+- [x] Gerçek gözlem haritaları: Ay, Jüpiter, 5 uydu; tüm haritalar 4k — 2026-11-13

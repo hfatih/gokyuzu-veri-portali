@@ -191,7 +191,7 @@ const SOURCES = [
   ['hips2fits ve Aladin', 'CDS, Strasbourg, Fransa', 'Gökyüzü görüntüleri Pan-STARRS1 (Chambers vd. 2016) ve Digitized Sky Survey 2 (STScI) taramalarından anlık kesilir.'],
   ['Wikidata', 'Wikimedia Vakfı', 'Yapılandırılmış veriler CC0 kamu malı adanmasıyla kullanılır.'],
   ['SsODNet', 'IMCCE, Paris Gözlemevi', 'Berthier vd. 2023, A&amp;A 671, A151.'],
-  ['Gezegen dokuları', 'NASA / USGS', 'Merkür (MESSENGER MDIS), Dünya (Blue Marble, Terra/MODIS) ve Mars (Viking MDIM 2.1) haritaları ABD hükümeti eseri olarak kamu malıdır.'],
+  ['Gezegen dokuları', 'NASA / USGS', 'Merkür (MESSENGER MDIS), Dünya (Blue Marble, Terra/MODIS), Mars (Viking MDIM 2.1), Jüpiter (Cassini), Ay (LRO/LROC), İo, Europa, Ganymede, Kallisto (Galileo SSI + Voyager, USGS) ve Enceladus (Cassini) haritaları ABD hükümeti eseri olarak kamu malıdır.'],
   ['Güneş aktif bölgeleri', 'NOAA SWPC', 'Günlük aktif bölge raporu (ABD hükümeti verisi, kamu malı). Leke modeli: Hathaway vd. 1994, Hathaway 2011, Stenflo &amp; Kosovichev 2012, Snodgrass &amp; Ulrich 1990, Gnevyshev–Waldmeier kuralı.'],
   ['Kuasar tayfı', 'SDSS', 'Bileşik kuasar tayfı: Vanden Berk vd. 2001, AJ 122, 549.'],
   ['Yazı tipleri', 'Indestructible Type, IBM', 'Jost ve IBM Plex Mono, SIL Open Font License 1.1 ile kendi sunucumuzdan verilir.'],

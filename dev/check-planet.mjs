@@ -98,3 +98,31 @@ console.log('planet: tüm kontroller geçti');
     near(moon.rot.value, 27.3, 27.4, 'Ay dönmesi = yörünge dönemi');
   }
 }
+
+// Gerçek haritalar: her doku dosyası depoda var; haritalı uydu kip 0 (inene kadar iki ton), tek renkli
+// harita ana tonla renklenir; Jüpiter haritayla da basık kalır ve inene kadar bantlarla çizilir
+{
+  const { existsSync } = await import('node:fs');
+  const { SOLAR_PLANETS, SOLAR_MOONS, solarMoon, solarPlanet } = await import('../js/planet/solar.js');
+  const { planetVisualParams } = await import('../js/planet/visual.js');
+  const textured = [...SOLAR_PLANETS, ...SOLAR_MOONS].filter((x) => x.texture);
+  assert.equal(textured.length, 10, 'haritalı cisim sayısı');
+  for (const x of textured) assert.ok(existsSync(new URL('../' + x.texture, import.meta.url)), `doku yok: ${x.texture}`);
+  for (const key of ['saturn', 'venus', 'uranus', 'neptune']) assert.equal(SOLAR_PLANETS.find((x) => x.key === key).texture, undefined, `${key} modelle çizilir`);
+
+  const rock = { cls: 'rocky', teq: { value: 270 }, rot: { value: 27.3 } };
+  const ay = planetVisualParams(rock, solarMoon('moon:Q405'), 5772);
+  assert.deepEqual([ay.mode, ay.fallback, ay.tint], [0, 4, [1, 1, 1]], 'Ay: renkli harita');
+  const cal = planetVisualParams(rock, solarMoon('moon:Q3134'), 5772);
+  assert.equal(cal.mode, 0);
+  assert.ok(cal.tint[0] === 1 && cal.tint[2] < cal.tint[1] && cal.tint[1] < 1, `Kallisto sıcak tonla renklenir: ${cal.tint}`);
+  const titan = planetVisualParams(rock, solarMoon('moon:Q2565'), 5772);
+  assert.equal(titan.mode, 2, 'Titan pus modeli kalır');
+
+  const jup = planetVisualParams({ cls: 'giant', teq: { value: 110 }, rot: { value: 0.4135 }, radius: { value: 11.2 }, mass: { value: 317.8 }, gravity: { value: 24.8 } },
+    solarPlanet('planet:Q319'), 5772);
+  assert.deepEqual([jup.mode, jup.fallback], [0, 1], 'Jüpiter: harita, inene kadar bantlar');
+  near(jup.oblate, 0.05, 0.08, 'Jüpiter basıklığı (gözlenen 0,065)');
+  assert.ok(jup.bands > 0, 'kenar kararması için bant sayısı');
+  console.log('planet: gerçek harita kontrolleri geçti');
+}

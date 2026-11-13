@@ -56,3 +56,8 @@
 zonklama sıcaklığı V bandı Planck'tan, çift yıldız görsel parlaklık oranı, havasız cisimlerde Lommel–Seeliger, uzak gökadada
 ΛCDM uzaklıkları ve iç sönümleme, Kopparapu 2014 yaşanabilir bölge, Teff tablosu. CDS bozukken VSX/ORB6 gelmediği için
 zonklama ve çift yıldız sahneleri tarayıcıda test parametreleriyle doğrulandı, canlı veriyle değil.
+
+**2026-11-13 (2):** Ay, Jüpiter, İo, Europa, Ganymede, Kallisto ve Enceladus gerçek NASA/USGS haritasıyla çiziliyor; bütün
+haritalar 4096×2048 (ayrıntı `knowledge/history/engine_features.md`, kaynaklar `assets/textures/KAYNAK.md`). Satürn ve
+bulutlu cisimler modelde kaldı. Tarayıcıda on haritalı cismin hepsi açılıp bakıldı; telefonda ve yavaş bağlantıda
+(harita inene kadarki model görünümü) denenmedi.
