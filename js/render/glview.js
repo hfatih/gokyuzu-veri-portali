@@ -2,17 +2,81 @@
 // görünmezken durma. Ne çizileceğini "sahne" belirler (star.js, planet.js); bir canvas'ın tek
 // WebGL bağlamı olduğu için yıldız ve gezegen aynı görünümde sahne değiştirerek çizilir.
 
-// Gerçek gökyüzü: NASA SVS Deep Star Maps 2020 (Hipparcos-2, Tycho-2, Gaia DR2), ekvatoral koordinatta
-// eşdikdörtgen; sağ açıklık sola doğru artar, merkez 0h. Sahnelerde y ekseni gök kuzey kutbudur. Doğrusal
-// ışınım × uStars × 0,6 (Samanyolu sahnenin önüne geçmesin). Her sahne `${SKY_GLSL}` ile alır ve sky(yön) çağırır.
-export const SKY_GLSL = `uniform sampler2D uSky;
-vec3 sky(vec3 d) {
-  float ra = atan(d.z, d.x), dec = asin(clamp(d.y, -1.0, 1.0));
-  return pow(texture(uSky, vec2(fract(0.5 - ra / 6.2831853), 0.5 - dec / 3.1415927)).rgb, vec3(2.2)) * uStars * 0.6;
-}`;
+// Gökyüzü (yordamsal, fizik tabanlı): her sahne `${SKY_GLSL}` ile alır ve sky(yön) çağırır. Fotoğraf dokusu
+// büyütmede bulanık leke veriyordu; burada her yıldız ekran pikseli ölçeğinde çizilir, her çözünürlükte keskindir.
+// - Yer: yön küresini kesen 3B hücre ızgarası, hücre başına en çok bir yıldız. Yıldızın izdüşümü hücre sınırlarından
+//   en az 0,3 hücre içeride olmalı (yoksa hücre boş): ışığı komşu hücreye taşmaz, kesik yıldız olmaz. Hücre başına
+//   düşme oranı ölçüldü: gökte ≈ 0,9 · p · s² yıldız (s: birim yön başına hücre).
+// - Sayı: üç katman, kadir dağılımı N(<m) ∝ 10^(0,45 m) (alan sayımlarının ortalama eğimi). Gök geneli hedef ~25 000
+//   yıldız (m ≤ 7,5; gerçek sayım ≈ 25 000): parlaklar seyrek, sönükler galaktik düzlemde 3,5 kata kadar sık.
+// - Görüntü: toplam akı Φ ∝ 10^(−0,4 m), piksel cinsinden Gauss nokta yayılım işlevi (σ = 0,6 piksel) + parlaklarda
+//   r^−3 saçılma halesi. Sabit σ ile parlak yıldız doğal olarak büyük görünür (fotoğraftaki gibi).
+// - Renk: sıcaklıktan, Planck eğrisi 610/550/465 nm'de örneklenir (soldurulmaz: gama zaten soluklaştırır).
+// - Samanyolu: galaktik düzlemde (σ ≈ 6°) hafif yaygın ışık, merkeze doğru şişkinlik, fbm toz şeritleri.
+// Yön çerçevesi: y gök kuzey kutbu, sağ açıklık atan(z, x); galaktik kutup ve merkez gerçek ekvatoral yönleriyle.
+export const SKY_GLSL = `
+vec3 skyHash(vec3 p) {   // sinüssüz karma (Hoskins): ızgara deseni bırakmaz
+  p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+  p += dot(p, p.yxz + 33.33);
+  return fract((p.xxy + p.yxx) * p.zyx);
+}
+float skyNoise(vec3 x) {
+  vec3 i = floor(x), f = fract(x), u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(skyHash(i).x, skyHash(i + vec3(1,0,0)).x, u.x), mix(skyHash(i + vec3(0,1,0)).x, skyHash(i + vec3(1,1,0)).x, u.x), u.y),
+             mix(mix(skyHash(i + vec3(0,0,1)).x, skyHash(i + vec3(1,0,1)).x, u.x), mix(skyHash(i + vec3(0,1,1)).x, skyHash(i + vec3(1,1,1)).x, u.x), u.y), u.z);
+}
+float skyFbm(vec3 x) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * skyNoise(x); x *= 2.07; a *= 0.5; } return s; }
 
-let SKY_IMG = null;
-const skyImage = () => (SKY_IMG ??= Object.assign(new Image(), { decoding: 'async', src: 'assets/textures/sky.jpg' }));
+const vec3 SKY_NGP = vec3(-0.8678, 0.4560, -0.1975);   // galaktik kuzey kutbu (α 192,86°, δ +27,13°)
+const vec3 SKY_GC = vec3(-0.0549, -0.4838, -0.8735);   // galaktik merkez (α 266,40°, δ −28,94°)
+
+// Sıcaklıktan yıldız rengi: Planck B(λ, T) ∝ λ^−5 / (e^(c₂/λT) − 1), λ µm, c₂ = 14 388 µm·K
+vec3 skyStarRgb(float T) {
+  vec3 lam = vec3(0.610, 0.550, 0.465);
+  vec3 b = 1.0 / (pow(lam, vec3(5.0)) * (exp(14388.0 / (lam * T)) - 1.0));
+  return b / max(b.r, max(b.g, b.b));
+}
+
+// Bir katman: s hücre/birim yön, [m0, m1] kadir aralığı, p temel olasılık, gal yerel yoğunluk çarpanı
+vec3 skyLayer(vec3 d, float s, float m0, float m1, float p, float gal, float pxRad) {
+  float cellPx = 1.0 / (s * pxRad);
+  float fade = smoothstep(3.0, 6.0, cellPx);   // hücre birkaç pikselden küçükse (küçük görüntü) katman söner
+  if (fade <= 0.0) return vec3(0.0);
+  vec3 c = floor(d * s), h = skyHash(c);
+  if (h.x > p * gal) return vec3(0.0);
+  vec3 h2 = skyHash(c + 71.3);
+  vec3 sd = normalize((c + h2) / s);
+  vec3 f = sd * s - c;
+  if (min(min(f.x, f.y), f.z) < 0.3 || max(max(f.x, f.y), f.z) > 0.7) return vec3(0.0);
+  float r = length(d - sd) / pxRad;                                   // yıldıza açısal uzaklık, piksel
+  float k = 1.0362;                                                   // 0,45 ln 10
+  float m = m0 + log(1.0 + h.y * (exp(k * (m1 - m0)) - 1.0)) / k;     // N(<m) ∝ 10^(0,45 m), ters dönüşüm
+  float flux = 0.3 * exp(-0.9210 * (m - 7.5));                        // 10^(−0,4 (m − 7,5))
+  float I = flux * (0.4421 * exp(-1.3889 * r * r) + 4e-4 / pow(1.0 + r * r / 2.25, 1.5));   // σ = 0,6 px
+  I *= 1.0 - smoothstep(0.18, 0.3, r / cellPx);                       // hücre sınırına varmadan söner
+  // Sıcaklık: parlaklık sınırlı örneklemde ~%8 B–A, ~%30 F–G, kalanı K–M (devler dahil)
+  float T = h.z < 0.08 ? mix(9500.0, 25000.0, h2.x * h2.x) : h.z < 0.38 ? mix(5800.0, 9000.0, h2.x) : mix(3400.0, 5600.0, h2.x);
+  return skyStarRgb(T) * I * fade;
+}
+
+vec3 sky(vec3 d) {
+  if (uStars <= 0.0) return vec3(0.0);
+  float pxRad = 2.0 * uTanFov / uRes.y;
+  float sb = dot(d, SKY_NGP), absB = asin(min(abs(sb), 1.0));
+  float plane = exp(-absB / 0.19);                                    // ölçek ~11°: sönük yıldızlar düzlemde yoğunlaşır
+  // Galaktik çerçeve (x merkeze, z kutba): toz ve yıldız bulutları düzlem boyunca uzun, enlemde ince
+  vec3 g = vec3(dot(d, SKY_GC), dot(d, normalize(cross(SKY_NGP, SKY_GC))), sb);
+  float dust = smoothstep(0.56, 0.74, skyFbm(vec3(g.xy * 4.0, g.z * 24.0) + 3.1)) * exp(-sb * sb / 0.004);   // toz şeritleri
+  float gal = (1.0 - 0.7 * dust);
+  vec3 col = skyLayer(d, 40.0, -1.0, 3.5, 0.21, (1.0 + 0.5 * plane) / 1.1 * gal, pxRad)
+           + skyLayer(d, 120.0, 3.5, 5.5, 0.21, (1.0 + plane) / 1.2 * gal, pxRad)
+           + skyLayer(d, 260.0, 5.5, 7.5, 0.36, (1.0 + 2.5 * plane) / 1.5 * gal, pxRad);
+  // Samanyolu yaygın ışığı: çözülmemiş yıldızlar; merkeze doğru şişkinlik, toz önünde kararır
+  float bulge = exp(-(1.0 - dot(d, SKY_GC)) / 0.05);
+  float glow = exp(-sb * sb / 0.011) * (0.45 + 1.1 * skyFbm(vec3(g.xy * 3.0, g.z * 10.0) + 9.7)) * (1.0 + 2.5 * bulge) * (1.0 - 0.85 * dust);
+  col += vec3(0.95, 0.88, 0.76) * glow * 0.02;   // ACES'in karanlık ucunda kaybolmayacak kadar
+  return col * uStars;
+}`;
 
 const VERT = `#version 300 es
 void main() { vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2); gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
@@ -71,24 +135,6 @@ export function createView(canvas, opts = {}) {
   };
   let visible = true, raf = 0, last = 0;
 
-  // Gökyüzü dokusu 7. birimde (sahneler 0–3'ü kullanır); yüklenene kadar siyah. Büyütmede görülür, mipmap
-  // gerekmez (4096 piksel / 360° ≈ 400 piksel / görüş alanı), dikişte türev sıçraması da olmaz.
-  const skyTex = gl.createTexture();
-  const sky = skyImage();
-  const putSky = (src) => {
-    gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, skyTex);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    if (src) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src);
-    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array(3));
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.activeTexture(gl.TEXTURE0);
-  };
-  putSky(null);
-  if (sky.complete && sky.naturalWidth) putSky(sky);
-  else sky.addEventListener('load', () => { putSky(sky); draw(); }, { once: true });
-
   function resize() {
     const dpr = Math.min(devicePixelRatio || 1, maxDpr) * view.scale;
     const w = Math.max(1, Math.round(canvas.clientWidth * dpr)), h = Math.max(1, Math.round(canvas.clientHeight * dpr));
@@ -116,7 +162,6 @@ export function createView(canvas, opts = {}) {
     gl.uniform1f(U.uTanFov, Math.tan(17.5 * Math.PI / 180));
     gl.uniform1f(U.uExposure, view.exposure);
     gl.uniform1f(U.uStars, opts.stars === false ? 0 : 1);
-    if (U.uSky) { gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, skyTex); gl.uniform1i(U.uSky, 7); gl.activeTexture(gl.TEXTURE0); }
     sc.uniforms(gl, U, view.params, view, state);
     if (sc.draw) sc.draw(gl, view.params, view, state);
     else gl.drawArrays(gl.TRIANGLES, 0, 3);

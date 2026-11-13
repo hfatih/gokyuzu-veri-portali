@@ -1,6 +1,6 @@
 # Doku kaynakları
 
-Hepsi ABD hükümeti (NASA/USGS) eseri, kamu malıdır; gökyüzü haritası için NASA SVS atıf ister (aşağıda). Eşdikdörtgen izdüşüm, kuzey yukarıda. 2026-11-13'te
+Hepsi ABD hükümeti (NASA/USGS) eseri, kamu malıdır. Eşdikdörtgen izdüşüm, kuzey yukarıda. 2026-11-13'te
 kaynaklardan indirilip 4096×2048 JPG'ye (kalite 85) küçültüldü; kaynağı daha küçük olan kendi boyutunda kaldı.
 Boylam başlangıcı kaynağın kendi düzenindedir (cisim sahnede döndüğü için görünümü etkilemez).
 
@@ -22,7 +22,6 @@ Boylam başlangıcı kaynağın kendi düzenindedir (cisim sahnede döndüğü i
 | `earth_night.jpg` | 4096×2048, tek renk | [File:City Lights 2012 - Flat map.jpg](https://commons.wikimedia.org/wiki/File:City_Lights_2012_-_Flat_map.jpg) | NASA Earth Observatory/NOAA NGDC, Suomi NPP VIIRS |
 | `moon_n.jpg` | 2048×1024, eğim | [CGI Moon Kit](https://svs.gsfc.nasa.gov/4720), `ldem_16_uint.tif` (LRO LOLA) | NASA SVS / LRO LOLA |
 | `mars_n.jpg` | 2048×1024, eğim | PDS Geosciences, MGS MOLA MEGDR `megt90n000eb.img` (16 piksel/derece) | NASA/GSFC, MGS MOLA |
-| `sky.jpg` | 4096×2048 | [Deep Star Maps 2020](https://svs.gsfc.nasa.gov/4851), `starmap_2020_4k.exr` | NASA/Goddard SVS; Gaia DR2: ESA/Gaia/DPAC |
 
 USGS dosyaları `https://planetarymaps.usgs.gov/mosaic/<dosya adı>` adresinden alındı.
 
@@ -39,10 +38,6 @@ USGS dosyaları `https://planetarymaps.usgs.gov/mosaic/<dosya adı>` adresinden 
 
 ## A grubu işlemleri (2026-11-14)
 
-- **Gökyüzü (`sky.jpg`):** doğrusal EXR, 1/2,2 ile kodlandı. Ekvatoral koordinat, merkez 0h, sağ açıklık sola doğru
-  artar (sayfadaki açıklama); doğrulama: en parlak nokta u = 0,889, δ = −60,8° → α = 220°, α Centauri. NASA SVS atıf
-  istiyor: "NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC". Takımyıldız
-  çizgisi yok. 8k sürüm 404 verdiği için 4k: yakından yıldızlar yumuşak görünür.
 - **Kabartma (`*_n.jpg`):** yükseklikten eğim (R doğuya, G kuzeye yükselme, ±0,6 → 0–255). Ay: DN × 0,5 m (CGI Moon Kit
   belgesine göre yarım metre, aralık 19,7 km); Mars: MOLA metre, −8,2…+21,2 km, 0° boylam merkeze kaydırıldı (MOLA
   0°D'den başlar). Ay ve Mars renk haritalarında da gölgeleme gömülü; kabartma onun üstüne eklenir.
@@ -54,6 +49,9 @@ USGS dosyaları `https://planetarymaps.usgs.gov/mosaic/<dosya adı>` adresinden 
   bulutlar `earth.jpg` içinde, dönmezler.
 
 ## Bilinçli olarak alınmayanlar
+
+- **Gökyüzü fotoğrafı:** NASA Deep Star Maps 2020 (4k) bir gün denendi, büyütmede yıldızlar bulanık leke
+  oldu; Fatih istemedi. Arka plan `js/render/glview.js` `SKY_GLSL` içinde yordamsal üretilir.
 
 - **Satürn:** kamu malı tam harita bulunamadı; fizikten üretilen bant modeli kalır.
 - **Venüs, Uranüs, Neptün, Titan:** görünür ışıkta yüzey değil bulut/pus görünür; model kalır.

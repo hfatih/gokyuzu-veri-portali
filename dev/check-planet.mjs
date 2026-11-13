@@ -156,7 +156,7 @@ console.log('planet: tüm kontroller geçti');
   console.log('planet: Rayleigh ve halka kontrolleri geçti');
 }
 
-// A grubu: kabartma ve gece ışığı dosyaları depoda, halka rengi tablosu tutarlı, gökyüzü haritası var
+// A grubu: kabartma ve gece ışığı dosyaları depoda, halka rengi tablosu tutarlı
 {
   const { existsSync } = await import('node:fs');
   const { SOLAR_PLANETS, SOLAR_MOONS, SATURN_RING_COLOR, SATURN_RING_TAU, solarPlanet, solarMoon } = await import('../js/planet/solar.js');
@@ -164,7 +164,6 @@ console.log('planet: tüm kontroller geçti');
   for (const x of [...SOLAR_PLANETS, ...SOLAR_MOONS]) {
     for (const k of ['relief', 'night']) if (x[k]) assert.ok(existsSync(new URL('../' + x[k], import.meta.url)), `${k} yok: ${x[k]}`);
   }
-  assert.ok(existsSync(new URL('../assets/textures/sky.jpg', import.meta.url)), 'gökyüzü haritası');
   assert.equal(solarMoon('moon:Q405').relief, 'assets/textures/moon_n.jpg');
   assert.equal(solarPlanet('planet:Q111').relief, 'assets/textures/mars_n.jpg');
   const earth = planetVisualParams({ cls: 'rocky', teq: { value: 255 }, rot: { value: 1 }, gravity: { value: 9.8 } }, solarPlanet('planet:Q2'), 5772);

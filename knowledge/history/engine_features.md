@@ -275,7 +275,7 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
 
 ## 2026-11-14 · Gerçekçilik A grubu: gökyüzü, kabartma, Dünya gecesi, cüce gezegenler, halka rengi
 
-- **Gerçek gökyüzü (bütün ışın sahneleri):** `render/glview.js` `SKY_GLSL` + `sky(yön)`; doku 7. birimde, her görünüm
+- **(Aynı gün geri alındı, aşağıya bak)** **Gerçek gökyüzü (bütün ışın sahneleri):** `render/glview.js` `SKY_GLSL` + `sky(yön)`; doku 7. birimde, her görünüm
   bir kez yükler. Yıldız, gezegen, gökada, bulutsu, kara delik (merceklenir), pulsar, küçük cisim ve çift yıldız
   sahnelerinde rastgele nokta yıldızlar kaldırıldı. Küme sahnesi (nokta çizimi) arka plansız kaldı.
 - **Kabartma:** `planet/solar.js` `relief` (Ay, Mars); `render/planet.js` eğim haritasından normal bükülür.
@@ -287,3 +287,16 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
 - `assets/textures` 15 → 22 MB; gökyüzü (1,5 MB) her ilk ziyarette iner, diğerleri yalnız o cisimde.
 - Kontrol: `dev/check-planet.mjs`, `dev/check-sso.mjs`. Tarayıcıda Ay (gece-gündüz çizgisinde krater gölgesi), Dünya
   gece yüzü (sayfa içi kamera), Satürn, Ceres, Plüton, Vesta, kara delik (sayfa içi).
+
+## 2026-11-14 · Gökyüzü: fotoğraf yerine yordamsal yıldız alanı
+
+- **Neden:** NASA Deep Star Maps 4k dokusu büyütmede yıldızları bulanık leke gibi gösterdi; Fatih "eski yapay yıldızlar
+  daha iyi, fizik ve matematikle net ve keskin kendin yap" dedi. `sky.jpg` silindi, doku yükleme kodu kaldırıldı.
+- **`render/glview.js` `SKY_GLSL`:** 3B hücre ızgarası, hücre başına en çok bir yıldız (izdüşüm sınırdan ≥ 0,3 hücre
+  içeride; kesik yıldız olmaz). Üç katman, N(<m) ∝ 10^(0,45 m), gök geneli ~25 000 yıldız (m ≤ 7,5). Hücre başına düşme
+  oranı Monte Carlo ile ölçüldü: ≈ 0,9 p s². Nokta yayılım işlevi piksel cinsinden Gauss (σ 0,6 px) + r^−3 hale: her
+  çözünürlükte keskin, parlaklar doğal olarak büyük. Renk Planck eğrisinden (610/550/465 nm), sıcaklık parlaklık sınırlı
+  örneklem karışımından. Samanyolu: gerçek galaktik kutup/merkez yönleri, sönük yıldızlar düzlemde 3,5 kat yoğun, yaygın
+  ışık + düzlem boyunca uzun toz şeritleri. Doğrulama: galaktik merkez yönünde ortalama piksel 16,9, kutupta 0,4.
+- **Yasal sayfa yıldızları (CSS):** box-shadow deseni 2000 px genişti; geniş ekranda sağ boş kalıyordu. `.stars.far`
+  ile yatayda bir kopya.
