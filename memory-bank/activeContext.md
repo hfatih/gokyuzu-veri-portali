@@ -67,3 +67,7 @@ bulutlu cisimler modelde kaldı. Tarayıcıda on haritalı cismin hepsi açılı
 kuyruklu yıldız sahneleri canlı kartla değil, sayfa içinde test parametreleriyle doğrulandı (CDS bozuk / bugün etkin
 kuyruklu yıldız yok). Telefonda kare hızı ölçülmedi; gökada sahnesi artık her karede ışın yürütüyor.
 Yeni kural: metinlerde kesme işareti kaçışsız yazılırsa site açılmaz; `dev/check-syntax.mjs` bunu yakalar.
+
+**2026-11-14:** Gerçekçilik A grubu: bütün sahnelerde gerçek gökyüzü (NASA Deep Star Maps), Ay ve Mars'ta kabartma, bulutlu
+Dünya ve gece ışıkları, Ceres/Vesta/Plüton gerçek haritaları, Satürn halka rengi. Ayrıntı engine_features.md. Telefonda
+kare hızı hâlâ ölçülmedi; gökyüzü 1,5 MB her ilk ziyarette iner.

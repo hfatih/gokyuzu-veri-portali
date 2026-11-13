@@ -43,6 +43,7 @@ export function planetVisualParams(pd, solar, hostTeff) {
     rotSec, retro: rotDays < 0 ? -1 : 1,
     tilt: (solar?.tilt ?? 0) * Math.PI / 180,
     oblate: 0, ring: solar?.ring ?? null, texture: solar?.texture ?? null,
+    relief: solar?.relief ?? null, night: solar?.night ?? null,
     tint: [1, 1, 1], atm: [0, 0, 0, 0], bands: 0, zone: [0.5, 0.5, 0.5], belt: [0.5, 0.5, 0.5], contrast: 0,
     teq: T, glow: 0, glowColor: [0, 0, 0],
     // Rayleigh optik derinliği: basıncı bilinen cisimde yüzeyden, modellenen dev gezegende bulut tepesinden.

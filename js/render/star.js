@@ -1,6 +1,7 @@
 // Yıldız sahnesi (glview.js üzerinde). Yüzey piksel başına ışın–elipsoit kesişimiyle bulunur.
 // Arka plan, köşe önizlemesi ve 3D görünüm aynı sahneyi farklı kamerayla kullanır.
 
+import { SKY_GLSL } from './glview.js';
 import { blackbodyTable } from './color.js';
 import { pulseState } from '../variable/derive.js';
 import { MAX_SPOTS, MAX_FAC } from '../sun/activity.js';
@@ -58,6 +59,8 @@ float granule(vec3 x, float t) {
   return (lane * inner * (0.7 + 0.6 * w.z) - 0.62) * 1.6;
 }
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+
+${SKY_GLSL}
 
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
@@ -142,10 +145,8 @@ void main() {
     float bimp = length(cross(ro, rd));
     float glow = 0.3 * exp(-(bimp - 1.0) * 10.0) + 0.01 / (bimp * bimp * bimp);
     col = bbEff.rgb / max(bbEff.r, max(bbEff.g, bbEff.b)) * glow * uBright;
-    // Uzak yıldızlar: yöne bağlı seyrek noktalar (kamerayla döner, yıldızla değil)
-    vec3 cell = floor(rd * 220.0), h = hash3(cell);
-    float sd = length(fract(rd * 220.0) - 0.5 - (h - 0.5) * 0.6);
-    col += uStars * step(0.9975, h.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * bb(2500.0 + h.z * 15000.0).rgb * (0.3 + h.y);
+    // Arka plan: gerçek gökyüzü (kamerayla döner, yıldızla değil)
+    col += sky(rd);
   }
   // Ton eşleme en parlak kanala uygulanır, renk tonu korunur (kanal başına ACES sarıya kaydırıyordu)
   col *= uExposure;

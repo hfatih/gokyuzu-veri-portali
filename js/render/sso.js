@@ -3,6 +3,8 @@
 // dönemle döner. Aydınlatma Lommel–Seeliger + Lambert karışımı (karanlık, gözenekli yüzeyler),
 // yumuşak öz gölge. Kuyruklu yıldızda çekirdeğin çevresinde güneşe doğru parlak koma (1/r² yoğunluk).
 
+import { SKY_GLSL } from './glview.js';
+import { bindMap } from './planet.js';
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 outColor;
@@ -11,6 +13,8 @@ uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
 uniform vec3 uRadii, uColor, uSun;
 uniform float uBump, uAlbedo, uAngle, uActivity, uSeed;
+uniform sampler2D uTex;
+uniform float uHasTex, uTexMean, uTexMono;
 uniform vec3 uGas, uLag;   // gaz komasının rengi (C₂), toz kuyruğunun yörüngede geride kaldığı yön
 const vec3 ION = vec3(0.42, 0.58, 1.0);    // CO⁺ kuyruğu (427 nm çevresi bantlar)
 const vec3 DUST = vec3(1.0, 0.92, 0.78);   // tozdan yansıyan, hafif kızarmış güneş ışığı
@@ -55,10 +59,18 @@ float shadow(vec3 p, vec3 l) {
   }
   return clamp(res, 0.0, 1.0);
 }
-vec3 stars(vec3 d) {
-  vec3 cell = floor(d * 260.0), h = hash3(cell);
-  float sd = length(fract(d * 260.0) - 0.5 - (h - 0.5) * 0.6);
-  return uStars * step(0.996, h.x) * (1.0 - smoothstep(0.0, 0.14, sd)) * mix(vec3(1.0, 0.8, 0.6), vec3(0.7, 0.8, 1.0), h.z) * (0.4 + h.y);
+
+${SKY_GLSL}
+
+// Gerçek harita (cisim çerçevesinde yönden eşdikdörtgen); ortalaması 1'e bölünmüş doğrusal yansıtma.
+// Dikişte türev sıçramasını önlemek için iki uv'nin küçük türevlisi seçilir (planet.js ile aynı yol).
+vec3 surfaceTex(vec3 q) {
+  q = normalize(q);
+  vec2 uv = vec2(0.5 + atan(q.x, q.z) / 6.2831853, 0.5 - asin(clamp(q.y, -1.0, 1.0)) / 3.1415927);
+  vec2 uv2 = vec2(fract(uv.x + 0.5), uv.y);
+  vec2 dx = dFdx(uv), dy = dFdy(uv), dx2 = dFdx(uv2), dy2 = dFdy(uv2);
+  if (abs(dx2.x) + abs(dy2.x) < abs(dx.x) + abs(dy.x)) { dx = dx2; dy = dy2; }
+  return pow(textureGrad(uTex, uv, dx, dy).rgb, vec3(2.2)) / uTexMean;
 }
 
 void main() {
@@ -89,10 +101,12 @@ void main() {
     float ls = mu0 / (mu0 + mu + 1e-4);
     float wl = clamp(uAlbedo * 2.0, 0.3, 0.8);                       // parlak yüzeyde Lambert ağırlığı artar
     float shade = ((1.0 - wl) * ls * 2.0 + wl * mu0) * shadow(p + n * 0.003, L);
-    float tone = 0.85 + 0.3 * fbm(toBody(p) * 9.0 + uSeed);        // yüzey lekeleri
-    col = uColor * uAlbedo * 1.6 * shade * tone;            // Bennu (0,044) kömür gibi, Vesta (0,42) parlak
+    // Yüzey deseni: gerçek harita varsa (Ceres, Vesta, Plüton) ondan, yoksa temsili lekeler
+    vec3 surf = uColor * (0.85 + 0.3 * fbm(toBody(p) * 9.0 + uSeed));
+    if (uHasTex > 0.5) { vec3 m = surfaceTex(toBody(p)); surf = uTexMono > 0.5 ? uColor * m.r : m; }
+    col = surf * uAlbedo * 1.6 * shade;            // Bennu (0,044) kömür gibi, Vesta (0,42) parlak
   } else {
-    col = stars(rd);
+    col = sky(rd);
   }
   // Koma: yoğunluk ∝ 1/r²; ışın boyunca sütun ≈ 1/b. Güneşe bakan taraf daha parlak
   if (uActivity > 0.0) {
@@ -135,7 +149,11 @@ void main() {
 export const ssoScene = {
   id: 'sso',
   frag: FRAG,
-  uniforms(gl, U, p, view) {
+  init(gl, view, U) {
+    gl.uniform1i(U.uTex, 2);
+    return {};
+  },
+  uniforms(gl, U, p, view, st) {
     gl.uniform3fv(U.uRadii, p.radii);
     gl.uniform3fv(U.uColor, p.color);
     gl.uniform3fv(U.uSun, p.sun);
@@ -144,6 +162,10 @@ export const ssoScene = {
     gl.uniform1f(U.uAngle, (view.t / p.spinS % 1) * 2 * Math.PI);
     gl.uniform1f(U.uActivity, p.activity);
     gl.uniform1f(U.uSeed, p.seed);
+    gl.uniform1f(U.uHasTex, bindMap(gl, view, st, 2, p.tex?.url, true));
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1f(U.uTexMean, p.tex?.mean ?? 1);
+    gl.uniform1f(U.uTexMono, p.tex?.mono ? 1 : 0);
     gl.uniform3fv(U.uGas, p.gas);
     gl.uniform3fv(U.uLag, p.lag);
   },

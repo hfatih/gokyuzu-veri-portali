@@ -81,3 +81,20 @@ console.log('sso: tüm kontroller geçti');
   assert.equal(ssoVisualParams({ id: 'Ceres' }, { comet: false, diameterKm: { value: 940 } }).activity, 0);
   console.log('sso: kuyruklu yıldız sahnesi geçti');
 }
+
+// Gerçek yüzey haritaları: Ceres, Vesta, Plüton; diğer cisimlerde yok
+{
+  const { existsSync } = await import('node:fs');
+  const { ssoTexture, ssoVisualParams } = await import('../js/sso/visual.js');
+  for (const id of ['Ceres', 'Vesta', 'Pluto']) {
+    const tx = ssoTexture(id);
+    assert.ok(tx && existsSync(new URL('../' + tx.url, import.meta.url)), `${id} haritası`);
+    assert.ok(tx.mean > 0.05 && tx.mean < 0.4, `${id} ortalama ton`);
+  }
+  assert.equal(ssoTexture('Ceres').mono, true); assert.equal(ssoTexture('Pluto').mono, false);
+  assert.equal(ssoTexture('Bennu'), null); assert.equal(ssoTexture(undefined), null);
+  const vp = ssoVisualParams({ id: 'Vesta', spinH: 5.34 }, { diameterKm: { value: 525 }, albedo: { value: 0.42 } });
+  assert.equal(vp.tex.url, 'assets/textures/vesta.jpg'); assert.equal(vp.bump, 0.01, 'haritalı cisimde pürüz en küçük');
+  assert.equal(ssoVisualParams({ id: 'Bennu' }, { diameterKm: { value: 0.49 } }).tex, null);
+  console.log('sso: yüzey haritaları geçti');
+}

@@ -3,7 +3,8 @@
 // Kipler (uMode): 0 doku (Merkür, Dünya, Mars), 1 bulut bantları (dev ve buz devleri),
 // 2 Venüs bulut örtüsü, 3 kayalık ötegezegen yüzey modeli, 4 uydu yüzeyi (iki ton).
 
-import { SATURN_RING_TAU } from '../planet/solar.js';
+import { SKY_GLSL } from './glview.js';
+import { SATURN_RING_TAU, SATURN_RING_COLOR } from '../planet/solar.js';
 
 const FRAG = `#version 300 es
 precision highp float;
@@ -21,6 +22,8 @@ uniform float uBands, uContrast, uTeq, uGlow;
 uniform vec3 uZone, uBelt, uGlowColor;
 uniform vec4 uAtm;
 uniform float uRingOn, uRayTau;
+uniform sampler2D uRelief, uNight;
+uniform float uHasRelief, uHasNight;
 
 vec3 hash3(vec3 p) {
   p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -49,6 +52,16 @@ float ringTau(float r) {
   return t * (0.8 + 0.4 * hash3(vec3(floor(r * 900.0))).x);
 }
 const vec3 RAY = vec3(0.66, 1.0, 2.23);   // Rayleigh ∝ λ⁻⁴: 610, 550, 450 nm
+// Halka parçacık rengi bölgeye göre (planet/solar.js SATURN_RING_COLOR), sınırlarda yumuşak geçiş
+const int RCN = ${SATURN_RING_COLOR.length};
+const float RCR[RCN] = float[RCN](${SATURN_RING_COLOR.map((c) => c[0].toFixed(4)).join(', ')});
+const vec3 RCC[RCN] = vec3[RCN](${SATURN_RING_COLOR.map((c) => `vec3(${c[1].map((v) => v.toFixed(3)).join(', ')})`).join(', ')});
+vec3 ringAlb(float r) {
+  vec3 c = RCC[0];
+  for (int i = 1; i < RCN; i++) c = mix(c, RCC[i], smoothstep(RCR[i] - 0.004, RCR[i] + 0.004, r));
+  return c;
+}
+vec2 equirect(vec3 q) { return vec2(0.5 + atan(q.x, q.z) / 6.2831853, 0.5 - asin(clamp(q.y, -1.0, 1.0)) / 3.1415927); }
 
 // Yüzey albedosu (gezegenle dönen q koordinatında)
 vec3 surface(vec3 q) {
@@ -91,6 +104,8 @@ vec3 surface(vec3 q) {
   return mix(c, vec3(0.10, 0.08, 0.07), smoothstep(900.0, 1200.0, uTeq));
 }
 
+${SKY_GLSL}
+
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
   vec3 fw = normalize(-uCamPos), rt = normalize(cross(fw, vec3(0, 1, 0))), up = cross(rt, fw);
@@ -106,10 +121,8 @@ void main() {
   float tP = disc > 0.0 ? (-b - sqrt(disc)) / a : -1.0;
   bool hitP = tP > 0.0;
 
-  // Arka plan yıldızları (dünya yönüne bağlı)
-  vec3 cell = floor(rdW * 220.0), hh = hash3(cell);
-  float sd = length(fract(rdW * 220.0) - 0.5 - (hh - 0.5) * 0.6);
-  vec3 col = uStars * step(0.9975, hh.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * vec3(0.8, 0.85, 1.0) * (0.3 + hh.y) * 0.6;
+  // Arka plan: gerçek gökyüzü (dünya yönüne bağlı)
+  vec3 col = sky(rdW);
 
   if (hitP) {
     vec3 p = o + d * tP;                 // birim küre
@@ -117,6 +130,13 @@ void main() {
     vec3 ps = p / sc;                    // gerçek yüzey noktası
     float cr = cos(uRot), sr = sin(uRot);
     vec3 q = vec3(cr * p.x - sr * p.z, p.y, sr * p.x + cr * p.z);
+    // Kabartma (Ay: LRO LOLA, Mars: MGS MOLA): eğim haritasından yüzey normali yokuştan öteye eğilir.
+    // Doğu yönü cross(y, p): dönme y çevresinde olduğu için dönen çerçevedekiyle aynıdır.
+    if (uHasRelief > 0.5) {
+      vec2 s = (texture(uRelief, equirect(q)).rg - 0.5) * 1.2;
+      vec3 east = normalize(vec3(p.z, 0.0, -p.x) + vec3(1e-5, 0.0, 0.0)), north = cross(p, east);
+      n = normalize(n - s.x * east - s.y * north);
+    }
     vec3 alb = surface(q);
     float ndl = dot(n, L), mu = max(dot(n, -rd), 0.0);
     float day = max(ndl, 0.0);
@@ -148,6 +168,14 @@ void main() {
     // Atmosfer kenar saçılması (gündüz tarafında, sonlandırıcıya doğru yumuşar)
     float rim = pow(1.0 - mu, 3.0) * smoothstep(-0.25, 0.35, ndl);
     col += uAtm.rgb * uLight * rim * uAtm.a;
+    // Dünya'nın gece ışıkları (Suomi NPP VIIRS, 2012): gece yüzünde, alacakaranlıkta söner, sodyum lamba rengi.
+    // ponytail: bulut örtüsü ayrı katman değil; bulut payı gündüz haritasının parlaklığından kestirilir (buz da
+    // parlaktır ama orada ışık yok). Ayrı bulut haritası gelirse buradan okunur.
+    if (uHasNight > 0.5) {
+      float city = pow(texture(uNight, equirect(q)).r, 2.2);
+      float cloud = smoothstep(0.3, 0.7, dot(alb, vec3(0.3333)));
+      col += vec3(1.0, 0.72, 0.38) * uLight * city * (1.0 - smoothstep(-0.12, 0.04, ndl)) * (1.0 - cloud) * 0.45;
+    }
     // Sıcak gezegenlerde ısıl ışıma: gece yüzünde ve lav çatlaklarında görünür
     if (uGlow > 0.0) {
       float night = 1.0 - smoothstep(-0.15, 0.2, ndl);
@@ -177,7 +205,7 @@ void main() {
         float mu = max(abs(rd.y), 0.02), mu0 = max(abs(L.y), 0.02), dm = mu - mu0;
         float refl = mu0 / (mu + mu0) * (1.0 - exp(-tau * (1.0 / mu + 1.0 / mu0)));
         float trn = abs(dm) < 1e-3 ? tau / mu * exp(-tau / mu) : mu0 / dm * (exp(-tau / mu) - exp(-tau / mu0));
-        vec3 ringCol = vec3(0.85, 0.78, 0.66) * uLight * lit * 1.5 * (-rd.y * L.y > 0.0 ? refl : trn);
+        vec3 ringCol = ringAlb(length(pr.xz)) * 2.0 * uLight * lit * (-rd.y * L.y > 0.0 ? refl : trn);
         col = col * exp(-tau / mu) + ringCol;
       }
     }
@@ -191,7 +219,7 @@ void main() {
 
 // Dokular bir kez yüklenir; yüklenince görünüm yeniden çizilir
 const IMAGES = new Map();
-function loadImage(url, onload) {
+export function loadImage(url, onload) {
   if (!IMAGES.has(url)) {
     const img = new Image();
     img.decoding = 'async';
@@ -204,6 +232,29 @@ function loadImage(url, onload) {
 }
 
 /**
+ * Harita dokusunu verilen birime bağlar; görüntü indiyse bir kez yükler. st: sahne durumu (birim başına doku).
+ * mip: mipmap (küçültmede titremeyi önler; dikişteki türev sıçramasını shader textureGrad ile çözmeli).
+ * Dönüş 1 (hazır) ya da 0. Etkin birim değişir; çağıran sonunda TEXTURE0'a döner.
+ */
+export function bindMap(gl, view, st, unit, url, mip = false) {
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  const m = (st[unit] ??= { tex: gl.createTexture(), url: null });
+  gl.bindTexture(gl.TEXTURE_2D, m.tex);
+  if (!url) return 0;
+  const img = loadImage(url, () => view.redraw());
+  if (img.complete && img.naturalWidth && m.url !== url) {
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+    if (mip) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    m.url = url;
+  }
+  return m.url === url ? 1 : 0;
+}
+
+/**
  * Gezegen sahnesi. params: planetVisualParams() çıktısı (planet/visual.js).
  * Varsayılan zaman hızı: bir dönüş ~20 sn.
  */
@@ -212,6 +263,8 @@ export const planetScene = {
   frag: FRAG,
   init(gl, view, U) {
     gl.uniform1i(U.uTex, 1);
+    gl.uniform1i(U.uRelief, 2);
+    gl.uniform1i(U.uNight, 3);
     return { tex: gl.createTexture(), url: null };
   },
   uniforms(gl, U, p, view, st) {
@@ -237,6 +290,9 @@ export const planetScene = {
     gl.uniform1i(U.uMode, p.mode === 0 && !hasTex ? p.fallback ?? 3 : p.mode);
     gl.uniform3f(U.uTint, ...p.tint);
     gl.uniform1f(U.uHasTex, hasTex);
+    gl.uniform1f(U.uHasRelief, bindMap(gl, view, st, 2, p.relief));
+    gl.uniform1f(U.uHasNight, bindMap(gl, view, st, 3, p.night));
+    gl.activeTexture(gl.TEXTURE0);
     gl.uniform3f(U.uLight, ...p.light);
     const l = [-0.35, 0.2, 1.0], ln = Math.hypot(...l);
     gl.uniform3f(U.uLightDir, l[0] / ln, l[1] / ln, l[2] / ln);

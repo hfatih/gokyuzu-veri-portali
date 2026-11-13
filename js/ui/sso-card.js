@@ -5,6 +5,7 @@ import { t, num } from './i18n.js';
 import { linkItems } from './card.js';
 import { positionAtNu } from '../sso/orbit.js';
 import { ASSUME } from '../sso/derive.js';
+import { ssoTexture } from '../sso/visual.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = (o, tip = '') => `<span class="badge badge--${o}"${tip ? ` title="${esc(tip)}"` : ''}>${t('origin.' + o)}</span>`;
@@ -71,7 +72,7 @@ export function renderSsoCard(container, sel, b, sd, links) {
       <div class="props__row"><dt>${t('sso.row.' + k)}</dt>
       <dd>${v == null ? `<span class="muted">${t('card.unknown')}</span>` : `${esc(v)} ${badge(o, tip)}`}</dd></div>`).join('')}
     </dl>
-    <p class="note">${t(sd.comet ? 'sso.noteComet' : 'sso.note')}</p>
+    <p class="note">${t(sd.comet ? 'sso.noteComet' : 'sso.note')}${ssoTexture(b.id) ? ` ${t('sso.noteTexture')}` : ''}</p>
     <h3 class="card__h">${t('card.links')}</h3>
     <ul class="links" data-links>${linkItems(links)}</ul>`;
 }

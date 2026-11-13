@@ -4,6 +4,7 @@
 // ile 12 r_s arası) kestiği her noktada ışınım ekler; olay ufkuna düşen ışın karanlık kalır, kaçan
 // ışın bükülmüş yönde arka plan yıldızlarını görür.
 
+import { SKY_GLSL } from './glview.js';
 import { blackbody } from './star.js';
 
 const BB_N = 256, BB_TMIN = 1500, BB_TMAX = 60000;
@@ -42,12 +43,6 @@ float noise(vec3 x) {
 }
 float fbm(vec3 x) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * noise(x); x *= 2.03; a *= 0.5; } return s; }
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
-
-vec3 stars(vec3 d) {
-  vec3 cell = floor(d * 260.0), h = hash3(cell);
-  float sd = length(fract(d * 260.0) - 0.5 - (h - 0.5) * 0.6);
-  return uStars * step(0.996, h.x) * (1.0 - smoothstep(0.0, 0.14, sd)) * bb(2500.0 + h.z * 15000.0).rgb * (0.4 + h.y);
-}
 
 // Görsel banttaki (550 nm) Planck parlaklığı, T/Tref oranı olarak: 1 / (e^(c2/T) − 1)
 float planckV(float T) { float x = C2V / T; return 1.0 / (x < 1e-3 ? x + 0.5 * x * x : exp(x) - 1.0); }
@@ -97,6 +92,8 @@ vec4 disk(vec3 p, vec3 dir) {
   return vec4(c * I * 0.7, alpha);
 }
 
+${SKY_GLSL}
+
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
   vec3 fw = normalize(-uCamPos), rt = normalize(cross(fw, vec3(0, 1, 0))), up = cross(rt, fw);
@@ -131,7 +128,8 @@ void main() {
       x = xn; v = vn;
     }
   }
-  if (!captured) col += T * stars(normalize(v));
+  // Kaçan ışın bükülmüş yönde gerçek gökyüzünü görür: Samanyolu ve yıldızlar merceklenir
+  if (!captured) col += T * sky(normalize(v));
   col *= uExposure;
   float mx = max(col.r, max(col.g, col.b));
   if (mx > 0.0) col *= aces(vec3(mx)).r / mx;

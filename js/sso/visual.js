@@ -12,6 +12,16 @@ const TAX_RGB = {
   K: [1.06, 0.97, 0.86], L: [1.08, 0.96, 0.84], A: [1.16, 0.94, 0.74],
 };
 const COMET_RGB = [1.05, 0.97, 0.88];
+
+// Gerçek yüzey haritaları (assets/textures/KAYNAK.md). mean: haritanın alan ağırlıklı doğrusal ortalaması;
+// sahnede harita buna bölünür, ortalama parlaklık ölçülen albedoda kalır. mono: tek renk (taksonomi rengiyle çarpılır).
+const TEXTURES = {
+  ceres: { url: 'assets/textures/ceres.jpg', mono: true, mean: 0.094 },
+  vesta: { url: 'assets/textures/vesta.jpg', mono: true, mean: 0.179 },
+  pluto: { url: 'assets/textures/pluto.jpg', mono: false, mean: 0.173 },
+};
+/** IMCCE kimliğinden gerçek harita (yoksa null). */
+export const ssoTexture = (id) => TEXTURES[String(id ?? '').toLowerCase()] ?? null;
 const C2_GREEN = lineRgb(516.5);   // C₂ Swan bandı (Δv = 0)
 
 /** Gölgelendirici tohumu: kimlikten sabit. */
@@ -22,7 +32,9 @@ export function ssoVisualParams(b, sd) {
   const measuredShape = b.ab != null && b.ac != null;
   // Eksenler (x = a uzun, z = b orta, y = c kısa = dönme ekseni); en uzun eksen 1
   const radii = measuredShape ? [1, 1 / b.ac, 1 / b.ab] : D > 400 ? [1, 0.95, 1] : [1, 0.72, 0.84];
-  const bump = D > 800 ? 0.01 : D > 400 ? 0.03 : D > 50 ? 0.09 : 0.16;
+  const tex = ssoTexture(b.id);
+  // Haritalı cisimde gürültü pürüzü haritadaki kraterlerle çakışmasın diye en küçük değerde
+  const bump = tex ? 0.01 : D > 800 ? 0.01 : D > 400 ? 0.03 : D > 50 ? 0.09 : 0.16;
   const alpha = sd.phaseDeg ? sd.phaseDeg.value * Math.PI / 180 : Math.PI / 3;
   // Güneş yönü: varsayılan kamera (yaw 0,6) ile bugünkü evre açısı kadar ayrık; Dünya'dan görünen evre
   const sunYaw = 0.6 + alpha;
@@ -35,7 +47,7 @@ export function ssoVisualParams(b, sd) {
     albedo: sd.albedo?.value ?? 0.1,
     spinS: (b.spinH ?? 8) * 3600,
     sun: [Math.sin(sunYaw), 0.15, Math.cos(sunYaw)],
-    activity, seed: seedOf(b.id),
+    activity, seed: seedOf(b.id), tex,
     gas: C2_GREEN,
     // Toz kuyruğunun eğrildiği yön: Güneş doğrultusuna dik. Gerçekte yörünge hareketinin tersidir; sahnede
     // yörünge düzleminin yönü hesaplanmadığı için hangi yana eğrildiği temsilidir.

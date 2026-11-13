@@ -4,6 +4,7 @@
 // (yarı genişlik Rankin 1993), kapalı dipol alan çizgileri (r = L sin²θ, L < R_LC) ve ışık
 // silindiri. Nötron yıldızı analitik küre; kutup başlıkları (θ_pc = asin √(R/R_LC)) daha sıcak.
 
+import { SKY_GLSL } from './glview.js';
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 outColor;
@@ -22,11 +23,6 @@ vec3 hash3(vec3 p) {
 }
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
 
-vec3 stars(vec3 d) {
-  vec3 cell = floor(d * 260.0), h = hash3(cell);
-  float sd = length(fract(d * 260.0) - 0.5 - (h - 0.5) * 0.6);
-  return uStars * step(0.996, h.x) * (1.0 - smoothstep(0.0, 0.14, sd)) * mix(vec3(1.0, 0.8, 0.6), vec3(0.7, 0.8, 1.0), h.z) * (0.4 + h.y);
-}
 
 // p noktasındaki ışınım; m manyetik eksen, e1 ve e2 ona dik taban
 vec3 emit(vec3 p, vec3 m, vec3 e1, vec3 e2) {
@@ -50,6 +46,8 @@ vec3 emit(vec3 p, vec3 m, vec3 e1, vec3 e2) {
   e += LC * 0.12 * exp(-pow((length(p.xz) - 1.0) / 0.012, 2.0)) * (1.0 - smoothstep(0.2, 0.9, abs(p.y)));
   return e;
 }
+
+${SKY_GLSL}
 
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
@@ -87,7 +85,7 @@ void main() {
   } else {
     // Yıldızın ışık hâlesi ve uzak yıldızlar
     float bimp = length(cross(ro, rd)) / rApp;
-    col += uNs * 0.25 / (bimp * bimp * bimp) + stars(rd);
+    col += uNs * 0.25 / (bimp * bimp * bimp) + sky(rd);
   }
   col *= uExposure;
   float mx = max(col.r, max(col.g, col.b));

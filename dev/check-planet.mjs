@@ -155,3 +155,26 @@ console.log('planet: tüm kontroller geçti');
   assert.equal(tau(1.955), 0, 'Huygens aralığı'); assert.equal(tau(2.2165), 0, 'Encke aralığı');
   console.log('planet: Rayleigh ve halka kontrolleri geçti');
 }
+
+// A grubu: kabartma ve gece ışığı dosyaları depoda, halka rengi tablosu tutarlı, gökyüzü haritası var
+{
+  const { existsSync } = await import('node:fs');
+  const { SOLAR_PLANETS, SOLAR_MOONS, SATURN_RING_COLOR, SATURN_RING_TAU, solarPlanet, solarMoon } = await import('../js/planet/solar.js');
+  const { planetVisualParams } = await import('../js/planet/visual.js');
+  for (const x of [...SOLAR_PLANETS, ...SOLAR_MOONS]) {
+    for (const k of ['relief', 'night']) if (x[k]) assert.ok(existsSync(new URL('../' + x[k], import.meta.url)), `${k} yok: ${x[k]}`);
+  }
+  assert.ok(existsSync(new URL('../assets/textures/sky.jpg', import.meta.url)), 'gökyüzü haritası');
+  assert.equal(solarMoon('moon:Q405').relief, 'assets/textures/moon_n.jpg');
+  assert.equal(solarPlanet('planet:Q111').relief, 'assets/textures/mars_n.jpg');
+  const earth = planetVisualParams({ cls: 'rocky', teq: { value: 255 }, rot: { value: 1 }, gravity: { value: 9.8 } }, solarPlanet('planet:Q2'), 5772);
+  assert.equal(earth.night, 'assets/textures/earth_night.jpg'); assert.equal(earth.relief, null);
+  const moon = planetVisualParams({ cls: 'rocky', teq: { value: 270 }, rot: { value: 27.3 } }, solarMoon('moon:Q405'), 5772);
+  assert.equal(moon.relief, 'assets/textures/moon_n.jpg', 'uydu yolu da kabartmayı taşır');
+  // Halka rengi: sınırlar artan ve opaklık tablosunun içinde; B halkası C halkasından parlak ve kırmızı
+  assert.ok(SATURN_RING_COLOR.every((c, i, t) => i === 0 || c[0] > t[i - 1][0]));
+  assert.ok(SATURN_RING_COLOR[0][0] >= SATURN_RING_TAU[0][0] && SATURN_RING_COLOR.at(-1)[0] < SATURN_RING_TAU.at(-1)[0]);
+  const [, C] = SATURN_RING_COLOR[0], [, B] = SATURN_RING_COLOR[1];
+  assert.ok(B[0] > C[0] && B[0] / B[2] > C[0] / C[2], 'B halkası C halkasından parlak ve kırmızı');
+  console.log('planet: kabartma, gece ışıkları ve halka rengi geçti');
+}

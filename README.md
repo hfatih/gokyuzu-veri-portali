@@ -92,7 +92,8 @@ modeli ekler (`js/sun/activity.js`).
   - Denge sıcaklığı, aldığı ışınım ve yaşanabilir bölge (Kopparapu+ 2014).
   - Bant sayısı Rhines ölçeğinden, bulut rengi Sudarsky sınıflarından.
 - **Görünüm:**
-  - Merkür, Dünya, Mars ve Jüpiter: NASA/USGS kamu malı gözlem haritaları, 4096×2048
+  - Merkür, Dünya (bulutlu, gece yüzünde şehir ışıkları), Mars ve Jüpiter: NASA/USGS kamu malı gözlem
+    haritaları, 4096×2048; Ay ve Mars'ta yükseklik modelinden kabartma (LOLA, MOLA)
     (`assets/textures/KAYNAK.md`). Harita yalnız o cisim açılınca iner; inene kadar model çizilir.
   - Satürn, Uranüs, Neptün: fizikten üretilen bant modeli (kamu malı tam harita yok ya da yüzey görünmez).
   - Venüs: bulut örtüsü.
@@ -229,7 +230,7 @@ modeli ekler (`js/sun/activity.js`).
   (`?star=moon:Q405`). Değerler Wikidata'dan.
 - **Fizik:** denge sıcaklığı ana gezegenin Güneş'e uzaklığından hesaplanır. Yörünge değerleri
   gezegen çevresindendir.
-- **Görünüm:** Ay, İo, Europa, Ganymede, Kallisto ve Enceladus NASA/USGS gözlem haritasıyla; tek renkli
+- **Görünüm:** Ay (kabartmalı), İo, Europa, Ganymede, Kallisto ve Enceladus NASA/USGS gözlem haritasıyla; tek renkli
   haritalar cismin ana tonuyla renklendirilir. Fobos, Deimos ve Triton temsili yüzey tonlarıyla; Titan'da turuncu pus.
 - **Bağlantılar:** gezegen kartında uydular, uydu kartında gezegen listelenir.
 

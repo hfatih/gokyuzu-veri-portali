@@ -2,6 +2,7 @@
 // kütle merkezi çevresinde dolanır; yörünge noktalarla çizilir. Konumlar her karede JS'te Kepler
 // denkleminden hesaplanır. Yıldız boyları yörüngeye göre abartılıdır (gerçek ölçekte görünmezlerdi).
 
+import { SKY_GLSL } from './glview.js';
 import { blackbody } from './star.js';
 import { relativePosition } from '../binary/derive.js';
 
@@ -35,6 +36,8 @@ float hitSphere(vec3 ro, vec3 rd, vec3 c, float r) {
   float b = dot(oc, rd), h = b * b - dot(oc, oc) + r * r;
   return h < 0.0 ? -1.0 : -b - sqrt(h);
 }
+
+${SKY_GLSL}
 
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
@@ -76,9 +79,7 @@ void main() {
   }
   col += vec3(1.0, 0.7, 0.4) * min(path, 1.0) * 0.35;
   // Uzak yıldızlar
-  vec3 cell = floor(rd * 220.0), h = hash3(cell);
-  float sd = length(fract(rd * 220.0) - 0.5 - (h - 0.5) * 0.6);
-  if (tHit > 1e8) col += uStars * step(0.9975, h.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * bb(2500.0 + h.z * 15000.0).rgb * (0.3 + h.y);
+  if (tHit > 1e8) col += sky(rd);
 
   col *= uExposure;
   float mx = max(col.r, max(col.g, col.b));

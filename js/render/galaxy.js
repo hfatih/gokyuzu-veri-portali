@@ -9,6 +9,7 @@
 // (kayma sınırsız birikmesin diye).
 // Aileler (uFamily): 0 eliptik, 1 merceksi (S0), 2 sarmal, 3 düzensiz.
 
+import { SKY_GLSL } from './glview.js';
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 outColor;
@@ -95,15 +96,15 @@ void diskSample(vec3 p, out vec3 emis, out float kappa) {
   kappa = uDust * 0.9 * exp(-R / (1.4 * RD)) * (0.35 + 0.65 * pat) * edge * sThin;
 }
 
+${SKY_GLSL}
+
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
   vec3 fw = normalize(-uCamPos), rt = normalize(cross(fw, vec3(0, 1, 0))), up = cross(rt, fw);
   vec3 rd = normalize(fw + (uv.x * rt + uv.y * up) * uTanFov), ro = uCamPos;
   float jit = hash3(vec3(gl_FragCoord.xy, 3.0)).x;
 
-  vec3 cell = floor(rd * 220.0), hh = hash3(cell);
-  float sd = length(fract(rd * 220.0) - 0.5 - (hh - 0.5) * 0.6);
-  vec3 bg = uStars * step(0.997, hh.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * vec3(0.85, 0.88, 1.0) * (0.3 + hh.y) * 0.6;
+  vec3 bg = sky(rd);   // gerçek gökyüzü
 
   bool disk = uFamily != 0;
   float b = dot(ro, rd), r2 = dot(ro, ro);

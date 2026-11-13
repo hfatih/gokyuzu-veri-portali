@@ -1,7 +1,8 @@
 // Güneş Sistemi gezegenleri: SIMBAD'da yoklar; kimlik Wikidata öğesidir (planet:Q…).
 // Fiziksel değerler yine Wikidata'dan gelir; burada yalnız ad, doku, halka ve atmosfer basıncı var.
 // air: Rayleigh saçılımı için gaz ve yüzey basıncı (bar). Dünya 1,013 bar; Mars 6,4 mbar CO₂.
-// texture: gerçek gözlem haritası (kaynaklar assets/textures/KAYNAK.md). Kamu malı tam haritası
+// texture: gerçek gözlem haritası (kaynaklar assets/textures/KAYNAK.md). relief: yükseklik modelinden eğim
+// haritası (R doğuya, G kuzeye yükselme, ±0,6 → 0–255). night: gece ışıkları (tek renk). Kamu malı tam haritası
 // olmayan (Satürn) ya da görünür ışıkta yüzeyi görünmeyen (Venüs, Uranüs, Neptün) cisimler modelle çizilir.
 // Halka yarıçapları gezegen ekvator yarıçapı (60 268 km) biriminde (NASA Saturn Fact Sheet:
 // C halkası iç kenarı 74 658 km, A halkası dış kenarı 136 775 km); iç yapı SATURN_RING_TAU tablosunda.
@@ -9,8 +10,8 @@
 export const SOLAR_PLANETS = [
   { id: 'planet:Q308', key: 'mercury', tilt: 0.03, tr: 'Merkür', en: 'Mercury', texture: 'assets/textures/mercury.jpg' },
   { id: 'planet:Q313', key: 'venus', tilt: 177.4, tr: 'Venüs', en: 'Venus', clouds: true },
-  { id: 'planet:Q2', key: 'earth', tilt: 23.44, tr: 'Dünya', en: 'Earth', texture: 'assets/textures/earth.jpg', atmosphere: [0.35, 0.55, 1.0], air: { gas: 'air', bar: 1.013 } },
-  { id: 'planet:Q111', key: 'mars', tilt: 25.19, tr: 'Mars', en: 'Mars', texture: 'assets/textures/mars.jpg', atmosphere: [0.85, 0.6, 0.45], air: { gas: 'co2', bar: 0.0064 } },
+  { id: 'planet:Q2', key: 'earth', tilt: 23.44, tr: 'Dünya', en: 'Earth', texture: 'assets/textures/earth.jpg', night: 'assets/textures/earth_night.jpg', atmosphere: [0.35, 0.55, 1.0], air: { gas: 'air', bar: 1.013 } },
+  { id: 'planet:Q111', key: 'mars', tilt: 25.19, tr: 'Mars', en: 'Mars', texture: 'assets/textures/mars.jpg', relief: 'assets/textures/mars_n.jpg', atmosphere: [0.85, 0.6, 0.45], air: { gas: 'co2', bar: 0.0064 } },
   { id: 'planet:Q319', key: 'jupiter', tilt: 3.13, tr: 'Jüpiter', en: 'Jupiter', texture: 'assets/textures/jupiter.jpg' },
   { id: 'planet:Q193', key: 'saturn', tilt: 26.73, tr: 'Satürn', en: 'Saturn', ring: { inner: 1.239, outer: 2.269 } },
   { id: 'planet:Q324', key: 'uranus', tilt: 97.77, tr: 'Uranüs', en: 'Uranus' },
@@ -29,6 +30,13 @@ export const SATURN_RING_TAU = [
   [2.2690, 0.65], [2.2695, 0],
 ];
 
+// Halka parçacıklarının bölgeye göre doğrusal yansıtma rengi: [iç yarıçap, [R, G, B]]. B ve A halkası
+// kırmızımsı-kahve, B en kırmızı ve en parlak; C halkası ve Cassini Bölümü koyu ve nötr gri (Cassini ISS/VIMS
+// eğilimleri, Cuzzi+ 2009 özeti). Değerler yuvarlanmış, temsili; sınırlar SATURN_RING_TAU ile aynı.
+export const SATURN_RING_COLOR = [
+  [1.2388, [0.30, 0.29, 0.28]], [1.5270, [0.62, 0.52, 0.40]], [1.9510, [0.36, 0.35, 0.34]], [2.0272, [0.55, 0.49, 0.41]],
+];
+
 export const solarPlanet = (id) => SOLAR_PLANETS.find((p) => p.id === id) ?? null;
 export const isSolarPlanetId = (id) => typeof id === 'string' && id.startsWith('planet:');
 
@@ -39,7 +47,7 @@ export const isSolarPlanetId = (id) => typeof id === 'string' && id.startsWith('
 // renkli (gri); look.zone tonuyla renklendirilir.
 // inst: gökyüzünde görmek için gereken araç; konum ana gezegenin konumu alınır.
 export const SOLAR_MOONS = [
-  { id: 'moon:Q405', key: 'moon', texture: 'assets/textures/moon.jpg', parent: 'planet:Q2', tr: 'Ay', en: 'Moon', inst: 'eye', look: { mode: 4, zone: [0.56, 0.55, 0.53], belt: [0.24, 0.24, 0.23] } },
+  { id: 'moon:Q405', key: 'moon', texture: 'assets/textures/moon.jpg', relief: 'assets/textures/moon_n.jpg', parent: 'planet:Q2', tr: 'Ay', en: 'Moon', inst: 'eye', look: { mode: 4, zone: [0.56, 0.55, 0.53], belt: [0.24, 0.24, 0.23] } },
   { id: 'moon:Q7547', key: 'phobos', parent: 'planet:Q111', tr: 'Fobos', en: 'Phobos', inst: 'large', look: { mode: 4, zone: [0.32, 0.29, 0.26], belt: [0.16, 0.14, 0.13] } },
   { id: 'moon:Q7548', key: 'deimos', parent: 'planet:Q111', tr: 'Deimos', en: 'Deimos', inst: 'large', look: { mode: 4, zone: [0.36, 0.33, 0.29], belt: [0.2, 0.18, 0.16] } },
   { id: 'moon:Q3123', key: 'io', texture: 'assets/textures/io.jpg', parent: 'planet:Q319', tr: 'İo', en: 'Io', inst: 'binoculars', look: { mode: 4, zone: [0.93, 0.86, 0.46], belt: [0.66, 0.44, 0.2] } },

@@ -272,3 +272,18 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
 - Bilinen hata (progress.md: "beyaz cüce yoldaş anakol varsayımıyla yanlış renkte") kapandı.
 - Kontrol: `dev/check-binary.mjs`. ORB6 (VizieR) CDS bozukken gelmediği için sahne sayfa içinde Sirius elemanlarıyla
   çizdirilerek bakıldı.
+
+## 2026-11-14 · Gerçekçilik A grubu: gökyüzü, kabartma, Dünya gecesi, cüce gezegenler, halka rengi
+
+- **Gerçek gökyüzü (bütün ışın sahneleri):** `render/glview.js` `SKY_GLSL` + `sky(yön)`; doku 7. birimde, her görünüm
+  bir kez yükler. Yıldız, gezegen, gökada, bulutsu, kara delik (merceklenir), pulsar, küçük cisim ve çift yıldız
+  sahnelerinde rastgele nokta yıldızlar kaldırıldı. Küme sahnesi (nokta çizimi) arka plansız kaldı.
+- **Kabartma:** `planet/solar.js` `relief` (Ay, Mars); `render/planet.js` eğim haritasından normal bükülür.
+- **Dünya:** bulutlu harita (`earth.jpg` değişti) + `night` gece ışıkları; bulut altı ışık gündüz parlaklığından kısılır.
+- **Ceres, Vesta, Plüton:** `sso/visual.js` `ssoTexture`; `render/sso.js` haritayı ortalamasına bölüp ölçülen albedoyla
+  çarpar (tek renkliler taksonomi rengiyle). Kartta `sso.noteTexture`.
+- **Satürn halka rengi:** `SATURN_RING_COLOR` (C ve Cassini Bölümü koyu-gri, B en parlak ve kırmızı); değerler temsili.
+- **`render/planet.js` `bindMap`, `loadImage` dışa açıldı** (küçük cisim sahnesi kullanır).
+- `assets/textures` 15 → 22 MB; gökyüzü (1,5 MB) her ilk ziyarette iner, diğerleri yalnız o cisimde.
+- Kontrol: `dev/check-planet.mjs`, `dev/check-sso.mjs`. Tarayıcıda Ay (gece-gündüz çizgisinde krater gölgesi), Dünya
+  gece yüzü (sayfa içi kamera), Satürn, Ceres, Plüton, Vesta, kara delik (sayfa içi).

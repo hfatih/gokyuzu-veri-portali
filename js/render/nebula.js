@@ -4,6 +4,7 @@
 // karesiyle orantılıdır; Hα/Hβ = 2,86 (B durumu, 10⁴ K).
 // Türler (uKind): 0 H II, 1 gezegenimsi, 2 süpernova kalıntısı, 3 yansıma, 4 karanlık bulutsu.
 
+import { SKY_GLSL } from './glview.js';
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 outColor;
@@ -95,15 +96,14 @@ float sampleNeb(vec3 p, out vec3 emis) {
   return dens * 9.0 * step(-0.2, p.z);
 }
 
+${SKY_GLSL}
+
 void main() {
   vec2 uv = (2.0 * gl_FragCoord.xy - uRes) / uRes.y - uShift;
   vec3 fw = normalize(-uCamPos), rt = normalize(cross(fw, vec3(0, 1, 0))), up = cross(rt, fw);
   vec3 rd = normalize(fw + (uv.x * rt + uv.y * up) * uTanFov), ro = uCamPos;
 
-  // Arka plan yıldızları
-  vec3 cell = floor(rd * 220.0), hh = hash3(cell);
-  float sd = length(fract(rd * 220.0) - 0.5 - (hh - 0.5) * 0.6);
-  vec3 bg = uStars * step(0.997, hh.x) * (1.0 - smoothstep(0.0, 0.12, sd)) * vec3(0.85, 0.88, 1.0) * (0.3 + hh.y) * 0.6;
+  vec3 bg = sky(rd);   // gerçek gökyüzü
 
   float b = dot(ro, rd), c = dot(ro, ro) - 1.0, disc = b * b - c;
   vec3 col = vec3(0.0), T = vec3(1.0);
