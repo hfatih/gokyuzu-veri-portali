@@ -250,3 +250,13 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
 - **`dev/check-syntax.mjs`:** artık sahne modüllerini de içe aktarır (şablon içindeki tanımsız ad yakalanır; bu aşamada
   eksik bir import böyle bulundu).
 - Kontrol: `dev/check-planet.mjs`. Tarayıcıda Satürn, Dünya, Neptün.
+
+## 2026-11-13 · Fizik yükseltmesi 8/9: kuyruklu yıldız
+
+- **Koma rengi:** tozun yansıttığı güneş ışığı + C₂ Swan bandı yeşili (516,5 nm, `lineRgb`); önce düz mavi-beyazdı.
+- **İki kuyruk (`render/sso.js`):** iyon kuyruğu (CO⁺ mavisi) Güneş'in tam tersine dar ve düz, etkinliğin karesiyle;
+  toz kuyruğu sarımsı, geniş, yörüngede geride kalan yöne eğri. Sınır küresinde 40 adım.
+- **Bilinçli sınırlar:** kuyruk uzunluğu ölçekli değil (gerçekte çekirdeğin milyonlarca katı; eski not bu yüzden hiç
+  çizmiyordu). Toz kuyruğunun hangi yana eğrildiği temsili: sahnede yörünge düzleminin yönü hesaplanmıyor.
+- Kontrol: `dev/check-sso.mjs`. Bugün etkin bir kuyruklu yıldız kartı olmadığı için sayfa içinde 1 AU'daki bir çekirdek
+  parametreleriyle çizdirilerek bakıldı.

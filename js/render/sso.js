@@ -11,6 +11,9 @@ uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
 uniform vec3 uRadii, uColor, uSun;
 uniform float uBump, uAlbedo, uAngle, uActivity, uSeed;
+uniform vec3 uGas, uLag;   // gaz komasının rengi (C₂), toz kuyruğunun yörüngede geride kaldığı yön
+const vec3 ION = vec3(0.42, 0.58, 1.0);    // CO⁺ kuyruğu (427 nm çevresi bantlar)
+const vec3 DUST = vec3(1.0, 0.92, 0.78);   // tozdan yansıyan, hafif kızarmış güneş ışığı
 
 vec3 hash3(vec3 p) {
   p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -95,7 +98,32 @@ void main() {
   if (uActivity > 0.0) {
     float bimp = length(cross(ro, rd));
     float coma = uActivity * 0.06 / max(bimp, 0.05) * (1.0 + 0.8 * dot(normalize(ro + rd * (-b)), L));
-    col += vec3(0.75, 0.85, 1.0) * coma * (hit ? 0.5 : 1.0);           // çekirdeğe çarpan ışında yalnız öndeki yarı
+    // Koma: toz (güneş ışığı) + gaz. Gazın görünür ışığı C₂ Swan bantlarıdır (516 nm, yeşil); C₂ güneş
+    // ışığıyla parçalandığı için yeşil yalnız komada kalır, kuyruğa taşınmaz.
+    col += mix(DUST, uGas, 0.4) * coma * (hit ? 0.5 : 1.0);           // çekirdeğe çarpan ışında yalnız öndeki yarı
+    // Kuyruklar (uzunluk ölçekli değil; yön ve renk gerçek). İyon kuyruğu güneş rüzgârıyla Güneş'in tam
+    // tersine, dar ve düz; toz kuyruğu ışınım basıncıyla itilir ama yörüngede geride kalır: geniş ve eğri.
+    float hT = b * b - dot(ro, ro) + 64.0;
+    if (hT > 0.0) {
+      float t0 = max(0.0, -b - sqrt(hT)), t1 = hit ? t : -b + sqrt(hT);
+      const int NT = 40;
+      float dt = (t1 - t0) / float(NT), tt = t0 + dt * hash3(vec3(gl_FragCoord.xy, 5.0)).x, ion = 0.0, dust = 0.0;
+      vec3 A = -L;
+      for (int i = 0; i < NT; i++) {
+        vec3 p = ro + rd * tt;
+        float s = dot(p, A);
+        if (s > 0.2) {
+          // Tüp genişledikçe yoğunluk 1/w² düşer (kütle korunur)
+          float wi = 0.10 + 0.035 * s, di = length(p - A * s);
+          ion += exp(-di * di / (wi * wi)) * (0.01 / (wi * wi)) * exp(-s / 3.5);
+          float wd = 0.25 + 0.16 * s, dd = length(p - A * s - uLag * 0.06 * s * s);
+          dust += exp(-dd * dd / (wd * wd)) * (0.0625 / (wd * wd)) * exp(-s / 2.5);
+        }
+        tt += dt;
+      }
+      // İyonlaşma hızı da Güneş'e yakınken artar: iyon kuyruğu etkinliğin karesiyle
+      col += (ION * ion * uActivity * 1.6 + DUST * dust * 0.9) * uActivity * dt;
+    }
   }
   col *= uExposure;
   float mx = max(col.r, max(col.g, col.b));
@@ -116,6 +144,8 @@ export const ssoScene = {
     gl.uniform1f(U.uAngle, (view.t / p.spinS % 1) * 2 * Math.PI);
     gl.uniform1f(U.uActivity, p.activity);
     gl.uniform1f(U.uSeed, p.seed);
+    gl.uniform3fv(U.uGas, p.gas);
+    gl.uniform3fv(U.uLag, p.lag);
   },
   timeScale: (p) => p.spinS / 20,
 };

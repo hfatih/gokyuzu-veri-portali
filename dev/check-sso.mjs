@@ -69,3 +69,15 @@ assert.equal(encke.H1, null);
 assert.equal(deriveSso(encke, JD).magNow, null);
 
 console.log('sso: tüm kontroller geçti');
+
+// Kuyruklu yıldız sahnesi: gaz koması yeşil (C₂), toz kuyruğunun eğrilme yönü Güneş doğrultusuna dik
+{
+  const { ssoVisualParams } = await import('../js/sso/visual.js');
+  const vp = ssoVisualParams({ id: '1P', spinH: 52.8 }, { comet: true, rNow: { value: 1.0 }, diameterKm: { value: 11 } });
+  assert.ok(vp.gas[1] > vp.gas[0] && vp.gas[1] > vp.gas[2], `C₂ yeşil: ${vp.gas}`);
+  assert.ok(Math.abs(vp.sun[0] * vp.lag[0] + vp.sun[2] * vp.lag[2]) < 1e-9, 'toz kuyruğu yönü Güneş doğrultusuna dik');
+  assert.equal(vp.activity, 1, '1 AU içinde tam etkin');
+  assert.ok(ssoVisualParams({ id: '1P' }, { comet: true, rNow: { value: 10 }, diameterKm: { value: 11 } }).activity < 0.01, '10 AU: etkin değil');
+  assert.equal(ssoVisualParams({ id: 'Ceres' }, { comet: false, diameterKm: { value: 940 } }).activity, 0);
+  console.log('sso: kuyruklu yıldız sahnesi geçti');
+}

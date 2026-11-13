@@ -2,6 +2,8 @@
 // Biçim: ölçülen elipsoit oranları (a ≥ b ≥ c); yoksa boyuta göre varsayım. ~400 km üstü cisimler
 // kendi kütleçekimiyle yuvarlanır; küçükler düzensiz (pürüz genliği çapla azalır).
 
+import { lineRgb } from '../render/color.js';
+
 // Taksonomi sınıfının görünür ışıkta göreli yansıtma rengi (450/550/650 nm, DeMeo ve ark. 2009
 // ortalama spektrumlarından kaba); C ve B nötr, S ve V kırmızımsı, D çok kırmızı.
 const TAX_RGB = {
@@ -10,6 +12,7 @@ const TAX_RGB = {
   K: [1.06, 0.97, 0.86], L: [1.08, 0.96, 0.84], A: [1.16, 0.94, 0.74],
 };
 const COMET_RGB = [1.05, 0.97, 0.88];
+const C2_GREEN = lineRgb(516.5);   // C₂ Swan bandı (Δv = 0)
 
 /** Gölgelendirici tohumu: kimlikten sabit. */
 const seedOf = (id) => ([...String(id)].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7) % 1000) / 10;
@@ -33,5 +36,9 @@ export function ssoVisualParams(b, sd) {
     spinS: (b.spinH ?? 8) * 3600,
     sun: [Math.sin(sunYaw), 0.15, Math.cos(sunYaw)],
     activity, seed: seedOf(b.id),
+    gas: C2_GREEN,
+    // Toz kuyruğunun eğrildiği yön: Güneş doğrultusuna dik. Gerçekte yörünge hareketinin tersidir; sahnede
+    // yörünge düzleminin yönü hesaplanmadığı için hangi yana eğrildiği temsilidir.
+    lag: [Math.cos(sunYaw), 0, -Math.sin(sunYaw)],
   };
 }
