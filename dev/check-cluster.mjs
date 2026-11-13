@@ -81,3 +81,30 @@ near(p[0], 8.6, 8.9, 'x (pc)');
 near(p[1], -0.1, 0.1, 'y (pc)');
 
 console.log('cluster: tüm kontroller geçti');
+
+// Plummer derinliği: izdüşüm yarıçapı Plummer izdüşüm dağılımından (M(<R) = R²/(a² + R²)) çekilip derinlik koşullu
+// dağılımdan örneklenince üç boyutlu yarı-kütle yarıçapı 1,305 a çıkmalı (örnekleme tam ise)
+{
+  const { plummerDepth, clusterVisualParams } = await import('../js/cluster/visual.js');
+  let s = 12345;
+  const rand = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return (s >>> 8) / 16777216; };
+  const a = 2, r3 = [];
+  for (let i = 0; i < 40000; i++) {
+    const u = rand() * 0.999, R = a * Math.sqrt(u / (1 - u));
+    r3.push(Math.hypot(R, plummerDepth(R, a, rand)));
+  }
+  r3.sort((x, y) => x - y);
+  near(r3[r3.length >> 1] / a, 1.27, 1.34, 'Plummer üç boyutlu yarı-kütle yarıçapı / a');
+  // Merkezdeki yıldızın derinlik saçılması kenardakinden küçük
+  const spread = (R) => { let q = 0; for (let i = 0; i < 4000; i++) q += Math.abs(plummerDepth(R, a, rand)); return q / 4000; };
+  assert.ok(spread(0) < 0.5 * spread(4 * a), 'derinlik saçılması yarıçapla artar');
+
+  const members = Array.from({ length: 60 }, (_, i) => ({ ra: 10 + 0.01 * Math.cos(i) * (i % 7), dec: 20 + 0.01 * Math.sin(i) * (i % 5) }));
+  const cd = deriveCluster({ kind: 'open', majArcmin: 10, distances: [{ dist: 400, unit: 'pc' }], center: { ra: 10, dec: 20 },
+    members: members.map((m, i) => ({ ...m, B: 9 + i * 0.05, V: 8.6 + i * 0.05 })) });
+  assert.ok(cd.halfRadiusPc.value > 0 && cd.halfRadiusPc.value < 1, `yarı-sayı yarıçapı: ${cd.halfRadiusPc.value}`);
+  const vp = clusterVisualParams(cd, members, { ra: 10, dec: 20 }, 'test');
+  near(vp.plummerPc, cd.halfRadiusPc.value * 0.999, cd.halfRadiusPc.value * 1.001, 'sahne ve kart aynı yarıçapı kullanır');
+  assert.ok([...vp.data].every(Number.isFinite));
+  console.log('cluster: Plummer derinliği geçti');
+}

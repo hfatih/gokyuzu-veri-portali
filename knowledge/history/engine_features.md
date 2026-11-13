@@ -214,3 +214,14 @@ Kart fiziği (Strömgren, Sedov–Taylor, dinamik yaş) zaten vardı; değişen 
 - Yengeç'teki sinkrotron iç bulutsu yapılmadı: bulutsu kaydında pulsar bilgisi yok.
 - Kontrol: `dev/check-nebula.mjs`. Tarayıcıda M42, M1, M27, M78, Atbaşı. SIMBAD'ın "ISM" ya da "açık küme" saydığı
   bulutsular (NGC 1435, NGC 7023) bulutsu sahnesine hiç girmiyor; bu eski davranış, dokunulmadı.
+
+## 2026-11-13 · Fizik yükseltmesi 5/9: yıldız kümesi
+
+- **Derinlik (`cluster/visual.js` `plummerDepth`):** bağımsız Gauss yerine Plummer küresinin tam koşullu dağılımı:
+  z = √(a² + R²) · T₄/2 (T₄: 4 serbestlik dereceli Student-t), a = izdüşümde yarı-sayı yarıçapı. Merkezdeki yıldızın
+  derinliği dar, kenardakinin geniş. Küresel kümede King profili kullanılmadı (yoğunlaşma verisi yok).
+- **`cluster/derive.js`:** `halfRadiusPc`; kartta "Yarı-sayı yarıçapı" satırı.
+- **`dev/check-syntax.mjs` (yeni):** js/ altındaki her dosyayı `node --check` ile ayrıştırır. Sebep: 4. aşamada
+  `i18n.js` içine kaçışsız kesme işareti ("1/12'si") yazıldı, site açılmaz oldu ama 18 testin hepsi geçti, çünkü
+  hiçbiri DOM'a bağlı dosyaları içe aktarmıyor. Hata 6976b40 commit'inde, yayına çıkmadan burada düzeltildi.
+- Kontrol: `dev/check-cluster.mjs` (örnekleme tam ise üç boyutlu yarı-kütle yarıçapı 1,305 a). Tarayıcıda Ülker, M13.

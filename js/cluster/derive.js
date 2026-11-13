@@ -122,5 +122,11 @@ export function deriveCluster(c) {
       age = val(msLifetimeYr(mass), 'estimated');
     }
   }
-  return { kind: c.kind, distancePc, radiusPc, n: c.members.length, cmd, turnoff, age, totalLv, ebv };
+  // Yarı-sayı yarıçapı: üyelerin yarısının (izdüşümde) içinde kaldığı uzaklık; Plummer yarıçapına eşittir
+  let halfRadiusPc = null;
+  if (d && c.center && c.members.length >= 10) {
+    const r = c.members.map((m) => Math.hypot(...projectPc(m, c.center, d))).sort((x, y) => x - y);
+    halfRadiusPc = val(r[r.length >> 1], 'derived');
+  }
+  return { kind: c.kind, distancePc, radiusPc, halfRadiusPc, n: c.members.length, cmd, turnoff, age, totalLv, ebv };
 }

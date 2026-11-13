@@ -1,6 +1,8 @@
 // deriveCluster() ve üyelerden küme sahnesinin tampon verisini üretir. Saf fonksiyon.
-// x, y gerçek gökyüzü konumu (pc, teğet düzlem); z bilinmediği için izotropik varsayımla
-// ölçülen yarıçap dağılımından örneklenir. Ölçek: üyelerin %90'ının içinde kaldığı yarıçap = 1.
+// x, y gerçek gökyüzü konumu (pc, teğet düzlem). z ölçülemez: küme Plummer küresi sayılır ve her yıldızın
+// derinliği, kendi izdüşüm yarıçapında o kürenin verdiği koşullu dağılımdan örneklenir (merkezdeki yıldız
+// büyük olasılıkla gerçekten merkezde, kenardaki yıldızın derinliği daha belirsiz).
+// Ölçek: üyelerin %90'ının içinde kaldığı yarıçap = 1.
 
 import { projectPc, bvToTeff } from './derive.js';
 import { blackbodyTable } from '../render/color.js';
@@ -28,22 +30,35 @@ function rng(seed) {
   };
 }
 
+/**
+ * Plummer küresinde (ρ ∝ (1 + r²/a²)^−5/2) izdüşüm yarıçapı R olan yıldızın bakış doğrultusundaki konumu.
+ * Koşullu dağılım p(z | R) ∝ (1 + z²/(a² + R²))^−5/2, yani z = √(a² + R²) · T₄/2 (T₄: 4 serbestlik dereceli
+ * Student-t). a Plummer yarıçapıdır; izdüşümde üyelerin yarısını içeren yarıçapa eşittir.
+ * ponytail: tek bileşenli Plummer; küresel kümede King profili (yoğunlaşma c) bilinirse buraya gelir.
+ */
+export function plummerDepth(R, a, rand) {
+  const n = Math.sqrt(-2 * Math.log(rand() + 1e-12)) * Math.cos(2 * Math.PI * rand());   // N(0, 1)
+  const chi2 = -2 * Math.log((rand() + 1e-12) * (rand() + 1e-12));                       // χ²(4)
+  return Math.hypot(a, R) * 0.5 * n / Math.sqrt(chi2 / 4);
+}
+
 /** cd: deriveCluster(), members: [{ ra, dec }] (cmd ile aynı sırada), center: { ra, dec }, id. */
 export function clusterVisualParams(cd, members, center, id) {
   const d = cd.distancePc?.value ?? 1000;
   const xy = members.map((m) => projectPc(m, center, d));
   const r = xy.map(([x, y]) => Math.hypot(x, y)).sort((a, b) => a - b);
   const scale = r[Math.floor(r.length * 0.9)] || 1;
+  const a = r[r.length >> 1] || scale * 0.5;   // Plummer yarıçapı = izdüşümde yarı-sayı yarıçapı
   const rand = rng([...String(id)].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7));
   const data = new Float32Array(members.length * 7);
   members.forEach((m, i) => {
     const p = cd.cmd[i];
-    // Box–Muller: derinlik, izdüşüm yarıçapıyla aynı genişlikte normal dağılım
-    const z = Math.sqrt(-2 * Math.log(rand() + 1e-9)) * Math.cos(2 * Math.PI * rand()) * scale * 0.6;
+    // Uzun kuyruk sahneden taşmasın diye ±3 ölçekte kesilir
+    const z = Math.max(-3 * scale, Math.min(3 * scale, plummerDepth(Math.hypot(...xy[i]), a, rand)));
     const c = chroma(bvToTeff(p.bv));
     const lum = p.mv != null ? Math.min(400, 10 ** (-0.4 * (p.mv - 4))) : 1;
     // Doğu solda görünür (gökyüzüne bakış); x işareti çevrilir
     data.set([-xy[i][0] / scale, xy[i][1] / scale, z / scale, ...c, lum], i * 7);
   });
-  return { data, n: members.length };
+  return { data, n: members.length, plummerPc: a };
 }

@@ -46,6 +46,7 @@ function rows(obj, cd) {
   if (obj.basic.dimMaj) out.push(['size', `${num(obj.basic.dimMaj)}′`, 'measured', '']);
   out.push(['dist', cd.distancePc ? `${num(cd.distancePc.value)} pc · ${num(cd.distancePc.value * 3.26156)} ${t('unit.ly')}` : null, 'measured', t('n.distTip', { n: cd.distancePc?.n })]);
   if (cd.radiusPc) out.push(['radius', `${num(cd.radiusPc.value)} pc`, 'derived', t('n.radiusTip')]);
+  if (cd.halfRadiusPc) out.push(['rhalf', `${num(cd.halfRadiusPc.value)} pc`, 'derived', t('c.rhalfTip')]);
   out.push(['members', num(cd.n, 3), 'measured', t('c.membersTip')]);
   if (cd.ebv) out.push(['ebv', `${num(cd.ebv.value)}${cd.ebv.applied ? '' : ` (${t('c.notApplied')})`}`, 'estimated', t('c.ebvTip')]);
   if (cd.turnoff) out.push(['turnoff', `M_V ${num(cd.turnoff.mv)} · ${num(cd.turnoff.teff, 2)} K · ${num(cd.turnoff.mass)} M☉`, 'estimated', t('c.turnoffTip')]);
