@@ -201,3 +201,16 @@ lekeler mevcuttu. Eklenen tek şey:
 - **Kenar kızarması (`render/star.js`):** renk, gri atmosferde görülen sıcaklıktan T(μ) = T ((3μ + 2)/5)^¼
   (Eddington–Barbier; kenarda 0,80 T). Parlaklık düşüşü yine ölçülmüş kenar kararması yasasından. Yalnız shader;
   tarayıcıda Güneş ve Vega ile bakıldı.
+
+## 2026-11-13 · Fizik yükseltmesi 4/9: bulutsu sahnesi
+
+Kart fiziği (Strömgren, Sedov–Taylor, dinamik yaş) zaten vardı; değişen sahne:
+- **H II:** ışınım ∝ n_e², Hα/Hβ = 2,86; yöne göre değişen iyonlaşma cephesi, cephede parlak kenar ve [S II],
+  dışında nötr tozlu zarf.
+- **Toz:** geçirgenlik renge göre (A_λ/A_V = 0,78 / 1 / 1,32), bütün türlerde; toz arkasındaki ışık kızarır.
+- **Yansıma:** Henyey–Greenstein evre işlevi (g = 0,6).
+- **Süpernova kalıntısı:** kabuk kalınlığı evreden (`sedov`): Sedov'da R/12, serbest genişlemede kalın + [O III] püskürük.
+- **Gezegenimsi:** eksen oranı 0,7'nin altına indikçe çift kutuplu (`bipolar`).
+- Yengeç'teki sinkrotron iç bulutsu yapılmadı: bulutsu kaydında pulsar bilgisi yok.
+- Kontrol: `dev/check-nebula.mjs`. Tarayıcıda M42, M1, M27, M78, Atbaşı. SIMBAD'ın "ISM" ya da "açık küme" saydığı
+  bulutsular (NGC 1435, NGC 7023) bulutsu sahnesine hiç girmiyor; bu eski davranış, dokunulmadı.

@@ -51,3 +51,15 @@ assert.equal(horse.radiusPc, null);
 assert.equal(horse.axisRatio, 4 / 6);
 
 console.log('nebula: tüm kontroller geçti');
+
+// Sahne parametreleri: kalıntı evresi ve gezegenimsinin biçimi veriden
+{
+  const { nebulaVisualParams } = await import('../js/nebula/visual.js');
+  const obj = { mainId: 'x', basic: { dimAngle: 0 } };
+  assert.equal(nebulaVisualParams({ kind: 'snr', phase: 'free', axisRatio: 1 }, obj).sedov, 0);
+  assert.equal(nebulaVisualParams({ kind: 'snr', phase: 'sedov', axisRatio: 1 }, obj).sedov, 1);
+  assert.equal(nebulaVisualParams({ kind: 'pn', axisRatio: 0.95 }, obj).bipolar, 0);
+  assert.equal(nebulaVisualParams({ kind: 'pn', axisRatio: 0.45 }, obj).bipolar, 1);
+  assert.equal(nebulaVisualParams({ kind: 'hii', axisRatio: 0.4 }, obj).bipolar, 0);
+  console.log('nebula: sahne parametreleri geçti');
+}

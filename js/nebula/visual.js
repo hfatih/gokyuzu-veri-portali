@@ -26,6 +26,10 @@ export function nebulaVisualParams(nd, obj) {
     axis: Math.max(0.3, nd.axisRatio ?? 1),
     angle: ((obj.basic.dimAngle ?? 0) * Math.PI) / 180,
     seed: seedOf(obj.mainId),
+    // Süpernova kalıntısının evresi (boyuttan, derive.js): Sedov'da ince kabuk, serbest genişlemede kalın ve dolu
+    sedov: nd.phase === 'free' ? 0 : 1,
+    // Belirgin uzamış gezegenimsi çift kutuplu çizilir (eksen oranı 0,7 → 0,5 arasında geçiş)
+    bipolar: nd.kind === 'pn' ? Math.min(1, Math.max(0, (0.7 - (nd.axisRatio ?? 1)) / 0.2)) : 0,
     ha: LINES.ha, o3: LINES.o3, hb: LINES.hb, s2: LINES.s2,
     scatter: scatteredRgb(starT, 1.5),
     star: chroma(starT),
