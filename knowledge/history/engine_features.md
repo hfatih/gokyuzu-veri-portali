@@ -192,3 +192,12 @@ Sahne zaten jeodezik izleme, Shakura–Sunyaev profili, Doppler ve kütleçekims
   kamera eksene ~20° açıyla başlar. Kara delik sayfalarında (Wikidata) jet verisi yok; M87* jetsiz çizilir.
 - Dönen (Kerr) kara delik bilinçli olarak yapılmadı.
 - Kontrol: `dev/check-quasar.mjs`. Tarayıcıda 3C 273 (blazar), 3C 48 (yandan), Sgr A*.
+
+## 2026-11-13 · Fizik yükseltmesi 3/9: yıldız sahnesi
+
+Sahne zaten çekim kararması (von Zeipel), Roche basıklığı, ölçülmüş kenar kararması, granülasyon, dev hücreler,
+aktivite kuşağı lekeleri ve Güneş etkinlik modelini içeriyordu; planda "eklenecek" dediğim çekim kararması ve
+lekeler mevcuttu. Eklenen tek şey:
+- **Kenar kızarması (`render/star.js`):** renk, gri atmosferde görülen sıcaklıktan T(μ) = T ((3μ + 2)/5)^¼
+  (Eddington–Barbier; kenarda 0,80 T). Parlaklık düşüşü yine ölçülmüş kenar kararması yasasından. Yalnız shader;
+  tarayıcıda Güneş ve Vega ile bakıldı.

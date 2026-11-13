@@ -130,8 +130,13 @@ void main() {
 
     float limb = 1.0 - uU1 * (1.0 - mu) - uU2 * (1.0 - mu) * (1.0 - mu);
     vec4 bt = bb(T);
+    // Kenar kızarması: kenara doğru bakış daha sığ, daha soğuk katmanda biter. Gri atmosferde
+    // (Eddington–Barbier) görülen sıcaklık T(μ) = T ((3μ + 2) / 5)^¼; kenarda 0,80 T (Güneş'te ~4600 K).
+    // Parlaklık düşüşü ölçülmüş kenar kararması yasasından (limb), yalnız renk bu sıcaklıktan gelir.
+    vec4 bl = bb(T * pow((3.0 * mu + 2.0) / 5.0, 0.25));
+    vec3 hue = bl.rgb * max(bt.r, max(bt.g, bt.b)) / max(bl.r, max(bl.g, bl.b));
     // Disk merkezinin en parlak kanalı 1 olacak biçimde: turuncu yıldız turuncu kalır
-    col = bt.rgb * exp2(bt.a - bbEff.a) * max(limb, 0.0) / max(bbEff.r, max(bbEff.g, bbEff.b)) * uBright;
+    col = hue * exp2(bt.a - bbEff.a) * max(limb, 0.0) / max(bbEff.r, max(bbEff.g, bbEff.b)) * uBright;
   } else {
     // Işık hâlesi: ışının merkeze en yakın uzaklığı (yarıçap biriminde)
     float bimp = length(cross(ro, rd));
