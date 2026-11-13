@@ -43,6 +43,7 @@ function rows(row, pd) {
   out.push(['rlc', `${sci(pd.rlcKm.value)} km · ${sci(pd.rlcOverR.value)} R`, 'derived', t('ps.rlcTip')]);
   out.push(['cap', `${num(pd.capDeg.value)}°`, 'derived', t('ps.capTip')]);
   out.push(['veq', `${num(pd.vEqC.value)} c · ${t('ps.spinRatio', { r: num(pd.spinGravity.value) })}`, 'derived', t('ps.veqTip')]);
+  out.push(['bend', t('ps.bend', { f: num(pd.visibleFraction.value * 100), z: num(pd.surfaceZ.value), r: num(pd.apparentRadiusKm.value) }), 'estimated', t('ps.bendTip')]);
   if (pd.deathRatio) out.push(['death', t(pd.deathRatio.value >= 1 ? 'ps.alive' : 'ps.dead', { r: num(pd.deathRatio.value) }), 'estimated', t('ps.deathTip')]);
   out.push(['beam', `${num(pd.beamDeg.value)}°`, 'estimated', t('ps.beamTip')]);
   out.push(['dist', pd.distKpc && `${num(pd.distKpc.value)} kpc · ${num(pd.distKpc.value * 3261.56)} ${t('unit.ly')}`,

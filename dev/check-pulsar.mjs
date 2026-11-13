@@ -54,3 +54,18 @@ const tsv = '#c\n\nPSRJ\tP0\tPlx\tType\n \ts\tmas\t \n----\t----\t----\t----\nJ0
 assert.deepEqual(parseTsv(tsv), [{ PSRJ: 'J0534+2200', P0: 0.0333924123, Plx: null, Type: 'HE[cdt69]' }]);
 assert.equal(parseTsv('1.25e-13\n').length, 0);
 console.log('pulsar: tüm kontroller geçti');
+
+// Işık bükülmesi (1,4 M☉, 10 km): sıkılık 0,41, yüzeyin ~%85'i görünür, z ≈ 0,31, görünen yarıçap ≈ 13 km
+{
+  const { compactness, visibleFraction } = await import('../js/pulsar/derive.js');
+  const { pulsarVisualParams } = await import('../js/pulsar/visual.js');
+  near(compactness(), 0.41, 0.416, 'sıkılık');
+  assert.equal(visibleFraction(0), 0.5);                       // düz uzay: yarım küre
+  near(visibleFraction(compactness()), 0.84, 0.86, 'görünen yüzey payı');
+  assert.equal(visibleFraction(0.6), 1);                       // R < 1,5 r_s... bütün yüzey
+  const pd = derivePulsar({ P0: 0.0334, P1: 4.2e-13 });
+  near(pd.surfaceZ.value, 0.30, 0.31, 'yüzey kırmızıya kayması');
+  near(pd.apparentRadiusKm.value, 13, 13.1, 'görünen yarıçap');
+  near(pulsarVisualParams(pd).compact, 0.41, 0.416, 'sahne sıkılığı');
+  console.log('pulsar: ışık bükülmesi geçti');
+}

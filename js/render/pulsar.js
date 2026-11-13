@@ -10,7 +10,7 @@ out vec4 outColor;
 uniform vec2 uRes, uShift;
 uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
-uniform float uPhase, uAlpha, uRho, uRns, uCap;
+uniform float uPhase, uAlpha, uRho, uRns, uCap, uCompact;
 uniform vec3 uNs;
 
 const float BOUND = 1.6;
@@ -61,8 +61,10 @@ void main() {
   vec3 col = vec3(0.0);
   float b = dot(ro, rd), cc = dot(ro, ro);
   float hB = b * b - cc + BOUND * BOUND;
+  // Nötron yıldızı ışığı büker: uzaktan R / √(1 − u) yarıçaplı görünür ve yüzeyin yarısından fazlası seçilir
+  float rApp = uRns / sqrt(1.0 - uCompact);
   float tNs = 1e9;
-  float hN = b * b - cc + uRns * uRns;
+  float hN = b * b - cc + rApp * rApp;
   if (hN > 0.0) tNs = -b - sqrt(hN);
   if (hB > 0.0) {
     float t0 = max(0.0, -b - sqrt(hB)), t1 = min(-b + sqrt(hB), tNs);
@@ -72,14 +74,19 @@ void main() {
     for (int i = 0; i < N; i++) { col += emit(ro + rd * t, m, e1, e2) * dt; t += dt; }
   }
   if (tNs < 1e8) {
-    // Nötron yıldızı yüzeyi: hafif kenar kararması, manyetik kutup başlıkları daha parlak
-    vec3 n = normalize(ro + rd * tNs);
-    float mu = max(dot(n, -rd), 0.0);
+    // Nötron yıldızı yüzeyi: hafif kenar kararması, manyetik kutup başlıkları daha parlak.
+    // Işının merkeze en yakın geçiş vektörü bv; çıkış açısı sin α = |bv| / R_görünen. Yüzey noktasının
+    // bakış doğrultusuna açısı ψ (Beloborodov 2002): 1 − cos α = (1 − cos ψ)(1 − u). ψ > 90° olabilir:
+    // yıldızın arka yüzü de görünür.
+    vec3 bv = ro - rd * b;
+    float sa = min(length(bv) / rApp, 1.0), mu = sqrt(1.0 - sa * sa);
+    float cpsi = 1.0 - (1.0 - mu) / (1.0 - uCompact), spsi = sqrt(max(1.0 - cpsi * cpsi, 0.0));
+    vec3 n = normalize(-rd * cpsi + bv / max(length(bv), 1e-6) * spsi);
     float cap = smoothstep(cos(uCap * 1.6), cos(uCap), abs(dot(n, m)));
     col += uNs * (0.6 + 0.4 * mu) * (1.4 + 3.0 * cap);
   } else {
     // Yıldızın ışık hâlesi ve uzak yıldızlar
-    float bimp = length(cross(ro, rd)) / uRns;
+    float bimp = length(cross(ro, rd)) / rApp;
     col += uNs * 0.25 / (bimp * bimp * bimp) + stars(rd);
   }
   col *= uExposure;
@@ -89,7 +96,7 @@ void main() {
 }`;
 
 /**
- * Pulsar sahnesi. params: pulsarVisualParams() { periodS, alpha, rho, rNs, cap, ns }.
+ * Pulsar sahnesi. params: pulsarVisualParams() { periodS, alpha, rho, rNs, cap, compact, ns }.
  * Varsayılan zaman hızı: bir dönüş 2 sn (Yengeç 33 ms'de döner, gerçek hızda çakar gibi görünür).
  */
 export const pulsarScene = {
@@ -101,6 +108,7 @@ export const pulsarScene = {
     gl.uniform1f(U.uRho, p.rho);
     gl.uniform1f(U.uRns, p.rNs);
     gl.uniform1f(U.uCap, p.cap);
+    gl.uniform1f(U.uCompact, p.compact);
     gl.uniform3fv(U.uNs, p.ns);
   },
   timeScale: (p) => p.periodS / 2,

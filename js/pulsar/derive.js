@@ -32,6 +32,16 @@ export function pulsarClass(r, B, tau) {
   return 'normal';
 }
 
+/** Sıkılık u = r_s / R = 2GM / (R c²); varsayılan nötron yıldızında 0,41. */
+export const compactness = (massSun = ASSUME.massSun, radiusKm = ASSUME.radiusKm) => 2 * G * massSun * MSUN / (radiusKm * 1e3 * C * C);
+
+/**
+ * Işık bükülmesi yüzünden uzaktaki gözlemcinin aynı anda gördüğü yüzey payı. Beloborodov (2002):
+ * 1 − cos α = (1 − cos ψ)(1 − u); α yüzey normaliyle çıkış açısı, ψ noktanın bakış doğrultusuna açısı.
+ * Kenar (α = 90°) cos ψ = −u / (1 − u) noktasındadır; düz uzayda (u = 0) yarım küre görülür.
+ */
+export const visibleFraction = (u) => Math.min(1, (1 + u / (1 - u)) / 2);
+
 /** r: ATNF satırı { P0 (s), P1, DM, Dist (kpc), Plx (mas), PMTot (mas/yr), W50 (ms), PB (gün), Ecc, minM, medM, NGlt, Type, BINCOMP }. */
 export function derivePulsar(r) {
   const P = r.P0, Pd = r.P1 > 0 ? r.P1 : null;
@@ -48,6 +58,8 @@ export function derivePulsar(r) {
   const rho = Math.min(90, 5.75 / Math.sqrt(P));
   const dmDelay = r.DM > 0 ? 4.1488e3 * r.DM * (400 ** -2 - 1400 ** -2) : null;   // s, 400 ile 1400 MHz arası
   const tauVal = val(tau, 'derived');
+  // Kütleçekimsel ışık bükülmesi (varsayılan 1,4 M☉, 10 km için): sıkılık u = r_s / R
+  const u = compactness();
   return {
     cls: pulsarClass(r, B, tau),
     binary: r.PB > 0,
@@ -78,5 +90,8 @@ export function derivePulsar(r) {
     ecc: val(r.PB > 0 ? r.Ecc : null, 'measured'),
     minCompanion: val(r.minM > 0 ? r.minM : null, 'derived'),
     glitches: val(r.NGlt > 0 ? r.NGlt : null, 'measured'),
+    surfaceZ: val(1 / Math.sqrt(1 - u) - 1, 'estimated'),          // yüzeyden kaçan ışığın kırmızıya kayması
+    visibleFraction: val(visibleFraction(u), 'estimated'),         // aynı anda görülen yüzey payı
+    apparentRadiusKm: val(ASSUME.radiusKm / Math.sqrt(1 - u), 'estimated'),
   };
 }

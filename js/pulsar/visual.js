@@ -1,7 +1,7 @@
 // derivePulsar() çıktısından sahne parametreleri. Saf fonksiyon.
 // Nötron yıldızı gerçek boyunda (R/R_LC, Yengeç'te 0,006) neredeyse görünmez; en az 0,04 çizilir.
 
-import { ASSUME } from './derive.js';
+import { ASSUME, compactness } from './derive.js';
 import { blackbodyTable } from '../render/color.js';
 
 const RAD = Math.PI / 180;
@@ -15,6 +15,7 @@ export function pulsarVisualParams(pd) {
     rho: pd.beamDeg.value * RAD,
     rNs: Math.max(1 / pd.rlcOverR.value, 0.04),
     cap: pd.capDeg.value * RAD,
+    compact: compactness(),
     ns: [d[0] / mx, d[1] / mx, d[2] / mx],
   };
 }

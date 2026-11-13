@@ -225,3 +225,13 @@ Kart fiziği (Strömgren, Sedov–Taylor, dinamik yaş) zaten vardı; değişen 
   `i18n.js` içine kaçışsız kesme işareti ("1/12'si") yazıldı, site açılmaz oldu ama 18 testin hepsi geçti, çünkü
   hiçbiri DOM'a bağlı dosyaları içe aktarmıyor. Hata 6976b40 commit'inde, yayına çıkmadan burada düzeltildi.
 - Kontrol: `dev/check-cluster.mjs` (örnekleme tam ise üç boyutlu yarı-kütle yarıçapı 1,305 a). Tarayıcıda Ülker, M13.
+
+## 2026-11-13 · Fizik yükseltmesi 6/9: pulsar
+
+Atım profili grafiği (W50'den) zaten vardı. Eklenen:
+- **Işık bükülmesi (`render/pulsar.js`):** nötron yıldızı R/√(1 − u) boyunda görünür; yüzey noktası Beloborodov (2002)
+  yaklaşımıyla bulunur: 1 − cos α = (1 − cos ψ)(1 − u). Arka yüzdeki kutup başlığı ψ ≈ 135°'ye kadar görünür.
+- **`pulsar/derive.js`:** `compactness` (1,4 M☉, 10 km → 0,41), `visibleFraction` (%85), `surfaceZ` (0,31),
+  `apparentRadiusKm` (13 km). Kartta "Işık bükülmesi" satırı.
+- Kontrol: `dev/check-pulsar.mjs`. Pulsar verisi (ATNF, VizieR) CDS bozukken gelmediği için sahne canlı kartla değil,
+  sayfa içinde Yengeç pulsarı parametreleriyle çizdirilerek doğrulandı (iki başlık aynı anda görünüyor).
