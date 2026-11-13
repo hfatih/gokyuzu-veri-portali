@@ -53,6 +53,22 @@ export function rhinesBands(Rkm, rotSec, U = 100) {
   return clamp(Math.PI * R / (Math.PI * Math.sqrt(2 * U / beta)), 1, 20);
 }
 
+// Rayleigh saçılma kesiti (550 nm, m²) ve ortalama molekül kütlesi (u). Hava: Bucholtz 1995; CO₂: Sneep &
+// Ubachs 2005 (532 nm'den λ⁻⁴ ile); H₂: Dalgarno & Williams 1962, %14 helyumla seyreltilmiş.
+const RAYLEIGH = { air: { sigma: 4.5e-31, mu: 28.97 }, co2: { sigma: 1.09e-30, mu: 44.01 }, h2: { sigma: 8.2e-32, mu: 2.3 } };
+/** Dev gezegenlerde bulut tepesinin basıncı (bar): üstündeki gaz Rayleigh saçar. Jüpiter'in amonyak bulutları ~0,7 bar. */
+export const CLOUD_TOP_BAR = 0.7;
+
+/**
+ * Atmosferin 550 nm'de dik Rayleigh optik derinliği: τ = σ N, sütun yoğunluğu N = P / (μ m_u g).
+ * gas: 'air' | 'co2' | 'h2', pressureBar: yüzey (ya da bulut tepesi) basıncı, gravity: m/s².
+ * Dünya 0,097 (gök mavisi), Mars 0,002 (Mars göğünün rengi tozdan gelir, Rayleigh'den değil).
+ */
+export function rayleighTau(gas, pressureBar, gravity) {
+  const g = RAYLEIGH[gas];
+  return g && pressureBar > 0 && gravity > 0 ? g.sigma * pressureBar * 1e5 / (g.mu * 1.6605e-27 * gravity) : 0;
+}
+
 /** Sudarsky+ (2000) dev gezegen bulut sınıfları, denge sıcaklığından. */
 export function sudarsky(T) {
   if (T < 150) return { cls: 'I', key: 'ammonia' };

@@ -126,3 +126,32 @@ console.log('planet: tüm kontroller geçti');
   assert.ok(jup.bands > 0, 'kenar kararması için bant sayısı');
   console.log('planet: gerçek harita kontrolleri geçti');
 }
+
+// Rayleigh optik derinliği ve halka profili
+{
+  const { rayleighTau, CLOUD_TOP_BAR } = await import('../js/planet/derive.js');
+  const { SATURN_RING_TAU, solarPlanet } = await import('../js/planet/solar.js');
+  const { planetVisualParams } = await import('../js/planet/visual.js');
+  near(rayleighTau('air', 1.013, 9.807), 0.094, 0.1, 'Dünya Rayleigh τ (550 nm; ölçülen 0,097)');
+  assert.ok(rayleighTau('co2', 0.0064, 3.71) < 0.005, 'Mars Rayleigh ihmal edilebilir');
+  // Aynı basınçta düşük çekim → kalın gaz sütunu: Satürn Jüpiter'den puslu
+  assert.ok(rayleighTau('h2', CLOUD_TOP_BAR, 10.4) > 2 * rayleighTau('h2', CLOUD_TOP_BAR, 24.8));
+  assert.equal(rayleighTau('h2', 0, 10), 0);
+
+  const earth = planetVisualParams({ cls: 'rocky', teq: { value: 255 }, rot: { value: 1 }, gravity: { value: 9.8 } }, solarPlanet('planet:Q2'), 5772);
+  near(earth.rayTau, 0.094, 0.1, 'Dünya sahnesi'); assert.equal(earth.atm[3], 0, 'temsili kenar parıltısı kapalı');
+  const mars = planetVisualParams({ cls: 'rocky', teq: { value: 210 }, rot: { value: 1.03 }, gravity: { value: 3.71 } }, solarPlanet('planet:Q111'), 5772);
+  assert.ok(mars.rayTau < 0.005 && mars.atm[3] > 0, 'Mars: toz kenarı kalır');
+  const giant = { cls: 'giant', teq: { value: 110 }, rot: { value: 0.4135 }, radius: { value: 11.2 }, mass: { value: 317.8 }, gravity: { value: 24.8 } };
+  assert.equal(planetVisualParams(giant, solarPlanet('planet:Q319'), 5772).rayTau, 0, 'haritalı Jüpiter');
+  assert.ok(planetVisualParams({ ...giant, gravity: { value: 10.4 } }, solarPlanet('planet:Q193'), 5772).rayTau > 0.1, 'Satürn');
+
+  // Halka tablosu: yarıçap artan, uçlar sıfır, B halkası en yoğun, aralıklar boş
+  const tau = (r) => { const i = SATURN_RING_TAU.findIndex((p) => p[0] > r), [a, b] = [SATURN_RING_TAU[i - 1], SATURN_RING_TAU[i]]; return a[1] + (b[1] - a[1]) * (r - a[0]) / (b[0] - a[0]); };
+  assert.ok(SATURN_RING_TAU.every((p, i, t) => i === 0 || p[0] > t[i - 1][0]), 'yarıçaplar artan');
+  assert.equal(SATURN_RING_TAU[0][1], 0); assert.equal(SATURN_RING_TAU.at(-1)[1], 0);
+  near(SATURN_RING_TAU[0][0] * 60268, 74600, 74700, 'C iç kenarı (km)'); near(SATURN_RING_TAU.at(-1)[0] * 60268, 136700, 136800, 'A dış kenarı (km)');
+  assert.ok(tau(1.78) > 3 && tau(1.35) < 0.15 && tau(2.0) < 0.15 && tau(2.1) > 0.4 && tau(2.1) < 1, 'C seyrek, B yoğun, Cassini seyrek, A orta');
+  assert.equal(tau(1.955), 0, 'Huygens aralığı'); assert.equal(tau(2.2165), 0, 'Encke aralığı');
+  console.log('planet: Rayleigh ve halka kontrolleri geçti');
+}

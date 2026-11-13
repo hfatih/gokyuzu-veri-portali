@@ -235,3 +235,18 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   `apparentRadiusKm` (13 km). Kartta "Işık bükülmesi" satırı.
 - Kontrol: `dev/check-pulsar.mjs`. Pulsar verisi (ATNF, VizieR) CDS bozukken gelmediği için sahne canlı kartla değil,
   sayfa içinde Yengeç pulsarı parametreleriyle çizdirilerek doğrulandı (iki başlık aynı anda görünüyor).
+
+## 2026-11-13 · Fizik yükseltmesi 7/9: gezegen
+
+- **Rayleigh saçılımı:** `planet/derive.js` `rayleighTau(gas, bar, g)` = σ P / (μ m_u g) (550 nm). Dünya 0,097,
+  Mars 0,002 (kenar rengi tozdan, temsili kalır), modellenen devlerde bulut tepesi 0,7 bar varsayımıyla (Satürn 0,145,
+  Neptün 0,135). Haritalı Jüpiter'de yok (harita atmosferi içerir). Shader: gazın ışığı tek saçılmadan, yüzey ışığı iki
+  akım yaklaşımıyla. İlk denemede yalnız tek saçılma parlak bulutların mavisini kararttı (Neptün gri-yeşil); düzeltildi.
+  Dünya'nın temsili mavi kenar parıltısı kapatıldı.
+- **Satürn halkaları:** `planet/solar.js` `SATURN_RING_TAU` (Colwell+ 2009 özetinden yuvarlanmış dik optik derinlik);
+  shader tablosu bu veriden üretilir. Aydınlık yüzde yansıma, karanlık yüzde içinden süzülme (yoğun B halkası kararır,
+  C ve Cassini Bölümü parlar); gezegene düşen gölge e^(−τ/μ₀). Tablo değerleri bellekten yazıldı, kaynaktan tek tek
+  doğrulanmadı.
+- **`dev/check-syntax.mjs`:** artık sahne modüllerini de içe aktarır (şablon içindeki tanımsız ad yakalanır; bu aşamada
+  eksik bir import böyle bulundu).
+- Kontrol: `dev/check-planet.mjs`. Tarayıcıda Satürn, Dünya, Neptün.

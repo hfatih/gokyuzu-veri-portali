@@ -1,19 +1,32 @@
 // Güneş Sistemi gezegenleri: SIMBAD'da yoklar; kimlik Wikidata öğesidir (planet:Q…).
-// Fiziksel değerler yine Wikidata'dan gelir; burada yalnız ad, doku ve halka geometrisi var.
+// Fiziksel değerler yine Wikidata'dan gelir; burada yalnız ad, doku, halka ve atmosfer basıncı var.
+// air: Rayleigh saçılımı için gaz ve yüzey basıncı (bar). Dünya 1,013 bar; Mars 6,4 mbar CO₂.
 // texture: gerçek gözlem haritası (kaynaklar assets/textures/KAYNAK.md). Kamu malı tam haritası
 // olmayan (Satürn) ya da görünür ışıkta yüzeyi görünmeyen (Venüs, Uranüs, Neptün) cisimler modelle çizilir.
 // Halka yarıçapları gezegen ekvator yarıçapı (60 268 km) biriminde (NASA Saturn Fact Sheet:
-// C halkası iç kenarı 74 658 km, B halkası 92 000 km'de başlar, A halkası dış kenarı 136 775 km; Cassini aralığı 117 580–122 170 km).
+// C halkası iç kenarı 74 658 km, A halkası dış kenarı 136 775 km); iç yapı SATURN_RING_TAU tablosunda.
 
 export const SOLAR_PLANETS = [
   { id: 'planet:Q308', key: 'mercury', tilt: 0.03, tr: 'Merkür', en: 'Mercury', texture: 'assets/textures/mercury.jpg' },
   { id: 'planet:Q313', key: 'venus', tilt: 177.4, tr: 'Venüs', en: 'Venus', clouds: true },
-  { id: 'planet:Q2', key: 'earth', tilt: 23.44, tr: 'Dünya', en: 'Earth', texture: 'assets/textures/earth.jpg', atmosphere: [0.35, 0.55, 1.0] },
-  { id: 'planet:Q111', key: 'mars', tilt: 25.19, tr: 'Mars', en: 'Mars', texture: 'assets/textures/mars.jpg', atmosphere: [0.85, 0.6, 0.45] },
+  { id: 'planet:Q2', key: 'earth', tilt: 23.44, tr: 'Dünya', en: 'Earth', texture: 'assets/textures/earth.jpg', atmosphere: [0.35, 0.55, 1.0], air: { gas: 'air', bar: 1.013 } },
+  { id: 'planet:Q111', key: 'mars', tilt: 25.19, tr: 'Mars', en: 'Mars', texture: 'assets/textures/mars.jpg', atmosphere: [0.85, 0.6, 0.45], air: { gas: 'co2', bar: 0.0064 } },
   { id: 'planet:Q319', key: 'jupiter', tilt: 3.13, tr: 'Jüpiter', en: 'Jupiter', texture: 'assets/textures/jupiter.jpg' },
-  { id: 'planet:Q193', key: 'saturn', tilt: 26.73, tr: 'Satürn', en: 'Saturn', ring: { inner: 1.239, bStart: 1.527, gap: [1.951, 2.027], outer: 2.269 } },
+  { id: 'planet:Q193', key: 'saturn', tilt: 26.73, tr: 'Satürn', en: 'Saturn', ring: { inner: 1.239, outer: 2.269 } },
   { id: 'planet:Q324', key: 'uranus', tilt: 97.77, tr: 'Uranüs', en: 'Uranus' },
   { id: 'planet:Q332', key: 'neptune', tilt: 28.32, tr: 'Neptün', en: 'Neptune' },
+];
+
+// Satürn halkalarının dik optik derinliği: [yarıçap (Satürn ekvator yarıçapı = 60 268 km), τ]. Düğümler
+// arasında doğrusal. Cassini yıldız örtülmelerinin özetinden (Colwell+ 2009, "The Structure of Saturn's
+// Rings") yuvarlanmış değerler: C halkası 0,05–0,12 (platolarda ~0,35), B halkası 1,2–4+ (B3 en yoğun),
+// Huygens aralığı boş, Cassini Bölümü ~0,1, A halkası içte 1, ortada 0,5, Encke aralığı boş.
+export const SATURN_RING_TAU = [
+  [1.2388, 0], [1.2395, 0.05], [1.30, 0.07], [1.40, 0.10], [1.45, 0.12], [1.455, 0.35], [1.47, 0.35], [1.475, 0.12],
+  [1.5260, 0.12], [1.5270, 1.2], [1.6427, 1.3], [1.6510, 2.2], [1.7339, 2.6], [1.7420, 4.0], [1.8252, 4.0],
+  [1.8335, 2.6], [1.9330, 2.2], [1.9508, 1.3], [1.9512, 0], [1.9590, 0], [1.9596, 0.10], [2.0265, 0.12],
+  [2.0272, 1.0], [2.0575, 0.8], [2.1238, 0.5], [2.2130, 0.55], [2.2136, 0], [2.2191, 0], [2.2196, 0.6],
+  [2.2690, 0.65], [2.2695, 0],
 ];
 
 export const solarPlanet = (id) => SOLAR_PLANETS.find((p) => p.id === id) ?? null;

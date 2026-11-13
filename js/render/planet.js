@@ -3,6 +3,8 @@
 // Kipler (uMode): 0 doku (Merkür, Dünya, Mars), 1 bulut bantları (dev ve buz devleri),
 // 2 Venüs bulut örtüsü, 3 kayalık ötegezegen yüzey modeli, 4 uydu yüzeyi (iki ton).
 
+import { SATURN_RING_TAU } from '../planet/solar.js';
+
 const FRAG = `#version 300 es
 precision highp float;
 out vec4 outColor;
@@ -18,8 +20,7 @@ uniform float uRot, uTilt, uOblate, uTime;
 uniform float uBands, uContrast, uTeq, uGlow;
 uniform vec3 uZone, uBelt, uGlowColor;
 uniform vec4 uAtm;
-uniform vec4 uRing;      // iç, B başlangıcı, Cassini iç, Cassini dış
-uniform float uRingOuter, uRingOn;
+uniform float uRingOn, uRayTau;
 
 vec3 hash3(vec3 p) {
   p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -35,12 +36,19 @@ float fbm(vec3 x) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a
 vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
 mat3 rotX(float a) { float c = cos(a), s = sin(a); return mat3(1, 0, 0, 0, c, s, 0, -s, c); }
 
-// Halka yoğunluğu (optik kalınlığa benzer, 0–1): C soluk, B yoğun, Cassini boş, A orta; ince halkacıklar
-float ringDensity(float r) {
-  if (uRingOn < 0.5 || r < uRing.x || r > uRingOuter) return 0.0;
-  float d = r < uRing.y ? 0.18 : r < uRing.z ? 0.92 : r < uRing.w ? 0.04 : 0.62;
-  return d * (0.75 + 0.25 * hash3(vec3(floor(r * 900.0))).x);
+// Halkanın dik optik derinliği: ölçülmüş profil (planet/solar.js SATURN_RING_TAU), ince halkacık dokusuyla
+const int RN = ${SATURN_RING_TAU.length};
+const float RR[RN] = float[RN](${SATURN_RING_TAU.map((p) => p[0].toFixed(4)).join(', ')});
+const float RT[RN] = float[RN](${SATURN_RING_TAU.map((p) => p[1].toFixed(3)).join(', ')});
+float ringTau(float r) {
+  if (uRingOn < 0.5 || r <= RR[0] || r >= RR[RN - 1]) return 0.0;
+  float t = 0.0;
+  for (int i = 1; i < RN; i++) {
+    if (r < RR[i]) { t = mix(RT[i - 1], RT[i], (r - RR[i - 1]) / (RR[i] - RR[i - 1])); break; }
+  }
+  return t * (0.8 + 0.4 * hash3(vec3(floor(r * 900.0))).x);
 }
+const vec3 RAY = vec3(0.66, 1.0, 2.23);   // Rayleigh ∝ λ⁻⁴: 610, 550, 450 nm
 
 // Yüzey albedosu (gezegenle dönen q koordinatında)
 vec3 surface(vec3 q) {
@@ -116,14 +124,27 @@ void main() {
     if (uMode == 1 || uMode == 2 || (uMode == 0 && uBands > 0.0)) day *= pow(mu, 0.15);
     // Havasız, tozlu yüzey (Ay, Merkür, uydular, çıplak kaya): Lommel–Seeliger ağırlıklı saçılma.
     // Lambert dolunayı kenara doğru karartır; gerçek Ay kenara kadar neredeyse eşit parlaktır.
-    else if (uAtm.a < 0.01) day = mix(2.0 * day / (day + mu + 1e-4), day, 0.3);
+    else if (uAtm.a < 0.01 && uRayTau <= 0.0) day = mix(2.0 * day / (day + mu + 1e-4), day, 0.3);
     // Halkanın gezegene düşen gölgesi
     float shade = 1.0;
     if (uRingOn > 0.5 && abs(L.y) > 1e-3) {
       float tr = -ps.y / L.y;
-      if (tr > 0.0) shade = 1.0 - 0.85 * ringDensity(length((ps + L * tr).xz));
+      // Güneş ışığı halkadan eğik geçer: geçirgenlik e^(−τ/μ₀). C halkası soluk, B halkası kapkara gölge yapar
+      if (tr > 0.0) shade = exp(-ringTau(length((ps + L * tr).xz)) / max(abs(L.y), 0.02));
     }
     col = alb * uLight * day * shade;
+    // Rayleigh saçılımı (düzlem-paralel gaz katmanı). Gazın kendi ışığı tek saçılmadan:
+    // I = ¼ F P(θ) μ₀/(μ + μ₀) (1 − e^(−τ m)), P = ¾ (1 + cos²θ), m geliş + çıkış hava kütlesi; mavi kenar
+    // ve okyanus üstündeki mavi pus buradan çıkar. Yüzeye inen ve yüzeyden çıkan ışık iki akım yaklaşımıyla
+    // (saçılan ışık yok olmaz, yarısı yine aşağı iner): geçirgenlik 1/(1 + τ/2μ), yüzeyle gaz arasındaki
+    // yansımalar 1/(1 − A r̄), r̄ = ¾τ/(1 + ¾τ). Yalnız tek saçılma parlak bulutların mavisini yanlışlıkla
+    // karartıyordu (Neptün gri-yeşil çıkıyordu).
+    if (uRayTau > 0.0) {
+      float mu0 = max(ndl, 0.0), cs = dot(L, rd), am = 1.0 / max(mu, 0.04), am0 = 1.0 / max(mu0, 0.04);
+      vec3 tau = uRayTau * RAY, rs = 0.75 * tau / (1.0 + 0.75 * tau);
+      vec3 through = 1.0 / ((1.0 + 0.5 * tau * am0) * (1.0 + 0.5 * tau * am) * (1.0 - alb * rs));
+      col = col * through + uLight * shade * 0.1875 * (1.0 + cs * cs) * mu0 / (mu + mu0 + 1e-4) * (1.0 - exp(-tau * (am + am0)));
+    }
     // Atmosfer kenar saçılması (gündüz tarafında, sonlandırıcıya doğru yumuşar)
     float rim = pow(1.0 - mu, 3.0) * smoothstep(-0.25, 0.35, ndl);
     col += uAtm.rgb * uLight * rim * uAtm.a;
@@ -144,13 +165,20 @@ void main() {
     float tR = -ro.y / rd.y;
     if (tR > 0.0 && (!hitP || tR < tP)) {
       vec3 pr = ro + rd * tR;
-      float dens = ringDensity(length(pr.xz));
-      if (dens > 0.0) {
+      float tau = ringTau(length(pr.xz));
+      if (tau > 0.0) {
         // Gezegenin halkaya düşen gölgesi
         float bb = dot(pr, L), cc = dot(pr, pr) - 1.0;
         float lit = (bb * bb - cc > 0.0 && -bb - sqrt(max(bb * bb - cc, 0.0)) > 0.0) ? 0.05 : 1.0;
-        vec3 ringCol = vec3(0.85, 0.78, 0.66) * uLight * lit * min(1.0, 0.35 + 2.0 * abs(L.y));
-        col = mix(col, ringCol, dens * 0.9);
+        // Halka parçacık katmanı (tek saçılma). Güneş'le aynı yüzden bakınca yansıyan ışık yoğun halkada
+        // parlar; karşı yüzden bakınca ışık içinden süzülür: yoğun B halkası kararır, seyrek C halkası ve
+        // Cassini Bölümü parlar (Cassini'nin karanlık yüz görüntülerindeki gibi). 1,5: parçacık albedosu,
+        // geri saçılma ve çoklu saçılma payını tek katsayıda toplayan etkin değer.
+        float mu = max(abs(rd.y), 0.02), mu0 = max(abs(L.y), 0.02), dm = mu - mu0;
+        float refl = mu0 / (mu + mu0) * (1.0 - exp(-tau * (1.0 / mu + 1.0 / mu0)));
+        float trn = abs(dm) < 1e-3 ? tau / mu * exp(-tau / mu) : mu0 / dm * (exp(-tau / mu) - exp(-tau / mu0));
+        vec3 ringCol = vec3(0.85, 0.78, 0.66) * uLight * lit * 1.5 * (-rd.y * L.y > 0.0 ? refl : trn);
+        col = col * exp(-tau / mu) + ringCol;
       }
     }
   }
@@ -226,8 +254,7 @@ export const planetScene = {
     gl.uniform4f(U.uAtm, ...p.atm);
     const r = p.ring;
     gl.uniform1f(U.uRingOn, r ? 1 : 0);
-    gl.uniform4f(U.uRing, r?.inner ?? 0, r?.bStart ?? 0, r?.gap[0] ?? 0, r?.gap[1] ?? 0);
-    gl.uniform1f(U.uRingOuter, r?.outer ?? 0);
+    gl.uniform1f(U.uRayTau, p.rayTau);
   },
   timeScale: (p) => p.rotSec / 20,
 };

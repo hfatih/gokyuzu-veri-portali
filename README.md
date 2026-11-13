@@ -96,7 +96,10 @@ modeli ekler (`js/sun/activity.js`).
     (`assets/textures/KAYNAK.md`). Harita yalnız o cisim açılınca iner; inene kadar model çizilir.
   - Satürn, Uranüs, Neptün: fizikten üretilen bant modeli (kamu malı tam harita yok ya da yüzey görünmez).
   - Venüs: bulut örtüsü.
-  - Satürn: halkalar ve karşılıklı gölgeler.
+  - Satürn: halkalar ölçülmüş optik derinlik profilinden (C, B, Cassini Bölümü, A, Encke aralığı); yansıyan ve
+    içinden süzülen ışık ayrı hesaplanır, gezegenle karşılıklı gölgeler.
+  - Rayleigh saçılımı: optik derinlik basınç ve yüzey çekiminden (Dünya 0,097); dev gezegenlerde bulut tepesinin
+    üstündeki gazdan.
   - Işık ana yıldızın renginde; Proxima b kırmızımsı aydınlanır.
 
 ## Bulutsular (faz 3)

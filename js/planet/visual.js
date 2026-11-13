@@ -1,7 +1,7 @@
 // derivePlanet() çıktısını gezegen sahnesinin parametrelerine çevirir. Saf fonksiyon.
 // Renkler gözlem değil, fiziksel sınıfın temsili tonlarıdır (Sudarsky+ 2000 model tayfları).
 
-import { rhinesBands, sudarsky } from './derive.js';
+import { rhinesBands, sudarsky, rayleighTau, CLOUD_TOP_BAR } from './derive.js';
 import { blackbodyTable } from '../render/color.js';
 
 const EARTH_R_KM = 6371;
@@ -45,6 +45,9 @@ export function planetVisualParams(pd, solar, hostTeff) {
     oblate: 0, ring: solar?.ring ?? null, texture: solar?.texture ?? null,
     tint: [1, 1, 1], atm: [0, 0, 0, 0], bands: 0, zone: [0.5, 0.5, 0.5], belt: [0.5, 0.5, 0.5], contrast: 0,
     teq: T, glow: 0, glowColor: [0, 0, 0],
+    // Rayleigh optik derinliği: basıncı bilinen cisimde yüzeyden, modellenen dev gezegende bulut tepesinden.
+    // Haritalı dev (Jüpiter) hariç: gözlem haritası atmosferin görünümünü zaten içerir.
+    rayTau: solar?.air ? rayleighTau(solar.air.gas, solar.air.bar, g) : fluid && !solar?.texture ? rayleighTau('h2', CLOUD_TOP_BAR, g) : 0,
   };
 
   // Uydular: temsili iki tonlu yüzey (kip 4) ya da bulut örtüsü (Titan)
@@ -56,7 +59,9 @@ export function planetVisualParams(pd, solar, hostTeff) {
     return { ...look, mode: 0, fallback: look.mode, tint: solar.mono ? look.zone.map((c) => c / mx) : base.tint };
   }
   if (solar?.texture && !fluid) {
-    return { ...base, mode: 0, atm: solar.atmosphere ? [...solar.atmosphere, solar.key === 'earth' ? 0.7 : 0.18] : base.atm };
+    // Rayleigh'nin hesaplandığı kalın atmosferde (Dünya) temsili kenar parıltısı kapatılır; ince atmosferde
+    // (Mars) kenar rengi tozdan gelir ve temsili kalır
+    return { ...base, mode: 0, atm: solar.atmosphere && base.rayTau < 0.02 ? [...solar.atmosphere, 0.18] : base.atm };
   }
   if (solar?.clouds) {
     return { ...base, mode: 2, zone: [0.93, 0.86, 0.68], belt: [0.86, 0.78, 0.6], contrast: 0.25, atm: [1.0, 0.9, 0.7, 0.35] };
