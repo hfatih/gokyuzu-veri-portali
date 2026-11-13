@@ -3,9 +3,8 @@
 // SIMBAD konumunun 10″ çevresi alınır; "PSR J…" / "PSR B…" kimliğiyle eşleşen kayıt, yoksa en yakını.
 // ponytail: VizieR kopyası 2015 sürümü (2536 pulsar); güncel ATNF'nin CORS'u yok.
 
-import { get } from '../net/http.js';
+import { asu } from '../net/vizier.js';
 
-const ASU = 'https://vizier.cds.unistra.fr/viz-bin/asu-tsv';
 const COLS = 'PSRJ,Name,P0,P1,DM,Dist,Plx,PMTot,W50,PB,Ecc,minM,NGlt,Type,BINCOMP,Assoc';
 
 /** ASU TSV: # yorumlar, başlık, birim ve çizgi satırları, sonra veri. Sayılar Number, boşlar null. */
@@ -24,7 +23,7 @@ export async function fetchPulsar(obj, signal) {
   const { ra, dec } = obj.basic;
   if (ra == null) return null;
   const q = new URLSearchParams({ '-source': 'B/psr/psr', '-out': COLS, '-c': `${ra} ${dec}`, '-c.rs': '10', '-sort': '_r', '-out.max': '50' });
-  const rows = parseTsv(await get(`${ASU}?${q}`, { signal, as: 'text', name: 'VizieR' }));
+  const rows = parseTsv(await asu(q, signal));
   const names = new Set(obj.ids.filter((i) => /^PSR [JB]\d/.test(i)).map((i) => i.slice(4)));
   return rows.find((r) => names.has(r.PSRJ) || names.has(r.Name)) ?? rows[0] ?? null;
 }

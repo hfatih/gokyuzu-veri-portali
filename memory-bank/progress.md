@@ -46,3 +46,5 @@
 - [x] Fizik yükseltmesi, 9 sahne (gökada, kara delik, yıldız, bulutsu, küme, pulsar, gezegen, kuyruklu yıldız, çift yıldız) — 2026-11-13
 
 - [x] Gerçekçilik A grubu: gökyüzü, kabartma, Dünya gecesi, Ceres/Vesta/Plüton, halka rengi — 2026-11-14
+
+- [x] Yordamsal gökyüzü, VizieR aynası, tayfsal çiftler (SB9), yasal metinler Keyubu/kvkk@ — 2026-11-14

@@ -7,12 +7,12 @@ export const SITE_INFO = {
   owner: 'hfatih',      // Veri sorumlusu / site sahibi (astronews ile aynı: GitHub kullanıcı adı)
   repo: 'https://github.com/hfatih/gokyuzu-veri-portali',   // e-posta yoksa iletişim GitHub üzerinden
   address: null,        // Tebligat adresi (boşsa sayfalarda hiç gösterilmez)
-  email: null,          // İletişim ve KVKK başvuru e-postası (boşsa GitHub kanalları gösterilir)
+  email: 'kvkk@gokyuzuveriportali.com.tr',   // İletişim ve KVKK başvuru e-postası (YunoHost'ta posta takma adı)
   kep: null,            // KEP adresi (şirketse)
   registry: null,       // MERSİS no / vergi no (şirketse)
-  host: null,           // Barındırma (yer) sağlayıcısı ve ülkesi, ör. "Örnek Hosting A.Ş., Türkiye"
-  logRetention: null,   // Sunucu kayıtlarının saklama süresi, ör. "2 yıl"
+  host: 'Keyubu, Türkiye',   // Barındırma (yer) sağlayıcısı ve ülkesi (sunucu 45.155.124.197, RIPE: TR-KEYUBU)
+  logRetention: '14 gün',   // nginx erişim kayıtları: logrotate günlük, 14 kopya, sonra silinir
   mailRetention: null,  // Yazışmaların saklama süresi, ör. "3 yıl"
   court: null,          // Kullanım Koşulları'nda yetkili mahkeme ili, ör. "Ankara"
-  updated: '2026-11-05',
+  updated: '2026-11-14',
 };

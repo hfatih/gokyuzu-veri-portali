@@ -300,3 +300,18 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   ışık + düzlem boyunca uzun toz şeritleri. Doğrulama: galaktik merkez yönünde ortalama piksel 16,9, kutupta 0,4.
 - **Yasal sayfa yıldızları (CSS):** box-shadow deseni 2000 px genişti; geniş ekranda sağ boş kalıyordu. `.stars.far`
   ile yatayda bir kopya.
+
+## 2026-11-14 · Tayfsal çiftler (SB9), VizieR aynası, yasal metinler
+
+- **VizieR Harvard aynası (`net/vizier.js` `asu`, `ASUS`):** CDS 404 ya da zaman aşımında `vizier.cfa.harvard.edu`
+  (CORS açık); `pulsar/fetch.js` de buradan geçer. Değişen yıldız (VSX), görsel çift (ORB6) ve pulsar (ATNF) verisi
+  2026-11-05'ten beri gelmiyordu, geri geldi. Kontrol: `dev/check-vizier.mjs`.
+- **Tayfsal çiftler:** `binary/fetch.js` `fetchSb9` (B/sb9/main + orbits; K2'li, en yüksek notlu, en yeni yörünge),
+  `binary/derive.js` `deriveSpectroscopic` (q = K₁/K₂, M sin³i, f(M), a sin i, birincil kütlesinden eğiklik; SB1'de M₂
+  kütle işlevinden 60° varsayımıyla Newton), `radialVelocity`. Kartta dikine hız eğrisi ve 3D düğmesi; görsel yörünge
+  (ORB6) yoksa devreye girer. Düğüm açısı ölçülemez, 90° seçildi (yörünge ekranda yatay). Spica testi: q 0,635, M₁ sin³i
+  7,14 (bilinen 7,8; 1972 yörüngesi).
+- **Yasal (`legal/site-info.js`, `pages.js`):** barındırma Keyubu (Türkiye), sunucu kayıtları 14 gün (nginx logrotate),
+  iletişim kvkk@gokyuzuveriportali.com.tr, yurt dışı paragrafı sunucu Türkiye'de olacak biçimde, SB9 ve VizieR aynası
+  kaynaklarda. Taslak uyarısı kalıyor (hukukçu incelemesi yok).
+- **`index.html`:** hfatih.github.io açılırsa gokyuzuveriportali.com.tr'ye yönlenir (aynı dosyalar iki yerde).

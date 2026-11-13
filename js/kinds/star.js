@@ -9,9 +9,9 @@ import { renderCard } from '../ui/card.js';
 import { wikipediaFor } from '../search/wikidata.js';
 import { starScene } from '../render/star.js';
 import { blackbodyCss } from '../render/color.js';
-import { isBinaryCandidate, fetchOrbit } from '../binary/fetch.js';
-import { deriveBinary, apparentOrbit, yearFromJd } from '../binary/derive.js';
-import { binaryHtml } from '../ui/binary-card.js';
+import { isBinaryCandidate, fetchOrbit, fetchSb9 } from '../binary/fetch.js';
+import { deriveBinary, apparentOrbit, yearFromJd, deriveSpectroscopic } from '../binary/derive.js';
+import { binaryHtml, spectroscopicHtml } from '../ui/binary-card.js';
 import { binaryScene, binaryVisualParams } from '../render/binary.js';
 import { isVariableCandidate, fetchVariable } from '../variable/fetch.js';
 import { deriveVariable, pulseParams } from '../variable/derive.js';
@@ -51,7 +51,9 @@ export const starKind = {
 function addBinary(ctx, d, view) {
   const { obj, signal } = ctx;
   fetchOrbit(obj, signal).then((orb) => {
-    if (!orb || signal.aborted) return;
+    if (signal.aborted) return;
+    // Görsel yörünge yoksa tayfsal çift kataloğuna bakılır (Spica, Mizar A gibi çözülemeyen yakın çiftler)
+    if (!orb) { addSpectroscopic(ctx, d, view); return; }
     const year = yearFromJd(jdNow());
     const bd = deriveBinary(orb.el, obj.basic.plx, obj.raw.plxErr, orb.dmag, year,
       { mass: d.M?.value, radius: d.R?.value, teff: d.teff?.value });
@@ -63,6 +65,25 @@ function addBinary(ctx, d, view) {
       btn.textContent = t(view.binary ? 'b.showStar' : 'b.show3d');
       ctx.kind(view.binary ? 'binary' : 'star');   // Güneş çift değil; bu düğme yalnız ORB6 yıldızlarında
       if (view.binary) ctx.show(binaryScene, binaryVisualParams(orb.el, bd, d.teff?.value ?? 5772, year), 1.15, view.css, 0.12);
+      else ctx.show(starScene, view.params, 1, view.css);
+    });
+  }).catch(() => {});
+}
+
+function addSpectroscopic(ctx, d, view) {
+  const { obj, signal } = ctx;
+  fetchSb9(obj, signal).then((o) => {
+    if (!o || signal.aborted) return;
+    const year = yearFromJd(jdNow());
+    const sd = deriveSpectroscopic(o, { mass: d.M?.value, teff: d.teff?.value }, year);
+    ctx.insert(spectroscopicHtml(o, sd));
+    const btn = ctx.card.querySelector('[data-binary-scene]');
+    btn?.addEventListener('click', () => {
+      view.binary = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(view.binary));
+      btn.textContent = t(view.binary ? 'b.showStar' : 'b.show3d');
+      ctx.kind(view.binary ? 'binary' : 'star');
+      if (view.binary) ctx.show(binaryScene, binaryVisualParams(sd.el, sd.sceneBd, d.teff?.value ?? 5772, year), 1.15, view.css, 0.12);
       else ctx.show(starScene, view.params, 1, view.css);
     });
   }).catch(() => {});

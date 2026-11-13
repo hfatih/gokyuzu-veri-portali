@@ -2,6 +2,7 @@
 // bugünkü konum, Kepler III ile toplam kütle ve modeli 3D'de canlandırma düğmesi.
 
 import { t, num } from './i18n.js';
+import { radialVelocity } from '../binary/derive.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = (o, tip = '') => `<span class="badge badge--${o}"${tip ? ` title="${esc(tip)}"` : ''}>${t('origin.' + o)}</span>`;
@@ -49,4 +50,45 @@ export function binaryHtml(orb, bd, path) {
     <dl class="props">${rows.map(([k, v, o, tip]) => `<div class="props__row"><dt>${t('b.row.' + k)}</dt><dd>${esc(v)} ${o ? badge(o, tip) : ''}</dd></div>`).join('')}</dl>
     <p><button type="button" class="chip chip--small" data-binary-scene aria-pressed="false">${t('b.show3d')}</button></p>
     <p class="note">${t('b.note')}</p></div>`;
+}
+
+// ---------- Tayfsal çift ----------
+
+function rvSvg(o, sd) {
+  const W = 300, H = 170, pad = 26;
+  const pts = Array.from({ length: 121 }, (_, k) => ({ phi: k / 120, ...radialVelocity(o, k / 120) }));
+  const vs = pts.flatMap((p) => [p.v1, p.v2].filter((v) => v != null));
+  const lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
+  const X = (phi) => (pad + phi * (W - pad - 8)).toFixed(1), Y = (v) => (H - 18 - (v - lo) / span * (H - 36)).toFixed(1);
+  const line = (key) => pts.map((p, i) => `${i ? 'L' : 'M'}${X(p.phi)},${Y(p[key])}`).join('');
+  return `<figure class="orb"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('sb.rvAria'))}">
+    <line x1="${pad}" y1="${Y(o.V0)}" x2="${W - 8}" y2="${Y(o.V0)}" class="orb__planet"/>
+    <path d="${line('v1')}" class="orb__path"/>
+    ${o.K2 ? `<path d="${line('v2')}" class="orb__sep"/>` : ''}
+    <text x="4" y="14" class="orbit__label">${Math.round(hi)} km/s</text>
+    <text x="4" y="${H - 4}" class="orbit__label">${Math.round(lo)} km/s</text>
+    <text x="${W - 70}" y="${H - 4}" class="orbit__label">${t('sb.phase')}</text>
+  </svg><figcaption>${t(o.K2 ? 'sb.rvCaption2' : 'sb.rvCaption1')}</figcaption></figure>`;
+}
+
+/** Tayfsal çift bölümü. o: fetchSb9(), sd: deriveSpectroscopic(). */
+export function spectroscopicHtml(o, sd) {
+  const f = (x, fmt) => (x ? [fmt(x.value), x.origin] : [null, null]);
+  const rows = [
+    ['P', ...f(sd.periodDays, (v) => `${num(v)} ${t('unit.d')}`)],
+    ['e', ...f(sd.e, (v) => num(v))],
+    ['K', `${num(o.K1)}${o.K2 ? ` / ${num(o.K2)}` : ''} km/s`, 'measured', t('sb.kTip')],
+    ['q', ...f(sd.q, (v) => num(v)), t(sd.sb2 ? 'sb.qTip2' : 'sb.qTip1')],
+    ['msin', sd.m1sin3 ? `${num(sd.m1sin3.value)} / ${num(sd.m2sin3.value)} M☉` : null, 'derived', t('sb.msinTip')],
+    ['fm', ...f(sd.massFunction, (v) => `${num(v)} M☉`), t('sb.fmTip')],
+    ['asini', ...f(sd.asiniRsun, (v) => `${num(v)} R☉ · ${num(sd.asiniAu.value)} AU`)],
+    ['i', ...f(sd.inclination, (v) => `~${Math.round(v)}°`), t('sb.iTip')],
+    ['grade', o.grade != null ? `${num(o.grade)} / 5` : null, 'measured'],
+  ].filter((r) => r[1] != null);
+  return `<h3 class="card__h">${t('sb.h')}</h3>
+    <div class="binary" data-binary>
+    ${rvSvg(o, sd)}
+    <dl class="props">${rows.map(([k, v, or, tip]) => `<div class="props__row"><dt>${t('sb.row.' + k)}</dt><dd>${esc(v)} ${or ? badge(or, tip) : ''}</dd></div>`).join('')}</dl>
+    <p><button type="button" class="chip chip--small" data-binary-scene aria-pressed="false">${t('b.show3d')}</button></p>
+    <p class="note">${t(sd.inclAssumed ? 'sb.noteAssumed' : 'sb.note')}</p></div>`;
 }

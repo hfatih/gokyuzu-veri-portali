@@ -117,3 +117,72 @@ export function deriveBinary(el, plxMas, plxErr, dmag, year, primary = null) {
 export function apparentOrbit(el, n = 180) {
   return Array.from({ length: n + 1 }, (_, k) => relativePosition(el, el.T + el.P * k / n));
 }
+
+// ---------- Tayfsal çiftler ----------
+
+const MSIN3 = 1.0361e-7;   // M☉: (1 − e²)^{3/2} K³ P, K km/s, P gün (Kepler III ile dikine hızdan)
+const RSUN_KM = 695700, AU_KM = 1.495978707e8;
+export const SB_ASSUMED_INCL = 60;   // eğiklik bilinmiyorsa (rastgele yönelimde ortalama sin³i ≈ 0,59 → ~57°)
+
+/** Ortalama anomaliden gerçek anomali (derece değil, radyan). */
+function trueAnomaly(M, e) {
+  const E = kepler(((M % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), e);
+  return 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+}
+
+/**
+ * Dikine hız eğrisi: evre φ (0–1, periastrondan) → { v1, v2 } km/s. v = V0 ± K [cos(ν + ω) + e cos ω];
+ * ω birincilin periastron açısı, ikincil zıt yönde. SB1'de v2 null.
+ */
+export function radialVelocity(o, phi) {
+  const w = o.omega * RAD, nu = trueAnomaly(2 * Math.PI * phi, o.e), c = Math.cos(nu + w) + o.e * Math.cos(w);
+  return { v1: o.V0 + o.K1 * c, v2: o.K2 ? o.V0 - o.K2 * c : null };
+}
+
+/**
+ * SB9 yörüngesinin fiziği. o: fetchSb9(); primary: { mass, teff } (yıldızın kendi türetiminden, yoksa null).
+ * - Çift çizgili (K2 var): q = M₂/M₁ = K₁/K₂, M sin³i = 1,0361·10⁻⁷ (1 − e²)^{3/2} (K₁ + K₂)² K P.
+ * - Tek çizgili: kütle işlevi f(M) = M₂³ sin³i / (M₁ + M₂)²; birincilin kütlesi biliniyorsa M₂ varsayılan
+ *   eğiklikle çözülür.
+ * - a sin i = K P √(1 − e²) / 2π. Eğiklik ölçülmez; birincilin kütlesi biliniyorsa sin³i = M₁ sin³i / M₁.
+ * Dönüş alanları { value, origin } ya da null; el: çift yıldız sahnesi için Campbell elemanları (a = 1, keyfi).
+ */
+export function deriveSpectroscopic(o, primary = null, year = 2026) {
+  const s = (1 - o.e * o.e) ** 1.5, root = Math.sqrt(1 - o.e * o.e);
+  const sb2 = o.K2 > 0;
+  const q = sb2 ? o.K1 / o.K2 : null;
+  const m1s = sb2 ? MSIN3 * s * (o.K1 + o.K2) ** 2 * o.K2 * o.P : null;
+  const m2s = sb2 ? MSIN3 * s * (o.K1 + o.K2) ** 2 * o.K1 * o.P : null;
+  const fm = MSIN3 * s * o.K1 ** 3 * o.P;
+  const asini = 13751 * (o.K1 + (o.K2 ?? 0)) * o.P * root;   // km (P gün → s, / 2π)
+  const M1 = primary?.mass > 0 ? primary.mass : null;
+  // Eğiklik: çift çizgilide birincilin kütlesinden (sin³i ≤ 1 ise)
+  const sin3 = m1s && M1 ? m1s / M1 : null;
+  const incl = sin3 && sin3 <= 1 ? Math.asin(Math.cbrt(sin3)) * DEG : null;
+  // Tek çizgilide M₂: f(M) (M₁ + M₂)² = M₂³ sin³i, varsayılan eğiklikle Newton yöntemi
+  let qSb1 = null;
+  if (!sb2 && M1) {
+    const si3 = Math.sin(SB_ASSUMED_INCL * RAD) ** 3;
+    let m2 = M1 * 0.5;
+    for (let k = 0; k < 40; k++) {
+      const F = m2 ** 3 * si3 - fm * (M1 + m2) ** 2, dF = 3 * m2 * m2 * si3 - 2 * fm * (M1 + m2);
+      m2 = Math.max(1e-3, m2 - F / dF);
+    }
+    qSb1 = m2 / M1;
+  }
+  const qScene = q ?? qSb1 ?? 0.8;
+  // Düğüm açısı tayfsal çiftte ölçülemez; 90° seçilir: büyük eksen ekranda yatay durur
+  const el = { P: o.P / 365.25, a: 1, i: incl ?? SB_ASSUMED_INCL, node: 90, T: yearFromJd(o.T0), e: o.e, omega: (o.omega + 180) % 360 };
+  return {
+    sb2, el,
+    periodDays: val(o.P, 'measured'), e: val(o.e, 'measured'), omega: val(o.omega, 'measured'),
+    K1: val(o.K1, 'measured'), K2: val(o.K2, 'measured'),
+    q: val(q ?? qSb1, q ? 'derived' : 'estimated'),
+    m1sin3: val(m1s, 'derived'), m2sin3: val(m2s, 'derived'), massFunction: sb2 ? null : val(fm, 'derived'),
+    asiniRsun: val(asini / RSUN_KM, 'derived'), asiniAu: val(asini / AU_KM, 'derived'),
+    inclination: val(incl, 'estimated'), inclAssumed: incl == null,
+    // Sahne (binaryVisualParams) yoldaşı anakol sayar; kütle oranı yukarıdaki sıradan
+    sceneBd: { q: { value: Math.min(1, qScene) }, companion: { kind: 'ms' } },
+    nextPeri: yearFromJd(o.T0 + Math.ceil(((year - 2000) * 365.25 + 2451545 - o.T0) / o.P) * o.P),
+  };
+}

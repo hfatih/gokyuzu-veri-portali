@@ -20,7 +20,7 @@ const PUBLIC_WARN = '<strong>GitHub Issues herkese açıktır:</strong> oraya ki
 const CDS = 'CDS (Centre de Données astronomiques de Strasbourg, Fransa)';
 const HOSTS = [
   ['simbad.cds.unistra.fr, vizier.cds.unistra.fr, alasky.cds.unistra.fr', CDS, 'katalog verisi ve gökyüzü görüntüleri'],
-  ['simbad.cfa.harvard.edu', 'Harvard–Smithsonian Astrofizik Merkezi (ABD)', 'SIMBAD yedek aynası; yalnız CDS yanıt vermezse'],
+  ['simbad.cfa.harvard.edu, vizier.cfa.harvard.edu', 'Harvard–Smithsonian Astrofizik Merkezi (ABD)', 'SIMBAD ve VizieR yedek aynası; yalnız CDS yanıt vermezse'],
   ['query.wikidata.org', 'Wikimedia Vakfı (ABD)', 'adlar, gezegen ve kara delik değerleri'],
   ['api.ssodnet.imcce.fr, ssp.imcce.fr', 'IMCCE (Paris Gözlemevi, Fransa)', 'asteroit ve kuyruklu yıldız verisi'],
   ['services.swpc.noaa.gov', 'NOAA Uzay Havası Tahmin Merkezi (ABD)', 'Güneş\'teki güncel leke bölgeleri (ana sayfa ve Güneş kartı)'],
@@ -74,12 +74,14 @@ const kvkk = () => `
     bunları aşağıdaki sunuculardan doğrudan ister; bu sırada IP adresin ve tarayıcı bilgin, her internet bağlantısında olduğu gibi
     bu sunuculara ulaşır. Biz bu kuruluşlara ayrıca kişisel veri göndermeyiz; kendi gizlilik politikaları geçerlidir.</p>
   ${hostTable()}
-  <p><strong>Yurt dışı:</strong> Yukarıdaki sunucular Fransa ve ABD’dedir. Bu bağlantıyı senin isteğin üzerine, açtığın cismin
-    verisini almak için tarayıcın kurar; veri sorumlusu bu kuruluşlara kişisel veri aktarmaz. Barındırma sağlayıcısı yurt dışında
-    olursa sunucu kayıtları, 7499 sayılı Kanunla 1 Haziran 2024’te yürürlüğe giren KVKK m. 9 uyarınca yeterlilik kararı ya da
-    Kurul’a bildirilen standart sözleşme gibi uygun güvencelerle aktarılır.</p>
-  <p>GitHub Issues’a yazdığın geri bildirimler GitHub, Inc. (ABD) sunucularında, GitHub’ın gizlilik bildirimine tabi olarak
-    herkese açık yayımlanır. Bunun dışında kişisel verin üçüncü kişilere aktarılmaz, satılmaz ve reklam amacıyla kullanılmaz.</p>
+  <p><strong>Yurt dışı:</strong> Sitenin sunucusu ve sunucu kayıtları Türkiye’dedir; veri sorumlusu kişisel veriyi yurt dışına
+    aktarmaz. Yukarıdaki bilimsel veri sunucuları Fransa ve ABD’dedir; bu bağlantıyı senin isteğin üzerine, açtığın cismin
+    verisini almak için tarayıcın kurar. Bu bir aktarım olsaydı KVKK m. 9 (7499 sayılı Kanunla, 1 Haziran 2024’ten beri)
+    uygulanırdı; burada veri sorumlusu bu kuruluşlara kişisel veri göndermez.</p>
+  <p>Sitenin önceki adresi (hfatih.github.io) GitHub, Inc. (ABD) tarafından barındırılır ve ziyaretçiyi bu adrese yönlendirir;
+    o adrese yapılan istekler GitHub’ın kayıtlarına, GitHub’ın gizlilik bildirimine tabi olarak girer. GitHub Issues’a yazdığın
+    geri bildirimler de GitHub sunucularında herkese açık yayımlanır. Bunun dışında kişisel verin üçüncü kişilere aktarılmaz,
+    satılmaz ve reklam amacıyla kullanılmaz.</p>
   <h2>5. Toplama yöntemi ve saklama süresi</h2>
   <p>Veriler otomatik yollarla (sunucu kayıtları) ve iletişim kanallarıyla toplanır. Sunucu kayıtları ${f(S.logRetention, 'SÜRE')},
     yazışmalar ${S.mailRetention ? esc(S.mailRetention) : 'yalnız yanıt vermek için kullanılır ve amaç ortadan kalkınca'} saklanır;
@@ -187,7 +189,7 @@ const kosullar = () => `
 
 const SOURCES = [
   ['SIMBAD', 'CDS, Strasbourg, Fransa', 'Bu sitede CDS tarafından işletilen SIMBAD veritabanı kullanılmaktadır. Wenger vd. 2000, A&amp;AS 143, 9. CDS yanıt vermediğinde aynı veritabanı Harvard–Smithsonian aynasından (simbad.cfa.harvard.edu) alınır.'],
-  ['VizieR', 'CDS, Strasbourg, Fransa', 'Ochsenbein, Bauer &amp; Marcout 2000, A&amp;AS 143, 23. Kataloglar: ATNF Pulsar Kataloğu (Manchester vd. 2005, AJ 129, 1993), Altıncı Görsel Çift Yıldız Yörünge Kataloğu ORB6 (Hartkopf, Mason &amp; Worley 2001, AJ 122, 3472), AAVSO VSX (Watson, Henden &amp; Price 2006).'],
+  ['VizieR', 'CDS, Strasbourg, Fransa', 'Ochsenbein, Bauer &amp; Marcout 2000, A&amp;AS 143, 23. Kataloglar: ATNF Pulsar Kataloğu (Manchester vd. 2005, AJ 129, 1993), Altıncı Görsel Çift Yıldız Yörünge Kataloğu ORB6 (Hartkopf, Mason &amp; Worley 2001, AJ 122, 3472), Dokuzuncu Tayfsal Çift Yörünge Kataloğu SB9 (Pourbaix vd. 2004, A&amp;A 424, 727), AAVSO VSX (Watson, Henden &amp; Price 2006). CDS yanıt vermediğinde aynı kataloglar Harvard–Smithsonian aynasından (vizier.cfa.harvard.edu) alınır.'],
   ['hips2fits ve Aladin', 'CDS, Strasbourg, Fransa', 'Gökyüzü görüntüleri Pan-STARRS1 (Chambers vd. 2016) ve Digitized Sky Survey 2 (STScI) taramalarından anlık kesilir.'],
   ['Wikidata', 'Wikimedia Vakfı', 'Yapılandırılmış veriler CC0 kamu malı adanmasıyla kullanılır.'],
   ['SsODNet', 'IMCCE, Paris Gözlemevi', 'Berthier vd. 2023, A&amp;A 671, A151.'],

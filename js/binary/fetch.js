@@ -2,7 +2,7 @@
 // Sütun adları ve birim kodları sürümler arasında değişebildiği için birkaç ad denenir; birim önce
 // u_ sütunundan, yoksa TSV birim satırından okunur.
 
-import { cone, pick } from '../net/vizier.js';
+import { cone, pick, asu, parseAsu } from '../net/vizier.js';
 import { periodYears, axisArcsec, toYear } from './derive.js';
 
 const COL = {
@@ -59,4 +59,26 @@ export async function fetchOrbit(obj, signal) {
   const pool = known.length ? known : cand.slice(0, 1);
   // Aynı çiftin birden çok yörüngesi varsa en iyi derece (1 kesin … 5 belirsiz)
   return pool.sort((x, y) => (x.grade ?? 9) - (y.grade ?? 9))[0];
+}
+
+/**
+ * Tayfsal çift yörüngesi: Dokuzuncu Tayfsal Çift Yörünge Kataloğu (SB9, Pourbaix+ 2004, VizieR B/sb9).
+ * Konumun 15″ çevresindeki sistem, sonra onun yörüngeleri. Bir sistemin birden çok yörüngesi varsa iki bileşenin
+ * de hızı ölçülmüş (K2) olan, sonra en yüksek not (0 zayıf … 5 kesin), sonra en yenisi seçilir.
+ * Dönüş: { seq, P (gün), T0 (JD, periastron), e, omega (°, birincil), K1, K2 (km/s, SB1'de null), V0, grade,
+ * sp1, sp2 } ya da yoksa null.
+ */
+export async function fetchSb9(obj, signal) {
+  const { ra, dec } = obj.basic;
+  if (ra == null) return null;
+  const [main] = await cone('B/sb9/main', ra, dec, 15, signal);
+  const sys = main?.rows[0];
+  if (!sys?.Seq) return null;
+  const [orbs] = parseAsu(await asu({ '-source': 'B/sb9/orbits', '-out.all': '1', Seq: `=${sys.Seq}`, '-out.max': '50' }, signal));
+  const best = (orbs?.rows ?? [])
+    .filter((r) => r.Per > 0 && r.K1 > 0 && Number.isFinite(r.T0) && r.e >= 0 && r.e < 1)
+    .sort((a, b) => (b.K2 > 0) - (a.K2 > 0) || (b.Grade ?? -1) - (a.Grade ?? -1) || (b.o ?? 0) - (a.o ?? 0))[0];
+  if (!best) return null;
+  return { seq: sys.Seq, P: best.Per, T0: best.T0, e: best.e, omega: best.omega ?? 0, K1: best.K1,
+    K2: best.K2 > 0 ? best.K2 : null, V0: best.V0 ?? 0, grade: best.Grade ?? null, sp1: sys.Sp1 ?? null, sp2: sys.Sp2 ?? null };
 }

@@ -80,3 +80,33 @@ console.log('binary: ORB6 ayrıştırma geçti');
   near(binaryVisualParams(acen, ab, 5790, 2016).r2, 0.05, 0.07, 'anakol yoldaşın sahne yarıçapı');
   console.log('binary: beyaz cüce yoldaş geçti');
 }
+
+// Tayfsal çift (SB9): Spica, 1972 yörüngesi P 4,0145 g, e 0,18, ω 142°, K₁ 120, K₂ 189 km/s.
+// Bilinen (Tkachenko+ 2016): M₁ 10,25, M₂ 6,97 M☉, i 66° → M₁ sin³i 7,8; eski yörüngeyle ~%9 düşük çıkar.
+{
+  const { deriveSpectroscopic, radialVelocity, SB_ASSUMED_INCL } = await import('../js/binary/derive.js');
+  const spica = { P: 4.0145, T0: 2440284.78, e: 0.18, omega: 142, K1: 120, K2: 189, V0: 0, grade: 3 };
+  const sd = deriveSpectroscopic(spica, { mass: 10.25 });
+  near(sd.q.value, 0.62, 0.65, 'Spica q = K₁/K₂'); assert.equal(sd.q.origin, 'derived');
+  near(sd.m1sin3.value, 6.9, 7.4, 'Spica M₁ sin³i'); near(sd.m2sin3.value, 4.4, 4.7, 'Spica M₂ sin³i');
+  near(sd.inclination.value, 60, 65, 'Spica eğiklik kestirimi (gerçek 66°)'); assert.equal(sd.inclAssumed, false);
+  near(sd.asiniRsun.value, 23.5, 25, 'Spica a sin i (R☉)');
+  // Sahne elemanları: dönem yıl, ikincilin ω'su birincilinkinin karşısı, a keyfi
+  near(sd.el.P * 365.25, 4.01, 4.02, 'sahne dönemi'); assert.equal(sd.el.omega, 322); assert.equal(sd.el.i, sd.inclination.value);
+  // Hız eğrisi: bir dönemde ortalama ≈ V0, uçlar V0 ± K (e ile kayık), bileşenler zıt yönde
+  let s1 = 0, mx = -1e9, mn = 1e9;
+  for (let k = 0; k < 2000; k++) { const { v1, v2 } = radialVelocity(spica, k / 2000); mx = Math.max(mx, v1); mn = Math.min(mn, v1); assert.ok(Math.sign(v1 - spica.V0) !== Math.sign(v2 - spica.V0) || Math.abs(v1) < 1); }
+  near((mx - mn) / 2, 119.5, 120.5, 'K₁ eğriden');
+  // Tek çizgili: kütle işlevi, M₂ varsayılan eğiklikle; eğiklik "varsayıldı"
+  const sb1 = deriveSpectroscopic({ ...spica, K2: null }, { mass: 10.25 });
+  assert.equal(sb1.m1sin3, null); near(sb1.massFunction.value, 0.65, 0.7, 'f(M)');
+  assert.equal(sb1.q.origin, 'estimated'); assert.equal(sb1.inclAssumed, true); assert.equal(sb1.el.i, SB_ASSUMED_INCL);
+  // f(M) denklemi çözülmüş olmalı: M₂³ sin³i / (M₁ + M₂)² = f
+  const m2 = sb1.q.value * 10.25, si3 = Math.sin(SB_ASSUMED_INCL * Math.PI / 180) ** 3;
+  near(m2 ** 3 * si3 / (10.25 + m2) ** 2, sb1.massFunction.value * 0.999, sb1.massFunction.value * 1.001, 'f(M) çözümü');
+  // Birincil kütle yoksa: eğiklik kestirilmez, sahne kütle oranı yine K₁/K₂
+  const nm = deriveSpectroscopic(spica, null);
+  assert.equal(nm.inclination, null); near(nm.sceneBd.q.value, 0.62, 0.65, 'sahne q');
+  console.log('binary: tayfsal çift (SB9) geçti');
+}
+

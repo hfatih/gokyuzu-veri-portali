@@ -13,7 +13,8 @@ for (const p of PAGES) {
 const kvkk = pageBySlug('kvkk').body();
 for (const h of ['Veri sorumlusu', 'İşlenen kişisel veriler', 'hukuki sebepler', 'Aktarım', 'saklama süresi', 'Başvuru']) assert.ok(kvkk.includes(h), h);
 assert.equal((kvkk.match(/<li>/g) ?? []).length >= 9 + 4, true);
-assert.ok(kvkk.includes('class="ph"'), 'doldurulmamış alan işaretli');
+{ const host = siteInfo.host; siteInfo.host = null; assert.ok(pageBySlug('kvkk').body().includes('class="ph"'), 'doldurulmamış alan işaretli'); siteInfo.host = host; }
+assert.ok(kvkk.includes('Keyubu') && kvkk.includes('14 gün') && kvkk.includes('Türkiye’dedir'), 'barındırma ve saklama süresi yazılı');
 
 // Künye doldurulunca yer tutucular kalkar
 Object.assign(siteInfo, { owner: 'Örnek Yayıncılık', address: 'Adres', email: 'kvkk@example.org', host: 'Örnek Hosting', logRetention: '2 yıl', mailRetention: '3 yıl', court: 'Ankara' });

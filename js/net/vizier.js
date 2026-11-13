@@ -1,9 +1,29 @@
 // VizieR ASU (TSV) istemcisi. TAPVizieR https'te CORS başlığını iki kez gönderdiği için tarayıcı
-// reddediyor; ASU tek başlıkla yanıt veriyor (pulsar/fetch.js ile aynı yol).
+// reddediyor; ASU tek başlıkla yanıt veriyor.
 
 import { get } from './http.js';
 
-const ASU = 'https://vizier.cds.unistra.fr/viz-bin/asu-tsv';
+// Ana sunucu CDS; Harvard aynası aynı katalogları aynı ASU arayüzüyle ve CORS başlığıyla sunar. CDS bazı
+// dönemlerde 404 ya da zaman aşımı veriyor (2026-11-05'ten beri), o zaman aynaya geçilir (simbad.js ile aynı yol).
+export const ASUS = ['https://vizier.cds.unistra.fr/viz-bin/asu-tsv', 'https://vizier.cfa.harvard.edu/viz-bin/asu-tsv'];
+const TIMEOUT_MS = 8000;
+let active = 0;   // bu oturumda son yanıt veren sunucu
+
+/** ASU sorgusu (parametre nesnesi ya da URLSearchParams) → TSV metni. Sunucu düşerse sıradakini dener. */
+export async function asu(params, signal, timeoutMs = TIMEOUT_MS) {
+  const q = `?${new URLSearchParams(params)}`;
+  const start = active;
+  for (let k = 0; k < ASUS.length; k++) {
+    const i = (start + k) % ASUS.length;
+    try {
+      const text = await get(ASUS[i] + q, { signal, as: 'text', name: 'VizieR', timeoutMs });
+      active = i;
+      return text;
+    } catch (e) {
+      if (e.name === 'AbortError' || k === ASUS.length - 1) throw e;
+    }
+  }
+}
 
 /**
  * ASU TSV çıktısını tablolarına ayırır. Her tablo: # yorumlar, başlık, birim satırı, çizgi satırı,
@@ -31,7 +51,7 @@ export function parseAsu(text) {
 export async function cone(source, ra, dec, radiusArcsec, signal, extra = {}) {
   const q = new URLSearchParams({ '-source': source, '-out.all': '1', '-c': `${ra} ${dec}`, '-c.rs': String(radiusArcsec),
     '-sort': '_r', '-out.max': '20', ...extra });
-  return parseAsu(await get(`${ASU}?${q}`, { signal, as: 'text', name: 'VizieR' }));
+  return parseAsu(await asu(q, signal));
 }
 
 /** Satırda adlardan ilk dolu sütun: [değer, sütun adı]. */
