@@ -17,9 +17,14 @@ uniform vec3 uCamPos;
 uniform float uTanFov, uExposure, uStars;
 uniform sampler2D uBB;
 uniform vec2 uBBRange;
-uniform float uTime, uTmax, uDiskOn;
+uniform float uTime, uTmax, uDiskOn, uJet;
 
 const float RIN = 3.0, ROUT = 12.0, SCALE = ${SCALE.toFixed(1)};
+const float C2V = 26160.0;                       // hc / (λ k), λ = 550 nm (K)
+// Jet akış hızı: Γ = 2. Sahnenin gösterdiği ilk ~40 r_s ivmelenme bölgesidir (M87'de ölçülen hızlar burada
+// ışık hızının altında, Mertens+ 2016); Γ ~ 10 değerlerine binlerce r_s ötede ulaşılır.
+const float JET_BETA = 0.866, JET_GAMMA = 2.0;
+const vec3 JET_COL = vec3(0.70, 0.80, 1.0);      // sinkrotron güç yasası f_λ ∝ λ^−1,3 (α = 0,7)
 
 vec4 bb(float T) {
   float u = clamp((log(T) - uBBRange.x) / (uBBRange.y - uBBRange.x), 0.0, 1.0);
@@ -44,6 +49,25 @@ vec3 stars(vec3 d) {
   return uStars * step(0.996, h.x) * (1.0 - smoothstep(0.0, 0.14, sd)) * bb(2500.0 + h.z * 15000.0).rgb * (0.4 + h.y);
 }
 
+// Görsel banttaki (550 nm) Planck parlaklığı, T/Tref oranı olarak: 1 / (e^(c2/T) − 1)
+float planckV(float T) { float x = C2V / T; return 1.0 / (x < 1e-3 ? x + 0.5 * x * x : exp(x) - 1.0); }
+
+// Göreli jet: dönme ekseni (y) boyunca paraboloit (yarıçap ∝ z^0,58, M87 jetinin ölçülen biçimi;
+// Asada & Nakamura 2012). Sinkrotron ışınımı optik olarak ince; akış yönüne bakan gözlemciye
+// δ^(2+α) kat parlak görünür (δ Doppler çarpanı), bu yüzden uzaklaşan jet neredeyse görünmez.
+vec3 jet(vec3 p, vec3 dir) {
+  float z = abs(p.y), r = length(p);
+  if (z < 1.5 || r > 38.0) return vec3(0.0);
+  float w = 0.9 * pow(z / 1.5, 0.58), rho = length(p.xz);
+  if (rho > 2.5 * w) return vec3(0.0);
+  float cosT = dot(vec3(0.0, sign(p.y), 0.0), -normalize(dir));
+  float delta = 1.0 / (JET_GAMMA * (1.0 - JET_BETA * cosT));
+  // Düğümler akışla dışarı taşınır
+  float knots = 0.55 + 0.9 * noise(vec3(p.xz * 0.8, z * 0.45 - uTime * JET_BETA * 0.45));
+  float dens = exp(-2.0 * rho * rho / (w * w)) * pow(1.5 / z, 1.3) * (1.0 - smoothstep(20.0, 38.0, r));
+  return JET_COL * uJet * dens * knots * pow(delta, 2.7);
+}
+
 // İnce disk (Shakura–Sunyaev) sıcaklık profili, en yüksek değeri 1 olacak biçimde: (r⁻³(1 − √(r_in/r)))^¼
 float profile(float r) {
   float p = pow(max(pow(r, -3.0) * (1.0 - sqrt(RIN / r)), 0.0), 0.25);
@@ -66,7 +90,9 @@ vec4 disk(vec3 p, vec3 dir) {
   float T = uTmax * profile(r) * (0.75 + 0.5 * tex);
   float Tobs = g * T;                                            // kara cisim g·T'de kara cisim olarak görünür
   vec3 c = bb(Tobs).rgb / max(bb(Tobs).r, max(bb(Tobs).g, bb(Tobs).b));
-  float I = pow(Tobs / uTmax, 4.0);                              // bolometrik ∝ T⁴
+  // Göze görünen parlaklık: g·T sıcaklığındaki kara cismin görsel bant ışınımı. Sıcak diskte (T ≫ 26 000 K)
+  // bu T ile doğrusal artar; toplam ışıma (T⁴) içi ve yaklaşan yanı gözün göreceğinden çok daha parlak gösterirdi.
+  float I = planckV(Tobs) / planckV(uTmax);
   float alpha = 0.92 * smoothstep(RIN, RIN + 0.4, r) * (1.0 - smoothstep(ROUT - 3.0, ROUT, r)) * (0.55 + 0.45 * tex);
   return vec4(c * I * 0.7, alpha);
 }
@@ -94,6 +120,7 @@ void main() {
       vec3 xn = x + v * dt + 0.5 * a * dt * dt;
       vec3 an = -1.5 * h2 * xn / pow(length(xn), 5.0);
       vec3 vn = v + 0.5 * (a + an) * dt;
+      if (uJet > 0.0) col += T * jet(x, v) * dt;
       if (uDiskOn > 0.5 && x.y * xn.y < 0.0) {
         vec3 p = mix(x, xn, x.y / (x.y - xn.y));
         vec4 e = disk(p, v);
@@ -114,7 +141,7 @@ void main() {
 const C = 2.998e8;
 
 /**
- * Kara delik sahnesi. params: { rsM (m), tmax (K), iscoPeriodS }.
+ * Kara delik sahnesi. params: { rsM (m), tmax (K), iscoPeriodS, jet? (göreli jet çizilsin mi) }.
  * Varsayılan zaman hızı: ISCO'daki bir dolanım ~8 sn.
  */
 export const blackHoleScene = {
@@ -137,6 +164,7 @@ export const blackHoleScene = {
     gl.uniform1f(U.uTime, view.t * C / p.rsM);
     gl.uniform1f(U.uTmax, p.tmax);
     gl.uniform1f(U.uDiskOn, 1);
+    gl.uniform1f(U.uJet, p.jet ? 0.25 : 0);
   },
   timeScale: (p) => p.iscoPeriodS / 8,
 };

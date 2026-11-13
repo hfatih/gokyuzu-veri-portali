@@ -1,6 +1,6 @@
 // Kuasar: kırmızıya kaymadan kozmoloji; sahne merkezdeki kara delik (Eddington kütlesiyle).
 
-import { isQuasar, deriveQuasar } from '../quasar/derive.js';
+import { isQuasar, deriveQuasar, hasJet, isBlazar } from '../quasar/derive.js';
 import { observedRgb } from '../quasar/spectrum.js';
 import { renderQuasarCard, buildQuasarLinks, rgbCss } from '../ui/quasar-card.js';
 import { deriveBlackHole } from '../bh/derive.js';
@@ -19,7 +19,10 @@ export const quasarKind = {
     ctx.kind('quasar');
     renderQuasarCard(ctx.card, ctx.sel, obj, qd, rgb, buildQuasarLinks(obj));
     const bd = qd?.massEdd ? deriveBlackHole({ massSun: qd.massEdd.value, distLy: qd.distLy }) : null;
-    ctx.show(blackHoleScene, bhParams(bd, { rsM: 1.2e12, tmax: 6e4, iscoPeriodS: 2e5 }), 1.1, rgb ? rgbCss(rgb) : '#cfe0ff', 0.12);
+    const jet = hasJet(obj.basic.otype, obj.ids);
+    // Blazarda jet bakış doğrultusuna yakındır: kamera eksene ~20° açıyla başlar
+    ctx.show(blackHoleScene, { ...bhParams(bd, { rsM: 1.2e12, tmax: 6e4, iscoPeriodS: 2e5 }), jet }, 1.1, rgb ? rgbCss(rgb) : '#cfe0ff',
+      isBlazar(obj.basic.otype) ? 1.22 : 0.12);
     ctx.corner(true);
     ctx.wiki(wikipediaFor(simbadForms(obj.mainId), ctx.signal), (wiki) => buildQuasarLinks(obj, wiki));
     ctx.describe({ derived: qd, bhDerived: bd });

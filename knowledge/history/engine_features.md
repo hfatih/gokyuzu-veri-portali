@@ -178,3 +178,17 @@ Ayrıntı: [docs/specs/2026-11-05-faz10-12-ve-gelistirmeler-design.md](../../doc
 - **`render/glview.js`:** `static` artık parametreye göre işlev olabilir (eliptik durağan, diskli gökada döner).
 - Kontrol: `dev/check-galaxy.mjs` (Sérsic integrali, renk → genç pay, tür eğilimleri). Tarayıcıda M51, M33, NGC 1300,
   NGC 4565 (yandan) açıldı.
+
+## 2026-11-13 · Fizik yükseltmesi 2/9: kara delik ve kuasar
+
+Sahne zaten jeodezik izleme, Shakura–Sunyaev profili, Doppler ve kütleçekimsel kırmızıya kayma içeriyordu. Eklenen:
+- **Göze görünen disk parlaklığı (`render/blackhole.js` `planckV`):** T⁴ yerine g·T sıcaklığındaki kara cismin 550 nm
+  Planck ışınımı. Sıcak diskte T ile doğrusal; iç kenar ve yaklaşan yan artık abartılı parlamıyor. Model denetiminde
+  bilinçli bırakılan tek T⁴ sahnesi buydu.
+- **Göreli jet (`jet()`):** paraboloit (yarıçap ∝ z^0,58, Asada & Nakamura 2012), sinkrotron rengi f_λ ∝ λ^−1,3,
+  Doppler güçlenmesi δ^2,7, Γ = 2 (sahnenin gösterdiği ilk ~40 r_s ivmelenme bölgesi). Jet jeodezik döngüsünde
+  toplandığı için kütleçekimsel merceklenir.
+- **Ne zaman çizilir (`quasar/derive.js` `hasJet`, `isBlazar`):** blazar türleri ya da 3C / 4C / PKS adı. Blazarda
+  kamera eksene ~20° açıyla başlar. Kara delik sayfalarında (Wikidata) jet verisi yok; M87* jetsiz çizilir.
+- Dönen (Kerr) kara delik bilinçli olarak yapılmadı.
+- Kontrol: `dev/check-quasar.mjs`. Tarayıcıda 3C 273 (blazar), 3C 48 (yandan), Sgr A*.

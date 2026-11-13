@@ -37,3 +37,17 @@ assert.ok(isQuasar('QSO') && isQuasar('BLL') && !isQuasar('Sy1'));
 assert.equal(deriveQuasar({ z: null, mags: {} }), null);
 
 console.log('quasar: tüm kontroller geçti');
+
+// Jet: blazar türleri ve radyo kataloğu adları; sıradan (radyoda sessiz) kuasarda yok
+{
+  const { hasJet, isBlazar } = await import('../js/quasar/derive.js');
+  assert.equal(hasJet('BLL', []), true); assert.equal(isBlazar('Bla'), true); assert.equal(isBlazar('QSO'), false);
+  assert.equal(hasJet('QSO', ['QSO B1226+023', '3C 273', 'PG 1226+023']), true);
+  assert.equal(hasJet('QSO', ['PKS 1127-14']), true);
+  assert.equal(hasJet('QSO', ['SDSS J114816.64+525150.3', 'QSO J1148+5251']), false);
+  // Doppler güçlenmesi (Γ = 2, α = 0,7): 20° açıda yaklaşan jet, uzaklaşandan yüzlerce kat parlak
+  const G = 2, b = Math.sqrt(1 - 1 / G ** 2), d = (c) => 1 / (G * (1 - b * c));
+  const ratio = (d(Math.cos(20 * Math.PI / 180)) / d(-Math.cos(20 * Math.PI / 180))) ** 2.7;
+  assert.ok(ratio > 300 && ratio < 700, `jet / karşı jet: ${ratio}`);
+  console.log('quasar: jet kontrolleri geçti');
+}

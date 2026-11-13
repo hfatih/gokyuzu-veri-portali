@@ -21,6 +21,16 @@ const TYPES = new Set(['QSO', 'Q?', 'Bla', 'BLL', 'Bz?', 'BL?']);
 /** SIMBAD türü kuasar ya da blazar mı? (Seyfert ve AGN gökada olarak kalır.) */
 export const isQuasar = (otype) => TYPES.has(otype);
 
+const BLAZAR = new Set(['Bla', 'BLL', 'Bz?', 'BL?']);
+/** Blazar: jeti bakış doğrultusuna yakın (birkaç derece) kuasar. */
+export const isBlazar = (otype) => BLAZAR.has(otype);
+/**
+ * Göreli jet beklenir mi? Blazarlarda evet; diğerlerinde 3C / 4C / PKS radyo kataloglarında adı varsa
+ * (kuasar uzaklığında bu kataloglara girmek güçlü radyo kaynağı, yani jet demektir). Kuasarların
+ * yaklaşık %10'u radyoda güçlüdür; adı bu kataloglarda olmayan jetli kuasar kaçırılır.
+ */
+export const hasJet = (otype, ids = []) => isBlazar(otype) || ids.some((id) => /^(3C|4C|PKS)\s/.test(id));
+
 // Parlaklık bandı tercihi ve etkin dalga boyu (nm); hepsi AB sayılır (Vega farkı < 0,2 kadir)
 const BANDS = [['g', 477], ['V', 551], ['G', 623], ['r', 623], ['B', 445], ['R', 658], ['i', 763]];
 
