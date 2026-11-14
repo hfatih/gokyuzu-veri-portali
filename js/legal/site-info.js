@@ -3,8 +3,10 @@
 // sayfanın başında "taslak" uyarısı çıkar; metinler hukukçuya kontrol ettirildikten sonra false yap.
 
 export const SITE_INFO = {
-  draft: true,
-  owner: 'hfatih',      // Veri sorumlusu / site sahibi (astronews ile aynı: GitHub kullanıcı adı)
+  draft: false,   // Fatih 2026-11-14: metin yayımlandı; hukukçu incelemesi yapılmadı (yapılınca bu not güncellenir)
+  owner: 'hfatih',      // GitHub kullanıcı adı (iletişim bağlantıları için)
+  name: null,           // Veri sorumlusunun / yayıncının adı soyadı (KVKK m. 10/1-a: kimlik). Boşsa GitHub adı gösterilir
+  site: 'gokyuzuveriportali.com.tr',
   repo: 'https://github.com/hfatih/gokyuzu-veri-portali',   // e-posta yoksa iletişim GitHub üzerinden
   address: null,        // Tebligat adresi (boşsa sayfalarda hiç gösterilmez)
   email: 'kvkk@gokyuzuveriportali.com.tr',   // İletişim ve KVKK başvuru e-postası (YunoHost'ta posta takma adı)

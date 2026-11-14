@@ -15,6 +15,10 @@ for (const h of ['Veri sorumlusu', 'İşlenen kişisel veriler', 'hukuki sebeple
 assert.equal((kvkk.match(/<li>/g) ?? []).length >= 9 + 4, true);
 { const host = siteInfo.host; siteInfo.host = null; assert.ok(pageBySlug('kvkk').body().includes('class="ph"'), 'doldurulmamış alan işaretli'); siteInfo.host = host; }
 assert.ok(kvkk.includes('Keyubu') && kvkk.includes('14 gün') && kvkk.includes('Türkiye’dedir'), 'barındırma ve saklama süresi yazılı');
+assert.ok(kvkk.includes('Veri güvenliği') && kvkk.includes('Tebligat adresi sitede yayımlanmaz'), 'güvenlik bölümü ve adressiz yazılı başvuru');
+{ const n = siteInfo.name; siteInfo.name = 'Ada Lovelace';
+  assert.ok(pageBySlug('kunye').body().includes('Ada Lovelace (GitHub: hfatih)') && pageBySlug('kvkk').body().includes('Ada Lovelace'), 'ad soyad görünür');
+  siteInfo.name = n; }
 
 // Künye doldurulunca yer tutucular kalkar
 Object.assign(siteInfo, { owner: 'Örnek Yayıncılık', address: 'Adres', email: 'kvkk@example.org', host: 'Örnek Hosting', logRetention: '2 yıl', mailRetention: '3 yıl', court: 'Ankara' });

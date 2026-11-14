@@ -6,7 +6,9 @@ import { SITE_INFO as S } from './site-info.js';
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 /** Künye alanı ya da sarı yer tutucu. */
 const f = (v, label) => (v ? esc(v) : `<mark class="ph">[${label}]</mark>`);
-const owner = () => f(S.owner, 'VERİ SORUMLUSU ADI / UNVANI');
+const owner = () => (S.name ? `${esc(S.name)} (GitHub: ${esc(S.owner)})` : f(S.owner && `GitHub: ${S.owner}`, 'VERİ SORUMLUSU ADI / UNVANI'));
+/** Adres yayımlanmadığında yazılı başvuru için yol. */
+const NO_ADDR = 'Tebligat adresi sitede yayımlanmaz; ıslak imzalı yazılı başvuru yapmak istersen adresi e-postayla isteyebilirsin.';
 /** İletişim kanalları: e-posta varsa o, yoksa astronews'teki gibi GitHub (Issues + profil). */
 const mail = () => [
   S.email && `<a href="mailto:${esc(S.email)}">${esc(S.email)}</a>`,
@@ -50,8 +52,9 @@ const kvkk = () => `
   <h2>1. Veri sorumlusu</h2>
   <p>Bu aydınlatma metni, 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (“KVKK”) 10. maddesi ve Aydınlatma Yükümlülüğünün
     Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ uyarınca, Gökyüzü Veri Portalı’nı yayımlayan site sahibi
-    (GitHub: ${owner()}) tarafından veri sorumlusu sıfatıyla hazırlanmıştır.
-    İletişim: ${mail()}${addr()}${S.kep ? ` · KEP: ${esc(S.kep)}` : ''}${S.registry ? ` · ${esc(S.registry)}` : ''}.</p>
+    ${owner()} tarafından veri sorumlusu sıfatıyla hazırlanmıştır.
+    İletişim: ${mail()}${addr()}${S.kep ? ` · KEP: ${esc(S.kep)}` : ''}${S.registry ? ` · ${esc(S.registry)}` : ''}.
+    ${S.address ? '' : NO_ADDR}</p>
   <h2>2. İşlenen kişisel veriler</h2>
   <div class="tbl"><table><thead><tr><th scope="col">Kategori</th><th scope="col">Veriler</th><th scope="col">Ne zaman</th></tr></thead><tbody>
     <tr><td>İşlem güvenliği</td><td>IP adresi, tarih-saat, istenen sayfa, tarayıcı bilgisi (sunucu kayıtları)</td><td>Her ziyarette</td></tr>
@@ -63,7 +66,8 @@ const kvkk = () => `
   <p>Gözlem konumun ve ölçek karşılaştırma listen yalnız cihazında, tarayıcı depolamasında tutulur; bize iletilmez (bkz. <a href="?page=cerez">Çerez Politikası</a>).</p>
   <h2>3. Amaçlar ve hukuki sebepler</h2>
   <ul>
-    <li><strong>Sitenin güvenli çalışması, kötüye kullanımın önlenmesi:</strong> KVKK m. 5/2 (ç) hukuki yükümlülük ve (f) meşru menfaat.</li>
+    <li><strong>Sitenin güvenli çalışması, kötüye kullanımın önlenmesi:</strong> KVKK m. 5/2 (f) meşru menfaat; bir mevzuat
+      (ör. 5651 sayılı Kanun) kayıt tutmayı zorunlu kıldığında ayrıca (ç) hukuki yükümlülük.</li>
     <li><strong>Sorularına ve başvurularına yanıt:</strong> KVKK m. 5/2 (c) ve (f).</li>
     <li><strong>GitHub’da herkese açık yazdığın geri bildirimler:</strong> KVKK m. 5/2 (d) ilgili kişinin kendisi tarafından alenileştirilmiş olması.</li>
     <li><strong>Tarayıcında tutulan konum ve karşılaştırma listesinin kalıcı olması:</strong> açık rızan (KVKK m. 5/1); istediğin an geri alabilirsin.</li>
@@ -86,9 +90,13 @@ const kvkk = () => `
   <p>Veriler otomatik yollarla (sunucu kayıtları) ve iletişim kanallarıyla toplanır. Sunucu kayıtları ${f(S.logRetention, 'SÜRE')},
     yazışmalar ${S.mailRetention ? esc(S.mailRetention) : 'yalnız yanıt vermek için kullanılır ve amaç ortadan kalkınca'} saklanır;
     süre bitince KVKK m. 7 uyarınca silinir, yok edilir ya da anonim hale getirilir.</p>
-  <h2>6. KVKK m. 11 kapsamındaki hakların</h2>
+  <h2>6. Veri güvenliği</h2>
+  <p>Site yalnız HTTPS ile sunulur. Sunucu kayıtlarına yalnız site sahibi erişir; kayıtlar ${f(S.logRetention, 'SÜRE')} sonunda
+    otomatik silinir. Hesap ya da parola tutulmadığı için sızabilecek bir kullanıcı veritabanı yoktur. KVKK m. 12 uyarınca
+    bir veri ihlali olursa Kurul’a ve etkilenen kişilere bildirilir.</p>
+  <h2>7. KVKK m. 11 kapsamındaki hakların</h2>
   <ol type="a">${RIGHTS.map((r) => `<li>${r}</li>`).join('')}</ol>
-  <h2>7. Başvuru</h2>
+  <h2>8. Başvuru</h2>
   <p>Haklarını kullanmak için <a href="?page=basvuru">Veri Sahibi Başvuru Formu</a> sayfasındaki yollardan birini kullanabilirsin.
     Başvurun en geç 30 gün içinde ücretsiz yanıtlanır. Yanıt vermezsek ya da yanıtı yeterli bulmazsan, yanıtı öğrendiğin tarihten
     itibaren 30 gün ve her durumda başvurudan itibaren 60 gün içinde Kişisel Verileri Koruma Kurulu’na şikâyette bulunabilirsin (KVKK m. 14).</p>
@@ -143,7 +151,7 @@ const cerez = () => `
 
 const basvuru = () => `
   <p>KVKK m. 11'deki haklarını kullanmak için başvurunu Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ'e uygun olarak iletebilirsin:</p>
-  <ul>${S.address ? `<li><strong>Yazılı:</strong> ıslak imzalı dilekçeyle ${esc(S.address)} adresine,</li>` : ''}
+  <ul>${S.address ? `<li><strong>Yazılı:</strong> ıslak imzalı dilekçeyle ${esc(S.address)} adresine,</li>` : `<li><strong>Yazılı:</strong> ıslak imzalı dilekçeyle; ${NO_ADDR}</li>`}
     <li><strong>KEP, güvenli e-imza ya da mobil imza</strong> ile${S.kep ? ` ${esc(S.kep)} adresine` : ''},</li>
     <li>${S.email ? `daha önce bize bildirdiğin <strong>e-posta adresinden</strong> ${mail()} adresine.` : `iletişim kanallarımızdan (${mail()}).`}</li></ul>
   ${S.email ? '' : `<p>${PUBLIC_WARN}</p>`}
@@ -205,17 +213,21 @@ const kaynaklar = () => `
 
 const kunye = () => `
   <p>Gökyüzü Veri Portalı, gök cisimlerinin bilimsel kataloglardaki verilerini Türkçe ve İngilizce sunan, bu verilerden canlı modeller
-    üreten ve gökyüzünde ne zaman görüleceklerini hesaplayan bir <a href="https://astronews.com.tr/">Astronews</a> projesidir.</p>
+    üreten ve gökyüzünde ne zaman görüleceklerini hesaplayan bir <a href="https://astronews.com.tr/">Astronews</a> projesidir.
+    Ticari ya da ekonomik amaç taşımaz: ücretsizdir, reklam, üyelik ve satış yoktur.</p>
   <h2>Künye</h2>
   <dl class="srcs">
-    <div><dt>Site sahibi ve içerik sağlayıcı</dt><dd>GitHub: ${owner()}</dd></div>
-    ${S.address ? `<div><dt>Adres</dt><dd>${esc(S.address)}</dd></div>` : ''}
+    <div><dt>Yayıncı (içerik sağlayıcı)</dt><dd>${owner()}</dd></div>
+    <div><dt>Veri sorumlusu</dt><dd>${owner()} · <a href="?page=kvkk">KVKK Aydınlatma Metni</a></dd></div>
     <div><dt>İletişim</dt><dd>${mail()}</dd></div>
+    ${S.address ? `<div><dt>Adres</dt><dd>${esc(S.address)}</dd></div>` : ''}
     ${S.kep ? `<div><dt>KEP</dt><dd>${esc(S.kep)}</dd></div>` : ''}
     ${S.registry ? `<div><dt>MERSİS / vergi no</dt><dd>${esc(S.registry)}</dd></div>` : ''}
     <div><dt>Yer sağlayıcı</dt><dd>${f(S.host, 'BARINDIRMA SAĞLAYICISI, ÜLKE')}</dd></div>
+    ${S.site ? `<div><dt>Alan adı</dt><dd>${esc(S.site)}</dd></div>` : ''}
+    ${S.repo ? `<div><dt>Kaynak kod</dt><dd><a href="${esc(S.repo)}" rel="noopener">${esc(S.repo.replace(/^https:\/\//, ''))}</a> (herkese açık)</dd></div>` : ''}
   </dl>
-  <p class="muted">5651 sayılı Kanun uyarınca içerik sağlayıcının tanıtıcı bilgileridir.</p>`;
+  <p class="muted">5651 sayılı Kanun m. 3 kapsamında içerik ve yer sağlayıcının tanıtıcı bilgileridir.</p>`;
 
 const erisilebilirlik = () => `
   <p>Sitenin herkes tarafından kullanılabilmesini istiyoruz. Şu an sağlananlar:</p>
