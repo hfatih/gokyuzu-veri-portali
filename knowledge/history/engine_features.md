@@ -325,3 +325,14 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   sorgu korunur). http → https 301 YunoHost'tan.
 - Posta: kvkk@gokyuzuveriportali.com.tr, fatihbtw kullanıcısının takma adı (MX kaydı vardı).
 - GitHub Pages kopyası `index.html` içindeki betikle yeni alan adına yönlenir; ikisi birlikte güncellenmeli.
+
+## 2026-11-14 · Yasal metinler: künye ve KVKK tamamlandı
+
+- **Künye:** yayıncı, veri sorumlusu, iletişim, yer sağlayıcı, alan adı, kaynak kod; ticari amaç taşımadığı yazılı. Adres yok
+  (Fatih istemedi). `site-info.js` `name` alanı ad soyad içindir; boşken "GitHub: hfatih" görünür.
+- **KVKK:** veri güvenliği bölümü (m. 12), adres yayımlanmadan yazılı başvuru yolu (adres e-postayla istenir), loglar için
+  hukuki sebep (f), mevzuat gerektirirse (ç). Taslak uyarısı kalktı (`draft: false`); hukukçu incelemesi yapılmadı.
+- **Dayanaklar (2026-11-14 araştırması, ikincil kaynaklar):** 5651 Yönetmeliği m. 5'teki ayrıntılı tanıtıcı bilgi listesi
+  (ad soyad, yerleşim yeri, e-posta + telefon) yalnız "ticari veya ekonomik amaçlı" içerik sağlayıcılar için; KVKK m. 10/1-a
+  veri sorumlusunun kimliğini ister. VERBİS: 50'den az çalışan ve 100 milyon TL altı bilanço, ana faaliyeti özel nitelikli
+  veri değilse kayıt yok. 2026 aydınlatma ihlali cezası 85.437–1.709.200 TL (yeniden değerleme %25,49).
