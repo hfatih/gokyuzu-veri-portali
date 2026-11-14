@@ -349,5 +349,6 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   yalnız kendi alan adından ister). `render/star.js`: Dünya'ya bakan yüzde görüntünün parlaklık oranı Planck tersiyle
   sıcaklığa (leke gölgesi ~4300 K); farklı dönmeyle çekim anına geri sarılır; kenarda modele geçiş. Kartta "Görünen
   yüzün fotoğrafı" satırı (NASA yayım saati). Tarayıcıda NASA fotoğrafıyla karşılaştırıldı: gruplar aynı yerde.
-- **Bekleyen sunucu adımı:** cron + nginx map'te `~^/sun/ no-cache` (otomatik güvenlik denetimi komutu engelledi; Fatih'e
-  bırakıldı). Dosya yokken site model/NOAA lekeleriyle çalışır.
+- **Sunucu (Fatih onayıyla, 2026-11-14):** `~/bin/gokyuzu-sdo.sh` (fatihbtw crontab, 15 dk; geçici dosyaya indirip yer
+  değiştirir, -R ile NASA zamanı) ve nginx map'te `~^/sun/ no-cache` (yedek: `~/gokyuzu-cache.conf.yedek`). Dosya yoksa
+  site model/NOAA lekeleriyle çalışır. Önbellek kuralından önce siteyi açanlarda eski JS birkaç saat kalabilir.
