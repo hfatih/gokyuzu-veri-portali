@@ -315,3 +315,13 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   iletişim kvkk@gokyuzuveriportali.com.tr, yurt dışı paragrafı sunucu Türkiye'de olacak biçimde, SB9 ve VizieR aynası
   kaynaklarda. Taslak uyarısı kalıyor (hukukçu incelemesi yok).
 - **`index.html`:** hfatih.github.io açılırsa gokyuzuveriportali.com.tr'ye yönlenir (aynı dosyalar iki yerde).
+
+## 2026-11-14 · Yayın: gokyuzuveriportali.com.tr
+
+- YunoHost (Keyubu VM, 45.155.124.197): `my_webapp__6` alan adının köküne, ziyaretçilere açık, PHP ve veritabanı yok.
+  `www` klasörü `/var/www/gokyuzu-veri-portali`'ye sembolik bağ (sahibi fatihbtw:www-data, 2775); astronews ile aynı yol,
+  güncelleme kök yetkisi istemez: `tar czf - index.html css js assets | ssh -p 107 fatihbtw@45.155.124.197 'tar xzf - -C /var/www/gokyuzu-veri-portali'`.
+- Let's Encrypt sertifikası (ana ve www). `www.gokyuzuveriportali.com.tr` YunoHost alan adı + `redirect__3` (302, yol ve
+  sorgu korunur). http → https 301 YunoHost'tan.
+- Posta: kvkk@gokyuzuveriportali.com.tr, fatihbtw kullanıcısının takma adı (MX kaydı vardı).
+- GitHub Pages kopyası `index.html` içindeki betikle yeni alan adına yönlenir; ikisi birlikte güncellenmeli.

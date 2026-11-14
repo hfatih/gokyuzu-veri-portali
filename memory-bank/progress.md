@@ -48,3 +48,5 @@
 - [x] Gerçekçilik A grubu: gökyüzü, kabartma, Dünya gecesi, Ceres/Vesta/Plüton, halka rengi — 2026-11-14
 
 - [x] Yordamsal gökyüzü, VizieR aynası, tayfsal çiftler (SB9), yasal metinler Keyubu/kvkk@ — 2026-11-14
+
+- [x] gokyuzuveriportali.com.tr yayını (YunoHost my_webapp__6, LE, www redirect, kvkk@) — 2026-11-14

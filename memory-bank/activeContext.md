@@ -75,3 +75,6 @@ kare hızı hâlâ ölçülmedi; gökyüzü 1,5 MB her ilk ziyarette iner.
 **2026-11-14 (2):** Gökyüzü yordamsal (fotoğraf dokusu geri alındı). VizieR Harvard aynası ile VSX/ORB6/pulsar geri geldi;
 tayfsal çiftler SB9'dan iki yıldız olarak çiziliyor. Yasal metinler Keyubu/14 gün/kvkk@ ile güncel. Yayın hedefi
 gokyuzuveriportali.com.tr (YunoHost, My Webapp + www için Redirect); kök işleri Fatih yapacak.
+
+**2026-11-14 (3):** Site https://gokyuzuveriportali.com.tr adresinde yayında (Let's Encrypt, www yönlendirmesi, kvkk@ takma adı).
+Güncelleme: push + sunucuya tar (engine_features.md "Yayın" bölümü). hfatih.github.io yeni adrese yönlenir.
