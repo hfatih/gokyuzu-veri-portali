@@ -121,8 +121,8 @@ void main() {
   float tP = disc > 0.0 ? (-b - sqrt(disc)) / a : -1.0;
   bool hitP = tP > 0.0;
 
-  // Arka plan: gerçek gökyüzü (dünya yönüne bağlı)
-  vec3 col = sky(rdW);
+  // Arka plan gökyüzü (dünya yönüne bağlı); gezegenin örttüğü pikselde hesaplanmaz
+  vec3 col = hitP ? vec3(0.0) : sky(rdW);
 
   if (hitP) {
     vec3 p = o + d * tP;                 // birim küre

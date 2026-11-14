@@ -19,6 +19,7 @@ import { variableHtml } from '../ui/variable-card.js';
 import { t } from '../ui/i18n.js';
 import { sunModel, realSunModel } from '../sun/model.js';
 import { sunActivityHtml } from '../ui/sun-card.js';
+import { loadSdo } from '../sun/sdo.js';
 
 // Güneş SIMBAD'da olmadığından Wikipedia adresi sabit
 const SUN_WIKI = { tr: 'https://tr.wikipedia.org/wiki/G%C3%BCne%C5%9F', en: 'https://en.wikipedia.org/wiki/Sun' };
@@ -105,13 +106,23 @@ function addVariable(ctx, d, view) {
 
 // Güneş etkinliği bölümü: önce model; NOAA'dan bugünkü bölgeler gelirse görünen yüz onlarla yeniden kurulur
 function addSunActivity(ctx, view) {
+  let real = 0, sdoTime = null;
+  const render = () => { const el = ctx.card.querySelector('[data-sun-activity]'); if (el) el.innerHTML = sunActivityHtml(view.params.sun.summary(0), real, sdoTime); };
   ctx.insert(`<div data-sun-activity>${sunActivityHtml(view.params.sun.summary(0), 0)}</div>`);
   realSunModel(ctx.signal).then((m) => {
     if (!m || ctx.signal.aborted) return;
     view.params = { ...view.params, sun: m };
     if (!view.binary) ctx.show(starScene, view.params, 1, view.css);
-    const s = m.summary(0), el = ctx.card.querySelector('[data-sun-activity]');
-    if (el) el.innerHTML = sunActivityHtml(s, s.realGroups);
+    real = m.summary(0).realGroups;
+    render();
+  }).catch(() => {});
+  // Güncel SDO fotoğrafı gelirse görünen yüz onunla çizilir
+  loadSdo(ctx.signal).then((sdo) => {
+    if (!sdo || ctx.signal.aborted) return;
+    view.params = { ...view.params, sdo: { ...sdo, ageDays: (Date.now() - sdo.time) / 86400000 } };
+    if (!view.binary) ctx.show(starScene, view.params, 1, view.css);
+    sdoTime = sdo.time;
+    render();
   }).catch(() => {});
 }
 

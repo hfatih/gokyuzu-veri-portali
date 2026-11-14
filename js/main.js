@@ -15,6 +15,7 @@ import { kindById, kindByObj } from './kinds/index.js';
 import { skyHtml, bindSky } from './ui/sky-card.js';
 import { initChrome, showPage, hidePage } from './ui/chrome.js';
 import { sunModel, realSunModel } from './sun/model.js';
+import { loadSdo } from './sun/sdo.js';
 import { lookupIds } from './search/simbad.js';
 import { fetchRelated, blackHolesIn, hostOfBlackHole } from './search/related.js';
 import { FEATURED, todaysPick } from './explore/featured.js';
@@ -415,6 +416,12 @@ function showHomeSun() {
       p.sun = m;
       if (body.dataset.state === 'home') showStar(p);
     }));
+    // Güncel SDO fotoğrafı: görünen yüz gerçek lekelerle
+    homeSun.then((p) => loadSdo().then((sdo) => {
+      if (!sdo) return;
+      p.sdo = { ...sdo, ageDays: (Date.now() - sdo.time) / 86400000 };
+      if (body.dataset.state === 'home') showStar(p);
+    })).catch(() => {});
   }
   homeSun.then((p) => { if (body.dataset.state === 'home') showStar(p); });
 }

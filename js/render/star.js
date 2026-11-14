@@ -5,6 +5,7 @@ import { SKY_GLSL } from './glview.js';
 import { blackbodyTable } from './color.js';
 import { pulseState } from '../variable/derive.js';
 import { MAX_SPOTS, MAX_FAC } from '../sun/activity.js';
+import { OBS_YAW } from '../sun/model.js';
 
 const BB_N = 256, BB_TMIN = 1500, BB_TMAX = 60000;
 
@@ -19,6 +20,9 @@ uniform vec2 uBBRange;
 uniform vec4 uSpot[${MAX_SPOTS}], uFac[${MAX_FAC}];
 uniform float uFacS[${MAX_FAC}];
 uniform int uNSpot, uNFac;
+uniform sampler2D uSdo;     // Güneş: SDO/HMI güncel görüntüsü (sun/sdo.js)
+uniform float uSdoOn, uSdoDays, uSdoR, uSdoQuiet;
+uniform vec2 uSdoC;
 uniform float uBright;   // zonklayan yıldızda ışık eğrisinden yüzey parlaklığı çarpanı (ortalama 1)
 uniform float uScale, uTeff, uGranF, uGranAmp, uGiantAmp, uGranPhase, uSpots, uOblate, uGEq, uBeta, uRot, uU1, uU2;
 
@@ -95,6 +99,7 @@ void main() {
     // Süperdevlerde yüzeyi birkaç dev hücre kaplar (Chiavassa+ 2010); daha yavaş evrilir
     if (uGiantAmp > 0.0) T *= 1.0 + uGiantAmp * granule(q * 1.3 + 7.0, uGranPhase * 0.15);
 
+    float Tbase = T;   // lekesiz yüzey sıcaklığı (SDO görüntüsü buna göre uygulanır)
     // Güneş modeli (sun/activity.js): lekeler ve faküller yıldızla dönmeyen çerçevede (p), konumları
     // farklı dönmeyle JS'te hesaplanır. Gölge 4040 K (0,70·T), yarı gölge 5370 K (0,93·T); gölge
     // yarıçapı lekenin ~0,42'si (alan oranı ~1/6, Solanki 2003). Faküller kenara doğru parlar.
@@ -131,6 +136,23 @@ void main() {
       T *= mix(1.0, 0.85, pen) * mix(1.0, 0.82, umb);
     }
 
+    // Gerçek Güneş (SDO/HMI): görüntü Dünya'dan görülen yüzdür (kuzey yukarı, batı sağda). Yüzey noktasının
+    // çekim anındaki yeri, farklı dönmeyle geri sarılarak bulunur (ω Snodgrass & Ulrich, modelle aynı). Görüntüdeki
+    // görsel parlaklık oranı f = I / I_sessiz, 617 nm'ye yakın görsel bantta Planck'ın tersiyle sıcaklığa çevrilir:
+    // leke gölgesi (f ≈ 0,2–0,3) ~4000 K çıkar. Kenara yaklaşınca görüntü sıkıştığı için modele yumuşak geçilir.
+    if (uSdoOn > 0.5) {
+      float lat = asin(clamp(p.y, -1.0, 1.0)), s2 = sin(lat) * sin(lat);
+      float om = (14.713 - 2.396 * s2 - 1.787 * s2 * s2) * 0.0174533;
+      float cmd = atan(p.x, p.z) - om * uSdoDays - ${OBS_YAW.toFixed(4)};
+      float facing = cos(lat) * cos(cmd);
+      if (facing > 0.0) {
+        vec2 suv = uSdoC + uSdoR * vec2(cos(lat) * sin(cmd), -sin(lat));
+        float f = dot(texture(uSdo, suv).rgb, vec3(0.2126, 0.7152, 0.0722)) / uSdoQuiet;
+        float x = 26160.0 / Tbase;
+        float Tsdo = 26160.0 / log(1.0 + (exp(x) - 1.0) / clamp(f, 0.05, 2.0));
+        T = mix(T, Tsdo, smoothstep(0.08, 0.25, facing));
+      }
+    }
     float limb = 1.0 - uU1 * (1.0 - mu) - uU2 * (1.0 - mu) * (1.0 - mu);
     vec4 bt = bb(T);
     // Kenar kızarması: kenara doğru bakış daha sığ, daha soğuk katmanda biter. Gri atmosferde
@@ -178,7 +200,28 @@ export const starScene = {
     gl.uniform1i(U.uBB, 0);
     return { tex };
   },
-  uniforms(gl, U, p, view, { tex }) {
+  uniforms(gl, U, p, view, st) {
+    const { tex } = st;
+    // Güneş'in güncel fotoğrafı (yalnız Güneş, lekeler açıkken): 2. doku biriminde
+    const sdo = p.sdo && view.spots ? p.sdo : null;
+    gl.uniform1f(U.uSdoOn, sdo ? 1 : 0);
+    if (sdo) {
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, (st.sdoTex ??= gl.createTexture()));
+      if (st.sdoImg !== sdo.img) {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, sdo.img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        st.sdoImg = sdo.img;
+      }
+      gl.uniform1i(U.uSdo, 2);
+      gl.uniform2f(U.uSdoC, sdo.cx, sdo.cy);
+      gl.uniform1f(U.uSdoR, sdo.r);
+      gl.uniform1f(U.uSdoQuiet, sdo.quiet);
+      // Çekimden bu yana geçen gün: görüntünün yaşı + sahne zamanı (Güneş modelinde zaman hızlı akar)
+      gl.uniform1f(U.uSdoDays, (sdo.ageDays ?? 0) + view.t / 86400);
+    }
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     // Değişen yıldız: ışık eğrisinden sıcaklık, sinüsle yarıçap (variable/derive.js)

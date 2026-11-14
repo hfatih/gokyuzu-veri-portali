@@ -68,3 +68,26 @@ assert.deepEqual(regs.map((r) => r.id), ['14001', '14003']);
 assert.equal(regs[0].cmd, -7);
 assert.deepEqual(parseRegions(null), []);
 console.log('sun: NOAA ayrıştırma geçti');
+
+// SDO görüntüsü: disk merkezi, yarıçapı ve sessiz Güneş parlaklığı yapay bir görüntüden doğru bulunur
+{
+  const { analyzeDisk } = await import('../js/sun/sdo.js');
+  const w = 400, h = 400, px = new Uint8ClampedArray(w * h * 4);
+  const cx = 203, cy = 198, R = 180;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+    let v = d < R ? 200 : 0;
+    if (Math.hypot(x - 230, y - 200) < 6) v = 50;                    // bir leke
+    if (y > 380 && x < 120) v = 255;                                 // köşedeki yazı etiketi
+    px[i] = px[i + 1] = px[i + 2] = v; px[i + 3] = 255;
+  }
+  const d = analyzeDisk(px, w, h);
+  near(d.cx * w, cx - 1, cx + 1, 'disk merkezi x'); near(d.cy * h, cy - 1, cy + 1, 'disk merkezi y');
+  near(d.r * w, R - 1.5, R + 1.5, 'disk yarıçapı');
+  near(d.quiet, 199 / 255, 201 / 255, 'sessiz Güneş (leke ortancayı bozmaz)');
+  assert.equal(analyzeDisk(new Uint8ClampedArray(w * h * 4), w, h), null, 'boş görüntü');
+  // Leke gölgesi (f ≈ 0,25) Planck tersinden ~4300 K, fakül (f 1,1) biraz sıcak: shader'daki bağıntı
+  const Tof = (T, f) => 26160 / Math.log(1 + Math.expm1(26160 / T) / f);
+  near(Tof(5772, 0.25), 4200, 4500, 'leke gölgesi sıcaklığı'); near(Tof(5772, 1.1), 5850, 5950, 'fakül sıcaklığı');
+  console.log('sun: SDO görüntü çözümlemesi geçti');
+}

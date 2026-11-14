@@ -336,3 +336,18 @@ Atım profili grafiği (W50'den) zaten vardı. Eklenen:
   (ad soyad, yerleşim yeri, e-posta + telefon) yalnız "ticari veya ekonomik amaçlı" içerik sağlayıcılar için; KVKK m. 10/1-a
   veri sorumlusunun kimliğini ister. VERBİS: 50'den az çalışan ve 100 milyon TL altı bilanço, ana faaliyeti özel nitelikli
   veri değilse kayıt yok. 2026 aydınlatma ihlali cezası 85.437–1.709.200 TL (yeniden değerleme %25,49).
+
+## 2026-11-14 · Performans, künye adı, Güneş'in güncel fotoğrafı (SDO)
+
+- **Performans:** ölçüm (canlı, ana sayfa): 108 istek, 731 KB, JS 96 modül 574 KB sıkıştırmasız, önbellek başlığı yok,
+  yazı tipleri ~1 sn. Sunucu: `my_webapp__6.d/perf.conf` (gzip yalnız bu sitenin statik dosyaları; YunoHost BREACH için
+  genelde kapatır) + `/etc/nginx/conf.d/gokyuzu-cache.conf` (map): html/js/css `no-cache` (ETag ile 304; yayından sonra
+  eski modül kalmaz), jpg/woff2 30 gün. Metinler 614 → 250 KB. `index.html`: latin-ext Jost ön yükleme, Harvard SIMBAD
+  ön bağlantı. `SKY_GLSL`: Samanyolu gürültüsü yalnız |sin b| < 0,4'te; gezegen sahnesinde gezegen pikselinde gökyüzü yok.
+- **Künye:** `site-info.js` `name: 'Fatih Han'`.
+- **Güneş (SDO/HMI):** `js/sun/sdo.js` (`analyzeDisk`, `loadSdo`): `sun/hmi.jpg` (sunucuda cron ile NASA'dan, tarayıcı
+  yalnız kendi alan adından ister). `render/star.js`: Dünya'ya bakan yüzde görüntünün parlaklık oranı Planck tersiyle
+  sıcaklığa (leke gölgesi ~4300 K); farklı dönmeyle çekim anına geri sarılır; kenarda modele geçiş. Kartta "Görünen
+  yüzün fotoğrafı" satırı (NASA yayım saati). Tarayıcıda NASA fotoğrafıyla karşılaştırıldı: gruplar aynı yerde.
+- **Bekleyen sunucu adımı:** cron + nginx map'te `~^/sun/ no-cache` (otomatik güvenlik denetimi komutu engelledi; Fatih'e
+  bırakıldı). Dosya yokken site model/NOAA lekeleriyle çalışır.

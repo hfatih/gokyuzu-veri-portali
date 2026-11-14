@@ -78,3 +78,6 @@ gokyuzuveriportali.com.tr (YunoHost, My Webapp + www için Redirect); kök işle
 
 **2026-11-14 (3):** Site https://gokyuzuveriportali.com.tr adresinde yayında (Let's Encrypt, www yönlendirmesi, kvkk@ takma adı).
 Güncelleme: push + sunucuya tar (engine_features.md "Yayın" bölümü). hfatih.github.io yeni adrese yönlenir.
+
+**2026-11-14 (4):** Performans (gzip + önbellek, font ön yükleme, gökyüzü maliyeti), künye adı Fatih Han, Güneş'in görünen yüzü
+NASA SDO fotoğrafından. Sunucuda SDO cron'u ve sun/ önbellek kuralı henüz kurulmadı (bekliyor).

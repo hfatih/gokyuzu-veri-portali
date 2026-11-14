@@ -184,7 +184,8 @@ const kosullar = () => `
   <p>Siteyi otomatik araçlarla aşırı yükleyecek ya da kaynak sunucuları zorlayacak biçimde kullanmamalısın.</p>
   <h2>5. Gökyüzü bilgileri ve Güneş</h2>
   <p>Doğuş, batış, “bu gece” listesi ve yükseklik eğrileri yaklaşık hesaplardır. Güneş’e hiçbir zaman çıplak gözle, dürbünle
-    ya da teleskopla, uygun bir Güneş filtresi olmadan bakma. Sitedeki Güneş bir modeldir, fotoğraf değildir.</p>
+    ya da teleskopla, uygun bir Güneş filtresi olmadan bakma. Sitedeki Güneş’in görünen yüzü NASA SDO fotoğrafından,
+    geri kalanı modeldir.</p>
   <h2>6. Sorumluluğun sınırı</h2>
   <p>Site “olduğu gibi” sunulur. Kesintisiz ya da hatasız çalışacağı, değerlerin eksiksiz ve güncel olacağı garanti edilmez;
     kaynak sunucular yanıt vermezse bazı bölümler eksik görünebilir. Siteye ya da bağlantı verilen sitelere dayanarak alınan
@@ -202,6 +203,7 @@ const SOURCES = [
   ['Wikidata', 'Wikimedia Vakfı', 'Yapılandırılmış veriler CC0 kamu malı adanmasıyla kullanılır.'],
   ['SsODNet', 'IMCCE, Paris Gözlemevi', 'Berthier vd. 2023, A&amp;A 671, A151.'],
   ['Gezegen dokuları', 'NASA / USGS', 'Merkür (MESSENGER MDIS), Dünya (Visible Earth, Terra/MODIS; gece ışıkları Suomi NPP VIIRS), Ay ve Mars kabartması (LRO LOLA, MGS MOLA), Ceres ve Vesta (Dawn), Plüton (New Horizons), Mars (Viking MDIM 2.1), Jüpiter (Cassini), Ay (LRO/LROC), İo, Europa, Ganymede, Kallisto (Galileo SSI + Voyager, USGS) ve Enceladus (Cassini) haritaları ABD hükümeti eseri olarak kamu malıdır.'],
+  ['Güneş fotoğrafı', 'NASA SDO / HMI', 'Görünen yüzün güncel görünür ışık görüntüsü (Courtesy of NASA/SDO and the HMI science team). Sunucumuz NASA’dan indirip kendi adresinden verir; ziyaretçinin tarayıcısı NASA’ya bağlanmaz.'],
   ['Güneş aktif bölgeleri', 'NOAA SWPC', 'Günlük aktif bölge raporu (ABD hükümeti verisi, kamu malı). Leke modeli: Hathaway vd. 1994, Hathaway 2011, Stenflo &amp; Kosovichev 2012, Snodgrass &amp; Ulrich 1990, Gnevyshev–Waldmeier kuralı.'],
   ['Kuasar tayfı', 'SDSS', 'Bileşik kuasar tayfı: Vanden Berk vd. 2001, AJ 122, 549.'],
   ['Yazı tipleri', 'Indestructible Type, IBM', 'Jost ve IBM Plex Mono, SIL Open Font License 1.1 ile kendi sunucumuzdan verilir.'],

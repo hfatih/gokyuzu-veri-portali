@@ -29,6 +29,7 @@ float skyFbm(vec3 x) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s +
 
 const vec3 SKY_NGP = vec3(-0.8678, 0.4560, -0.1975);   // galaktik kuzey kutbu (α 192,86°, δ +27,13°)
 const vec3 SKY_GC = vec3(-0.0549, -0.4838, -0.8735);   // galaktik merkez (α 266,40°, δ −28,94°)
+const vec3 SKY_GY = vec3(-0.4939, -0.7472, 0.4449);    // normalize(cross(SKY_NGP, SKY_GC)), önceden hesaplı
 
 // Sıcaklıktan yıldız rengi: Planck B(λ, T) ∝ λ^−5 / (e^(c₂/λT) − 1), λ µm, c₂ = 14 388 µm·K
 vec3 skyStarRgb(float T) {
@@ -64,17 +65,21 @@ vec3 sky(vec3 d) {
   float pxRad = 2.0 * uTanFov / uRes.y;
   float sb = dot(d, SKY_NGP), absB = asin(min(abs(sb), 1.0));
   float plane = exp(-absB / 0.19);                                    // ölçek ~11°: sönük yıldızlar düzlemde yoğunlaşır
-  // Galaktik çerçeve (x merkeze, z kutba): toz ve yıldız bulutları düzlem boyunca uzun, enlemde ince
-  vec3 g = vec3(dot(d, SKY_GC), dot(d, normalize(cross(SKY_NGP, SKY_GC))), sb);
-  float dust = smoothstep(0.56, 0.74, skyFbm(vec3(g.xy * 4.0, g.z * 24.0) + 3.1)) * exp(-sb * sb / 0.004);   // toz şeritleri
+  // Galaktik çerçeve (x merkeze, z kutba): toz ve yıldız bulutları düzlem boyunca uzun, enlemde ince.
+  // Düzlemden |b| > ~24° uzakta toz ve yaygın ışık ihmal edilir (exp(−sb²/0,011) < 10⁻⁶): gürültü hesaplanmaz.
+  bool near = abs(sb) < 0.4;
+  vec3 g = vec3(dot(d, SKY_GC), dot(d, SKY_GY), sb);
+  float dust = near ? smoothstep(0.56, 0.74, skyFbm(vec3(g.xy * 4.0, g.z * 24.0) + 3.1)) * exp(-sb * sb / 0.004) : 0.0;   // toz şeritleri
   float gal = (1.0 - 0.7 * dust);
   vec3 col = skyLayer(d, 40.0, -1.0, 3.5, 0.21, (1.0 + 0.5 * plane) / 1.1 * gal, pxRad)
            + skyLayer(d, 120.0, 3.5, 5.5, 0.21, (1.0 + plane) / 1.2 * gal, pxRad)
            + skyLayer(d, 260.0, 5.5, 7.5, 0.36, (1.0 + 2.5 * plane) / 1.5 * gal, pxRad);
   // Samanyolu yaygın ışığı: çözülmemiş yıldızlar; merkeze doğru şişkinlik, toz önünde kararır
-  float bulge = exp(-(1.0 - dot(d, SKY_GC)) / 0.05);
-  float glow = exp(-sb * sb / 0.011) * (0.45 + 1.1 * skyFbm(vec3(g.xy * 3.0, g.z * 10.0) + 9.7)) * (1.0 + 2.5 * bulge) * (1.0 - 0.85 * dust);
-  col += vec3(0.95, 0.88, 0.76) * glow * 0.02;   // ACES'in karanlık ucunda kaybolmayacak kadar
+  if (near) {
+    float bulge = exp(-(1.0 - dot(d, SKY_GC)) / 0.05);
+    float glow = exp(-sb * sb / 0.011) * (0.45 + 1.1 * skyFbm(vec3(g.xy * 3.0, g.z * 10.0) + 9.7)) * (1.0 + 2.5 * bulge) * (1.0 - 0.85 * dust);
+    col += vec3(0.95, 0.88, 0.76) * glow * 0.02;
+  }   // ACES'in karanlık ucunda kaybolmayacak kadar
   return col * uStars;
 }`;
 
